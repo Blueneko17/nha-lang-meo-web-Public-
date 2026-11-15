@@ -5319,7 +5319,7 @@ function updateCamera(dt){
      phải thành trái. Nay nới đúng biên thế giới nên camera luôn ở sau lưng. */
   cam.position.set(
     Math.max(-46.5, Math.min(46.5, camSmooth.x)),
-    Math.max(0.5, Math.min(18, camSmooth.y)),
+    Math.max(0.5, Math.min((RoomState.me.seat && RoomState.me.seat.charAt(0) === 'G') ? 34 : 18, camSmooth.y)),
     Math.max(-31, Math.min(121.5, camSmooth.z))
   );
   cam.lookAt(tx, ty, tz);
@@ -6003,13 +6003,16 @@ function updateActionBtn(){
   if (RoomState.inRoom){
     if (RoomState.me.seat){
       currentAction = { type: 'stand' };
-      btn.textContent = '🧍 Đứng dậy';
+      btn.textContent = (RoomState.me.seat.charAt(0) === 'G')
+        ? ((window.__ferrisNearBottom && window.__ferrisNearBottom(RoomState.me.seat)) ? '🧍 Xuống cabin · đã về bệ' : '🎡 Đang ngắm cảnh · về bệ mới xuống được')
+        : '🧍 Đứng dậy';
     } else {
       const occ = seatOccupants();
       let best = null;
       SEAT_DEFS.forEach(d => {
         if (occ.has(d.id)) return;
         const sp = SEAT_POS[d.id];
+        if (d.id.charAt(0) === 'G' && sp.y > 3) return; // cabin vòng quay chưa xuống gần bệ thì không "ngồi" từ xa/trên cao được
         const dist = Math.hypot(sp.x - myPos.x, sp.z - myPos.z);
         if (dist < 2.0 && (!best || dist < best.dist)) best = { type: 'sit', seatId: d.id, dist, label: d.label };
       });
@@ -6078,6 +6081,24 @@ function doAction(){
   if (a.type === 'stand'){
     const seatId = RoomState.me.seat;
     const sp = SEAT_POS[seatId];
+    if (seatId && seatId.charAt(0) === 'G' && window.__ferrisExitPos){
+      /* Cabin vòng quay: chỉ xuống khi cabin đã về gần bệ, và xuống thẳng
+         bệ lên xuống (mặt đất, y=0) — không dùng lối bước lùi theo ghế thường
+         vì ghế đang ở trên cao sẽ làm kẹt/rơi. Chưa về bệ thì giữ ghế. */
+      if (!window.__ferrisNearBottom || !window.__ferrisNearBottom(seatId)){
+        toast('🎡 Cabin chưa về tới bệ — ngắm cảnh thêm chút, cabin xuống thấp mới xuống được nhé');
+        updateActionBtn();
+        return;
+      }
+      onSeatClick(seatId);
+      if (!RoomState.me.seat){
+        myPos.x = window.__ferrisExitPos.x; myPos.z = window.__ferrisExitPos.z;
+        myPos.rotY = Math.PI; myY = 0; collide(myPos);
+      }
+      sendMove(true);
+      updateActionBtn();
+      return;
+    }
     onSeatClick(seatId);
     if (sp){
       /* Đứng dậy = bước lùi ra sau ghế (ngược hướng mặt), thử 4 hướng nếu hướng chính bị chặn */
@@ -10935,6 +10956,28 @@ kqRender();
     SEAT_DEFS.push({ id: 'P1', label: 'Ghế nghỉ công viên 1', zone: 'park' }, { id: 'P2', label: 'Ghế nghỉ công viên 2', zone: 'park' });
     SEAT_POS.P1 = { x: 6, z: 90.5, y: 0.55, rotY: Math.PI };
     SEAT_POS.P2 = { x: -6, z: 90.5, y: 0.55, rotY: Math.PI };
+    /* VÒNG QUAY LỚN (làm lại): tâm (24,108), bán kính vành 12, trục cao 15.55.
+       Kiểm chứng nằm trọn trong map: điểm cabin xa tâm nhất là đáy cabin khi ở
+       điểm thấp nhất = 12 + 3.15 = 15.15 theo chiều dọc → cabin cao nhất tới
+       15.55 + 12 − 0.85 (mái cabin cao nhất) ≈ 26.7; ngang tối đa ≈ 24 ± 13.3
+       → x ∈ [10.7, 37.3] ⊂ [-45,45]; z = 108 ± 1.5 ⊂ [-30,120] và trong rào
+       ngoài (x ±44.8, z −29.8..119.8). 8 cabin G1..G8 chạy theo đồng hồ tường
+       như ngựa gỗ/tàu — mọi máy khớp nhau qua SEAT_POS + presence sẵn có. */
+    window.__ferris = { x: 24, z: 108, R: 12, hubY: 15.55, seatDrop: 2.6, speed: 0.07 };
+    window.__ferrisExitPos = { x: 24, z: 106.2 };
+    window.__ferrisNearBottom = function(seatId){
+      var F = window.__ferris; if (!F) return false;
+      var idx = parseInt(String(seatId).slice(1), 10);
+      if (!(idx >= 1 && idx <= 8)) return false;
+      var a = (Date.now() / 1000) * F.speed + (idx - 1) * Math.PI / 4;
+      var d = Math.atan2(Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2));
+      return Math.abs(d) < 0.16;
+    };
+    for (var gi = 1; gi <= 8; gi++){
+      SEAT_DEFS.push({ id: 'G' + gi, label: 'Cabin vòng quay ' + gi, zone: 'park' });
+      var ga0 = (Date.now() / 1000) * window.__ferris.speed + (gi - 1) * Math.PI / 4;
+      SEAT_POS['G' + gi] = { x: 24 + Math.cos(ga0) * 12, z: 108, y: 15.55 + Math.sin(ga0) * 12 - 2.6, rotY: Math.PI };
+    }
   } catch (e) {}
   /* ---------- Vật cản của các tòa mới + bàn họp (đẩy sớm, trước khi ai di chuyển) ---------- */
   try {
@@ -10944,7 +10987,7 @@ kqRender();
     // Karaoke: sân khấu
     OB(32.6, 38.4, 25.55, 27.45);
     // Công viên: đài phun nước, đu quay (vòng rào), vòng quay quan sát, cầu trượt nhỏ, quầy
-    OB(-3.1, 3.1, 80.9, 87.1); OB(-23.6, -16.4, 88.4, 95.6); OB(22.9, 25.1, 104.6, 111.4);
+    OB(-3.1, 3.1, 80.9, 87.1); OB(-23.6, -16.4, 88.4, 95.6); OB(20.2, 27.8, 106.6, 109.4);
     OB(-24.3, -19.7, 105.7, 110.3); OB(8.6, 11.4, 74.6, 77.4); OB(-11.4, -8.6, 74.6, 77.4);
     // Cột xích đu
     OB(17.3, 17.7, 91.8, 92.2); OB(22.3, 22.7, 91.8, 92.2);
@@ -10959,6 +11002,7 @@ kqRender();
       ['🏢 Phòng họp', function(){ vlTP(25.8, 52, 0, Math.PI / 2, -Math.PI / 2); }],
       ['🎨 Phòng tranh', function(){ vlTP(25.8, 74, 0, Math.PI / 2, -Math.PI / 2); }],
       ['🎡 Công viên', function(){ vlTP(0, 71, 0, 0, Math.PI); }],
+      ['🎡 Vòng quay lớn', function(){ vlTP(24, 103.4, 0, 0, Math.PI); }],
       ['⛲ Đài phun nước', function(){ vlTP(0, 78.6, 0, 0, Math.PI); }]
     ];
     dest.forEach(function(d){
@@ -11301,47 +11345,95 @@ kqRender();
       });
       sign('🛝 XÍCH ĐU', 2.4, 0.6, '#5F7A5E', '#FFF6E0', 20, 3.1, 92, Math.PI / 2);
     })();
-    /* --- Vòng quay quan sát (24,108) — LÀM LẠI: khung chữ A chắc chắn, vành
-       đôi + bóng đèn viền, trục quay, cabin có tay treo + mái che từng chiếc.
-       Trước đây chỉ 1 trụ mảnh + vành đơn + hộp trơn nên nhìn "gãy/xấu". --- */
+    /* --- Vòng quay quan sát LỚN (24,108) — LÀM LẠI TOÀN BỘ: vành R=12,
+       trục cao 15.55 nên cabin cao nhất tới ~26.7 (ngắm trọn khu phức hợp),
+       khung chữ A đôi + thanh giằng đúng tỉ lệ, đèn viền vành + đèn cabin,
+       8 gondola có mái/thành bao LUÔN giữ thẳng đứng (ghế G1..G8).
+       Nằm trọn trong map: xa tâm nhất 15.15 (đáy cabin ở điểm thấp nhất)
+       → x ∈ [10.7,37.3] ⊂ [-45,45], z = 108±1.5 ⊂ [-30,120], trong rào ngoài.
+       Bệ lên xuống ở phía bắc (z≈105.3): cabin xuống điểm thấp nhất thì sàn
+       cabin cách đất 0.45, người đứng trên bệ bấm Ngồi như các trò khác;
+       vùng quét thấp của cabin chỉ ở mặt phẳng z=108, đã có vật cản đế
+       (20.2..27.8 × 106.6..109.4) giữ người đứng ngoài mặt phẳng đó nên
+       cabin không bao giờ chạm/kẹt người đứng dưới. --- */
     (function(){
-      var grp = new th.Group(); grp.position.set(24, 0, 108); G.add(grp);
-      [-1, 1].forEach(function(sd){
-        [-0.55, 0.55].forEach(function(zo){
-          var leg = new th.Mesh(new th.BoxGeometry(0.22, 5.4, 0.22), H.M(0x2E6B8A));
-          leg.position.set(sd * 1.15, 2.45, zo); leg.rotation.z = sd * 0.24; grp.add(leg);
-        });
+      var F = window.__ferris || { x: 24, z: 108, R: 12, hubY: 15.55 };
+      var grp = new th.Group(); grp.position.set(F.x, 0, F.z); G.add(grp);
+      function beam(x1, y1, z1, x2, y2, z2, th2, c, p){
+        var d = new th.Vector3(x2 - x1, y2 - y1, z2 - z1), len = d.length();
+        var m = new th.Mesh(new th.BoxGeometry(th2, len, th2), H.M(c));
+        m.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+        m.quaternion.setFromUnitVectors(new th.Vector3(0, 1, 0), d.normalize());
+        (p || grp).add(m); return m;
+      }
+      /* Đế bê tông + bệ lên xuống phía bắc + biển + đèn bệ */
+      bx(8.8, 0.24, 3.8, 0x9A8B78, 0, 0.12, 0, grp);
+      bx(4.6, 0.12, 2.8, 0xCFC0A4, 0, 0.06, -2.7, grp);              // bệ lên xuống (z thật 103.9..106.7)
+      bx(4.6, 0.05, 0.35, 0xE4572E, 0, 0.13, -3.95, grp);           // vạch chờ ở mép bệ
+      [-2.15, 2.15].forEach(function(px){
+        bx(0.14, 1.5, 0.14, 0x4A3A2E, px, 0.75, -4.05, grp);
+        sp(0.11, 0xFFD98A, px, 1.58, -4.05, grp); glow(0xFFC37A, 1.7, 0.5, F.x + px, 1.58, F.z - 4.05);
       });
-      bx(3.4, 0.28, 1.5, 0x4A3A2E, 0, 0.14, 0, grp);
-      bx(2.2, 0.16, 0.16, 0x2E6B8A, 0, 1.15, 0.55, grp); bx(2.2, 0.16, 0.16, 0x2E6B8A, 0, 1.15, -0.55, grp);
-      var hub = new th.Mesh(new th.CylinderGeometry(0.3, 0.3, 1.3, 12), H.M(0xF2B705));
-      hub.rotation.x = Math.PI / 2; hub.position.set(0, 4.4, 0); grp.add(hub);
-      var wheel = new th.Group(); wheel.position.set(0, 4.4, 0); grp.add(wheel);
-      [-0.2, 0.2].forEach(function(zo){
-        var rim = new th.Mesh(new th.TorusGeometry(3.0, 0.06, 8, 36), H.M(0x7FD4FF)); rim.position.z = zo; wheel.add(rim);
+      /* Khung chữ A đôi (trước/sau) + giằng ngang + chân đế */
+      [-0.95, 0.95].forEach(function(zo){
+        beam(-3.6, 0.2, zo, 0, F.hubY, zo, 0.42, 0x2E6B8A);
+        beam(3.6, 0.2, zo, 0, F.hubY, zo, 0.42, 0x2E6B8A);
+        beam(-2.33, 5.5, zo, 2.33, 5.5, zo, 0.2, 0x2E6B8A);
+        beam(-1.29, 10, zo, 1.29, 10, zo, 0.17, 0x2E6B8A);
+        beam(-3.6, 0.2, zo, 3.6, 0.2, zo, 0.24, 0x245A75);
       });
+      [-3.6, 3.6].forEach(function(fx){ bx(1.15, 0.36, 2.7, 0x4A3A2E, fx, 0.18, 0, grp); });
+      beam(0, F.hubY, -1.5, 0, F.hubY, 1.5, 0.3, 0x245A75);
+      var hub = new th.Mesh(new th.CylinderGeometry(0.36, 0.36, 2.9, 14), H.M(0xF2B705));
+      hub.rotation.x = Math.PI / 2; hub.position.set(0, F.hubY, 0); grp.add(hub);
+      /* Bánh quay: vành đôi R=12 + vòng trong + nan hoa + 32 bóng đèn viền */
+      var wheel = new th.Group(); wheel.position.set(0, F.hubY, 0); grp.add(wheel);
+      [-0.55, 0.55].forEach(function(zo){
+        var rim = new th.Mesh(new th.TorusGeometry(F.R, 0.09, 8, 64), H.M(0x7FD4FF)); rim.position.z = zo; wheel.add(rim);
+        var rim2 = new th.Mesh(new th.TorusGeometry(6, 0.05, 6, 40), H.M(0xA8DFF5)); rim2.position.z = zo; wheel.add(rim2);
+      });
+      var hubDisc = new th.Mesh(new th.CylinderGeometry(0.95, 0.95, 1.25, 16), H.M(0x2E6B8A));
+      hubDisc.rotation.x = Math.PI / 2; wheel.add(hubDisc);
       var bulbCols = [0xFFD98A, 0xFF8FB5, 0x7FD4FF, 0xB6F2A8];
-      for (var bi = 0; bi < 16; bi++){
-        var ba = bi / 16 * Math.PI * 2;
-        var bulb = new th.Mesh(new th.SphereGeometry(0.075, 8, 6), new th.MeshBasicMaterial({ color: bulbCols[bi % 4] }));
-        bulb.position.set(Math.cos(ba) * 3.0, Math.sin(ba) * 3.0, 0); wheel.add(bulb);
+      for (var bi = 0; bi < 32; bi++){
+        var ba = bi / 32 * Math.PI * 2;
+        var bulb = new th.Mesh(new th.SphereGeometry(0.11, 8, 6), new th.MeshBasicMaterial({ color: bulbCols[bi % 4] }));
+        bulb.position.set(Math.cos(ba) * F.R, Math.sin(ba) * F.R, 0); wheel.add(bulb);
       }
       window.__bcGondolas = [];
-      var cabCols = [0xE77FB0, 0xF2B705, 0x7FD4FF, 0x2EA44F, 0xE4572E, 0xB56A3A];
-      for (var i = 0; i < 6; i++){
-        var ga = i / 6 * Math.PI * 2;
-        var spoke = new th.Mesh(new th.CylinderGeometry(0.035, 0.035, 3.0, 5), H.M(0xD9C7A8));
-        spoke.position.set(Math.cos(ga) * 1.5, Math.sin(ga) * 1.5, 0); spoke.rotation.z = ga - Math.PI / 2; wheel.add(spoke);
-        var gon = new th.Group(); gon.position.set(Math.cos(ga) * 3.0, Math.sin(ga) * 3.0, 0); wheel.add(gon);
-        var arm = new th.Mesh(new th.BoxGeometry(0.07, 0.42, 0.07), H.M(0x4A3A2E)); arm.position.y = -0.21; gon.add(arm);
-        var cab = new th.Mesh(new th.BoxGeometry(0.9, 0.62, 0.72), H.M(cabCols[i])); cab.position.y = -0.78; gon.add(cab);
-        var croof = new th.Mesh(new th.ConeGeometry(0.68, 0.3, 4), H.M(0xFDF6E3)); croof.position.y = -0.32; croof.rotation.y = Math.PI / 4; gon.add(croof);
-        var cwin = new th.Mesh(new th.BoxGeometry(0.94, 0.2, 0.76), new th.MeshBasicMaterial({ color: 0xEAF7FF })); cwin.position.y = -0.68; gon.add(cwin);
+      var cabCols = [0xE77FB0, 0xF2B705, 0x7FD4FF, 0x2EA44F, 0xE4572E, 0xA34D7C, 0x2E9E8A, 0xE0393E];
+      for (var i = 0; i < 8; i++){
+        var ga = i / 8 * Math.PI * 2;
+        [-0.55, 0.55].forEach(function(zo){
+          var spoke = new th.Mesh(new th.CylinderGeometry(0.045, 0.045, F.R, 5), H.M(0xD9C7A8));
+          spoke.position.set(Math.cos(ga) * F.R / 2, Math.sin(ga) * F.R / 2, zo); spoke.rotation.z = ga - Math.PI / 2; wheel.add(spoke);
+        });
+        /* Gondola: tay treo → mái → 4 cột → thành bao quanh → sàn → ghế băng.
+           Sàn ở −3.1, mặt ghế −2.6 (khớp seatDrop), đầu người ngồi ≈ −1.5
+           nằm gọn dưới mái (−1.33) và trong dải mở ngắm cảnh. */
+        var gon = new th.Group(); gon.position.set(Math.cos(ga) * F.R, Math.sin(ga) * F.R, 0); wheel.add(gon);
+        var cc = cabCols[i];
+        var arm = new th.Mesh(new th.BoxGeometry(0.1, 0.9, 0.1), H.M(0x4A3A2E)); arm.position.y = -0.45; gon.add(arm);
+        var pin = new th.Mesh(new th.CylinderGeometry(0.1, 0.1, 0.56, 8), H.M(0xF2B705)); pin.rotation.x = Math.PI / 2; gon.add(pin);
+        var croof = new th.Mesh(new th.ConeGeometry(1.38, 0.52, 4), H.M(cc)); croof.position.y = -1.08; croof.rotation.y = Math.PI / 4; gon.add(croof);
+        var plate = new th.Mesh(new th.BoxGeometry(2.05, 0.07, 1.55), H.M(0x4A3A2E)); plate.position.y = -1.34; gon.add(plate);
+        [[-0.9, -0.65], [0.9, -0.65], [-0.9, 0.65], [0.9, 0.65]].forEach(function(pp){
+          var post = new th.Mesh(new th.BoxGeometry(0.07, 1.45, 0.07), H.M(0x4A3A2E)); post.position.set(pp[0], -2.06, pp[1]); gon.add(post);
+        });
+        var floor = new th.Mesh(new th.BoxGeometry(1.95, 0.1, 1.42), H.M(cc)); floor.position.y = -3.1; gon.add(floor);
+        var wallF = new th.Mesh(new th.BoxGeometry(1.95, 0.5, 0.06), H.M(cc)); wallF.position.set(0, -2.82, 0.68); gon.add(wallF);
+        var wallB = wallF.clone(); wallB.position.z = -0.68; gon.add(wallB);
+        var wallL = new th.Mesh(new th.BoxGeometry(0.06, 0.5, 1.42), H.M(cc)); wallL.position.set(-0.95, -2.82, 0); gon.add(wallL);
+        var wallR = wallL.clone(); wallR.position.x = 0.95; gon.add(wallR);
+        var bench = new th.Mesh(new th.BoxGeometry(1.5, 0.09, 0.42), H.M(0x8B4A2B)); bench.position.set(0, -2.65, -0.28); gon.add(bench);
+        var lampDot = new th.Mesh(new th.SphereGeometry(0.06, 6, 6), new th.MeshBasicMaterial({ color: 0xFFE9B0 })); lampDot.position.y = -1.46; gon.add(lampDot);
+        glow(0xFFD98A, 1.15, 0.5, 0, -1.5, 0, gon);
         window.__bcGondolas.push(gon);
       }
       window.__bcWheel = wheel;
-      glow(0x7FD4FF, 3.2, 0.4, 24, 4.4, 108.4);
-      sign('🎡 VÒNG QUAY', 2.6, 0.6, '#2E6B8A', '#EAF7FF', 24, 1.7, 104.2, 0);
+      glow(0x7FD4FF, 4.2, 0.4, F.x, F.hubY, F.z + 0.6);
+      glow(0xFFD98A, 2.6, 0.45, F.x, F.hubY, F.z - 0.6);
+      sign('🎡 VÒNG QUAY', 3.2, 0.75, '#2E6B8A', '#EAF7FF', F.x, 2.3, F.z - 4.6, Math.PI);
     })();
     /* --- Cầu trượt trẻ em (-22,108) --- */
     (function(){
@@ -11455,7 +11547,7 @@ kqRender();
         glow(0xFFB36B, 0.85, 0.55, -2.6, sy, sz); glow(0xFF8FB5, 0.85, 0.55, 2.6, sy, sz);
       }
       var pl1 = new th.PointLight(0xFFC37A, 1.25, 17); pl1.position.set(0, 3.4, 84); G.add(pl1);
-      var pl2 = new th.PointLight(0x7FD4FF, 0.95, 16); pl2.position.set(24, 5.2, 108); G.add(pl2);
+      var pl2 = new th.PointLight(0x7FD4FF, 1.15, 34); pl2.position.set(24, 16, 108); G.add(pl2);
       var pl3 = new th.PointLight(0xFFB36B, 0.9, 15); pl3.position.set(-20, 4.2, 92); G.add(pl3);
     })();
   }
@@ -11546,10 +11638,20 @@ kqRender();
           var sp3 = SEAT_POS['W' + (i + 1)];
           if (sp3){ sp3.z = 92 - Math.sin(a) * 1.78; sp3.y = (2.55 - Math.cos(a) * 1.78) + 0.32; sp3.x = i ? 21.2 : 18.8; }
         });
-        /* Vòng quay quan sát: bánh quay, cabin luôn thẳng đứng */
+        /* Vòng quay LỚN: quay chậm đều (0.07 rad/s ≈ 90s/vòng), cabin luôn
+           thẳng đứng (gon.rotation.z = −WA), ghế G1..G8 bám đúng vị trí cabin
+           theo đồng hồ tường — người ngồi theo cabin lên cao ngắm toàn map,
+           người khác thấy qua presence như ghế thường. */
         if (window.__bcWheel){
-          var WA = t * 0.35; window.__bcWheel.rotation.z = WA;
+          var FW = window.__ferris || { x: 24, z: 108, R: 12, hubY: 15.55, seatDrop: 2.6, speed: 0.07 };
+          var WA = t * FW.speed; window.__bcWheel.rotation.z = WA;
           (window.__bcGondolas || []).forEach(function(gon){ gon.rotation.z = -WA; });
+          for (var gi2 = 0; gi2 < 8; gi2++){
+            var spG = SEAT_POS['G' + (gi2 + 1)]; if (!spG) continue;
+            var ga3 = WA + gi2 * Math.PI / 4;
+            spG.x = FW.x + Math.cos(ga3) * FW.R; spG.z = FW.z;
+            spG.y = FW.hubY + Math.sin(ga3) * FW.R - FW.seatDrop; spG.rotY = Math.PI;
+          }
         }
         /* Tàu siêu tốc + ghế T1 khớp toa */
         var CO = window.__bcCoaster;
