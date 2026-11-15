@@ -6210,7 +6210,7 @@
    Máy chủ: wss://nha-xem-phim-online.onrender.com (Nhà Làng Mèo, tối đa 30
    người). Transport GIỮ NGUYÊN giao diện nội bộ cũ — send(type, data) phát
    các sự kiện nội bộ ('join', 'presence', 'move', 'screen', 'chat',
-   'action', 'voice-signal', 'vl-*', 'game-*', 'art-*', 'draw-*'…) và nhận
+   'action', 'vl-*' (gồm 'vl-va' — gói tiếng voice), 'game-*', 'art-*', 'draw-*'…) và nhận
    về qua Net.onMessage đúng định dạng cũ — mọi hệ phía trên (sảnh game
    chủ-trọng tài, fanart, DJ, Sky Bar, karaoke…) không phải sửa logic.
    Việc dịch hai chiều nội bộ ↔ giao thức máy chủ nằm hết ở lớp này:
@@ -6227,7 +6227,7 @@
                   gửi thêm seat {seatId} (máy chủ chặn trùng ghế)
    - 'screen'   → video {videoId, playing, currentTime: 0}
    - 'chat'     → chat {text}; 'action' → action {kind, toId số}
-   - 'voice-signal' → voice-signal {toId số, data} điểm-tới-điểm
+   - 'vl-va' (gói tiếng voice) → sync {kind:'vl-va'} như mọi kênh 'vl-*'
    - 'vl-*'     → sync {kind, data} (kênh đồng bộ mở của máy chủ)
    - còn lại (game-status, game-lobby, game-sync, karaoke, cheer, reaction,
      art-*, draw-*, screen-state, voice-hello, voice-bye…) → gói vào tin
@@ -6236,7 +6236,7 @@
    NHẬN (máy chủ → nội bộ): joined → gán id 'ws-<số>' cho mình (id thống
    nhất mọi máy nên game/voice nhắm đích khớp nhau); presence → tổng hợp
    thành 'presence'/'join'/'leave' nội bộ cho từng người; move/seat →
-   'move'/'presence'; video → 'screen'; chat/action/voice-signal đổi
+   'move'/'presence'; video → 'screen'; chat/action đổi
    from/to về dạng 'ws-<số>'; game → bung gói __t; sync → 'vl-*'.
    Member WS mang cờ ws:true để pruneMembers không xoá nhầm (máy chủ chỉ
    phát presence khi có thay đổi, không phát theo nhịp tim). */
@@ -6359,7 +6359,7 @@
 
       const Transport = {
         ws: null,
-        voiceReady: false, // bật khi đã join xong trên máy chủ (voice WebRTC dùng kênh voice-signal của máy chủ)
+        voiceReady: false, // bật khi đã join xong trên máy chủ (voice qua máy chủ dùng kênh sync 'vl-va' của socket này)
         _wantIn: false, // người dùng đang ở trong làng → mất nối thì tự nối lại
         _joined: false, // đã nhận tin 'joined' của phiên socket hiện tại
         _everOpen: false, // đã từng mở được socket (phân biệt lần nối đầu chậm do máy chủ ngủ)
@@ -6644,14 +6644,6 @@
                 toId: "ws-" + m.toId,
               });
               break;
-            case "voice-signal":
-              Net.onMessage({
-                type: "voice-signal",
-                from: "ws-" + m.fromId,
-                to: RoomState.me.id,
-                data: m.data,
-              });
-              break;
             case "game": {
               const p = m.payload;
               if (p && typeof p.__t === "string") {
@@ -6735,11 +6727,6 @@
             case "action": {
               const n = wsNum(data.toId);
               if (n !== null) this._raw({ type: "action", kind: data.kind, toId: n });
-              return;
-            }
-            case "voice-signal": {
-              const n = wsNum(data.to);
-              if (n !== null) this._raw({ type: "voice-signal", toId: n, data: data.data });
               return;
             }
             default: {
@@ -6847,21 +6834,18 @@
                   (ACTION_VERBS[msg.kind] || msg.kind) +
                   " — không sao, lần sau nhé 🌿",
               );
-          } else if (msg.type === "voice-signal" && msg.to === RoomState.me.id) {
-            VoiceChat.handleSignal(msg.from, msg.data);
+          } else if (msg.type === "vl-va") {
+            /* Gói tiếng voice qua máy chủ (kind sync 'vl-va'): VoiceChat
+               tự lọc phạm vi kênh chung / phòng riêng rồi phát. */
+            VoiceChat.receiveAudio(msg.from, msg);
           } else if (msg.type === "voice-hello") {
             VoiceChat.peerChannels.set(msg.from, msg.channel || "all");
-            if (VoiceChat.enabled) {
-              /* Bên kia VỪA bật mic: peer cũ với họ (nếu có) là tàn dư của
-                 lần offer bị bỏ lúc họ chưa bật — createPeer sẽ no-op vì
-                 peer đã tồn tại và cả hai kẹt vĩnh viễn. Đóng hẳn, tạo mới
-                 để đàm phán lại từ đầu, lần này họ trả lời được. */
-              VoiceChat.closePeer(msg.from);
-              VoiceChat.createPeer(msg.from, true);
-              VoiceChat.broadcastState();
-            }
+            /* Voice qua máy chủ: không còn đàm phán ngang hàng — bên kia
+               vừa bật mic thì mình chỉ đáp lại trạng thái kênh của mình;
+               tiếng của họ sẽ tự chảy về qua các gói 'vl-va'. */
+            if (VoiceChat.enabled) VoiceChat.broadcastState();
           } else if (msg.type === "voice-bye") {
-            VoiceChat.closePeer(msg.from);
+            VoiceChat.playStates.delete(msg.from);
             VoiceChat.peerChannels.delete(msg.from);
             VoiceChat.speakingPeers.delete(msg.from);
           } else if (msg.type === "voice-state") {
@@ -13577,36 +13561,56 @@
         log.scrollTop = log.scrollHeight;
       }
 
-      /* ---------- Voice chat (WebRTC qua kênh 'voice-signal' điểm-tới-điểm) ----------
-   CƠ CHẾ MỚI (thay hẳn cơ chế theo khoảng cách cũ):
-   - Bật mic = vào KÊNH VOICE CHUNG: nghe/nói toàn khu như nhau, bất kể đứng đâu.
-   - PHÒNG VOICE RIÊNG: ai cũng tạo được phòng (đặt tên); người ngoài XIN VÀO
-     (chủ phòng duyệt) hoặc được chủ phòng MỜI; chỉ người trong cùng phòng
-     riêng mới nghe nhau — vào phòng riêng là rời kênh chung.
-   Nhóm nghe chỉ là logic phía khách: tiếng của mỗi peer phát qua thẻ
-   <audio> riêng, volume = 1 khi cùng kênh, 0 khi khác kênh. Đàm phán
-   WebRTC theo mẫu perfect negotiation (phía id lớn hơn "nhường" khi hai
-   offer va chạm) — bản cũ deadlock: offer gửi lúc bên kia chưa bật mic bị
-   bỏ, offer ngược lại sau đó văng lỗi glare bị nuốt → không bao giờ có
-   answer, hai bên bật mic mà câm. Trạng thái kênh/phòng đồng bộ qua các
-   tin game-wrap 'voice-state' / 'voice-room*' (máy chủ chỉ relay). */
+      /* ---------- Voice chat QUA MÁY CHỦ (server-relayed, kiểu Discord) ----------
+   THAY HẲN voice ngang hàng WebRTC (P2P): đường P2P đã hỏng hai lần khi
+   dùng thật — hai người cùng một WiFi bật mic vẫn câm hoàn toàn (đàm phán
+   offer/answer + ICE/NAT phía khách không qua nổi). Nay tiếng đi ĐÚNG
+   đường mà chat/di chuyển đang chạy tốt: WebSocket của làng.
+   - Thu: mic → WebAudio (AudioWorklet, không có thì ScriptProcessor),
+     hạ mẫu về PCM 16-bit mono 16kHz, cắt gói ~0.25 giây (4000 mẫu =
+     8000 byte ≈ 10.7KB base64 — dưới trần 16KB/tin của kênh sync).
+   - Gửi: mỗi gói là một tin sync kind 'vl-va' {ch, d} — máy chủ relay
+     broadcast cho cả làng trừ người gửi. 'ch' là phạm vi nghe: 'all'
+     (kênh chung toàn làng) hoặc id phòng riêng 'vr-…'. Có cổng VAD:
+     gói gần như im lặng thì không gửi (tiết kiệm đường relay), giữ đuôi
+     600ms để không cụt cuối từ.
+   - Nghe: WebAudio + hàng đợi đệm theo từng người nói (điểm phát dự
+     kiến ~0.35s trong tương lai → tiếng liền mạch, độ trễ < 0.5s);
+     nhiều người nói cùng lúc phát song song, tự trộn trong context.
+     Máy khách chỉ PHÁT gói thuộc phạm vi mình đang ở (kênh chung /
+     cùng phòng riêng) — gói khác phạm vi bỏ ngay.
+   - PHÒNG VOICE RIÊNG giữ nguyên cơ chế cũ (tạo/xin vào/mời qua các
+     tin game-wrap 'voice-state' / 'voice-room*', máy chủ chỉ relay).
+   - Mic xanh trên đầu: phía gửi đo RMS thật của luồng mic; phía nghe
+     đo RMS của gói nhận được — trạng thái khớp tiếng thật hai đầu. */
       const VoiceChat = {
         enabled: false,
         muted: false,
         stream: null,
-        ctx: null,
-        peers: new Map(),
         channel: "all", // 'all' = kênh chung; hoặc id phòng riêng
         peerChannels: new Map(), // id -> 'all' | roomId | null (chưa rõ)
         rooms: new Map(), // roomId -> {id, name, ownerId, ownerName, members:[id]}
         speaking: false, // mình đang nói (đo từ mức âm mic thật, xem levelTick)
-        speakingPeers: new Map(), // id -> mốc thời gian lần cuối họ báo "đang nói"
-        levelCtx: null,
-        levelAnalyser: null,
+        speakingPeers: new Map(), // id -> mốc thời gian lần cuối thấy họ có tiếng
         levelTimer: null,
-        levelData: null,
         lastLoudAt: 0,
         lastSpeakPingAt: 0,
+        /* --- Thu âm (gửi) --- */
+        SR: 16000, // tần số mẫu của gói tiếng trên đường relay
+        CHUNK: 4000, // mẫu/gói = 0.25 giây ở 16kHz
+        capCtx: null,
+        capSrc: null,
+        capNode: null,
+        capSink: null,
+        _carry: null, // mẫu gốc còn dư sau hạ mẫu (Float32Array)
+        _phase: 0, // pha lẻ của bộ hạ mẫu giữa hai lần feed
+        _chunk: [], // mẫu 16kHz đang gom cho gói kế tiếp
+        _rms: 0, // RMS của mẻ mẫu gốc gần nhất (đo "đang nói")
+        _rmsAt: 0,
+        _lastSentAt: 0, // mốc gửi gói cuối (cổng VAD giữ đuôi tiếng)
+        /* --- Phát âm (nghe) --- */
+        playCtx: null,
+        playStates: new Map(), // id -> {nextAt} điểm phát dự kiến trong playCtx
         myRoomId() {
           const r = this.rooms.get(this.channel);
           return r && r.members.includes(RoomState.me.id) ? this.channel : null;
@@ -13618,24 +13622,23 @@
           if (mine) return theirs === mine;
           return theirs === "all" || theirs === undefined || theirs === null;
         },
+        /* Tên giữ từ bản WebRTC (nhiều nơi gọi định kỳ): nay nghĩa là "ai
+           không còn cùng phạm vi nghe thì bỏ đệm tiếng đã xếp của họ" —
+           chuyển kênh/phòng là cắt tiếng cũ ngay, không phát nốt. */
         updateGains() {
           if (!this.enabled) return;
-          this.peers.forEach((peer, id) => {
-            const on = this.sameChannel(id) ? 1 : 0;
-            if (peer.gain && this.ctx) {
-              try {
-                peer.gain.gain.setTargetAtTime(on, this.ctx.currentTime, 0.08);
-              } catch (e) {
-                peer.gain.gain.value = on;
-              }
-            }
-            if (peer.el) {
-              peer.el.volume = on;
-              peer.el.muted = false;
-              if (on && peer.el.paused) {
-                const pr = peer.el.play();
-                if (pr && pr.catch) pr.catch(() => {});
-              }
+          const now = this.playCtx ? this.playCtx.currentTime : 0;
+          this.playStates.forEach((st, id) => {
+            if (!this.sameChannel(id) && st.srcs) {
+              st.srcs.forEach((s) => {
+                if (s.at > now) {
+                  try {
+                    s.src.stop();
+                  } catch (e) {}
+                }
+              });
+              st.srcs = [];
+              st.nextAt = 0;
             }
           });
         },
@@ -13651,35 +13654,32 @@
         },
         setChannel(roomId) {
           this.channel = roomId || "all";
+          const now = this.playCtx ? this.playCtx.currentTime : 0;
+          this.playStates.forEach((st) => {
+            if (st.srcs) {
+              st.srcs.forEach((s) => {
+                if (s.at > now) {
+                  try {
+                    s.src.stop();
+                  } catch (e) {}
+                }
+              });
+              st.srcs = [];
+            }
+            st.nextAt = 0;
+          });
           this.broadcastState();
           this.updateGains();
           renderVoicePanel();
         },
-        /* ----- Chỉ báo "đang nói": đo mức âm THẬT từ mic của chính mình.
-           Chỉ máy của người nói mới đo được mic của họ → khi trạng thái đổi
-           (và một nhịp giữ mỗi 600ms lúc đang nói) máy đó phát tin
-           'voice-speaking' cho cả phòng; mọi máy hiện mic xanh trên đầu
-           người nói, máy nào quá 1.6s không thấy nhịp sẽ tự ẩn (mất gói
-           "đã im" cũng không treo mic). Ngưỡng RMS 0.05 + giữ 380ms sau
-           tiếng cuối để mic không nhấp nháy theo từng âm tiết. ----- */
+        /* ----- Chỉ báo "đang nói": đo mức âm THẬT từ luồng mic của chính
+           mình (RMS cập nhật trong _feed mỗi mẻ mẫu thu). Khi trạng thái
+           đổi (và một nhịp giữ mỗi 600ms lúc đang nói) máy này phát tin
+           'voice-speaking' cho cả phòng; phía nghe còn tự đo RMS của gói
+           tiếng nhận được nên mic xanh khớp tiếng thật ở cả hai đầu.
+           Ngưỡng RMS 0.05 + giữ 380ms sau tiếng cuối chống nhấp nháy. --- */
         startLevelMonitor() {
           this.stopLevelMonitor();
-          if (!this.stream) return;
-          try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            this.levelCtx = new AC();
-            const src = this.levelCtx.createMediaStreamSource(this.stream);
-            this.levelAnalyser = this.levelCtx.createAnalyser();
-            this.levelAnalyser.fftSize = 512;
-            this.levelData = new Uint8Array(this.levelAnalyser.fftSize);
-            src.connect(this.levelAnalyser); // chỉ đo, không nối ra loa
-            if (this.levelCtx.state === "suspended") this.levelCtx.resume();
-          } catch (e) {
-            this.levelCtx = null;
-            this.levelAnalyser = null;
-            return;
-          }
           this.lastLoudAt = 0;
           this.levelTimer = setInterval(() => this.levelTick(), 120);
         },
@@ -13688,28 +13688,15 @@
             clearInterval(this.levelTimer);
             this.levelTimer = null;
           }
-          if (this.levelCtx) {
-            try {
-              this.levelCtx.close();
-            } catch (e) {}
-            this.levelCtx = null;
-          }
-          this.levelAnalyser = null;
           if (this.speaking) {
             this.speaking = false;
             Transport.send("voice-speaking", { speaking: false });
           }
         },
         levelTick() {
-          if (!this.enabled || !this.levelAnalyser) return;
-          if (this.levelCtx && this.levelCtx.state === "suspended") this.levelCtx.resume();
-          this.levelAnalyser.getByteTimeDomainData(this.levelData);
-          let sum = 0;
-          for (let i = 0; i < this.levelData.length; i++) {
-            const v = (this.levelData[i] - 128) / 128;
-            sum += v * v;
-          }
-          const rms = Math.sqrt(sum / this.levelData.length);
+          if (!this.enabled) return;
+          const fresh = Date.now() - this._rmsAt < 300;
+          const rms = fresh ? this._rms : 0;
           const now = Date.now();
           if (!this.muted && rms > 0.05) this.lastLoudAt = now;
           const on = !this.muted && now - this.lastLoudAt < 380;
@@ -13723,6 +13710,10 @@
           }
         },
         async toggle() {
+          if (this.enabled) {
+            this.stop();
+            return;
+          }
           if (!Transport.voiceReady) {
             const st = $("#voiceStatus");
             st.hidden = false;
@@ -13731,12 +13722,14 @@
             $("#voiceBtn").textContent = "🎙️ Voice: chờ kết nối";
             return;
           }
-          if (this.enabled) {
-            this.stop();
-            return;
-          }
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            toast("Trình duyệt này không hỗ trợ mic");
+            /* Không hỗ trợ mic (thường là mở trang trong app chat / trình
+               duyệt nhúng): nói rõ thay vì hiện "đang bật" giả. */
+            const st = $("#voiceStatus");
+            st.hidden = false;
+            st.textContent =
+              "🎙️ Trình duyệt này không cho dùng mic nên chưa bật voice được — hãy mở trang bằng Chrome (điện thoại) hoặc Chrome/Edge (máy tính) rồi bấm lại nút Voice nhé.";
+            toast("Trình duyệt này không hỗ trợ mic — mở bằng Chrome nhé");
             return;
           }
           try {
@@ -13744,175 +13737,283 @@
               audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
             });
           } catch (e) {
-            toast("Không mở được mic — kiểm tra quyền micro của trình duyệt");
+            /* Chưa được cấp quyền mic: báo rõ cách cấp, KHÔNG hiện "đang
+               bật" giả như bản cũ. */
+            const denied = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
+            const st = $("#voiceStatus");
+            st.hidden = false;
+            st.textContent = denied
+              ? "🎙️ Chưa được cấp quyền mic nên chưa nói được. Cách cấp: bấm vào biểu tượng ổ khoá (hoặc ⋮ → Cài đặt trang) trên thanh địa chỉ → Micro → Cho phép, rồi bấm lại nút Voice. Mở trang bằng Chrome thì mic chạy ổn định nhất."
+              : "🎙️ Không mở được mic (" +
+                (e && e.name ? e.name : "lỗi lạ") +
+                ") — kiểm tra máy có mic / ứng dụng khác đang chiếm mic, rồi bấm lại nút Voice nhé.";
+            $("#voiceBtn").textContent = "🎙️ Voice: chưa có quyền mic";
+            toast(denied ? "Chưa được cấp quyền mic — xem hướng dẫn dưới khung chat" : "Không mở được mic");
             return;
           }
-          /* Không dùng AudioContext cho tiếng nói nữa: đường cũ qua
-             createMediaStreamSource + GainNode bị câm hẳn khi context ở
-             trạng thái suspended (rất thường gặp trên điện thoại) và trên
-             Safari luồng WebRTC qua WebAudio cũng ra tiếng câm. Tiếng nay
-             phát thẳng qua thẻ <audio> của từng peer (xem createPeer). */
-          this.ctx = null;
           this.enabled = true;
           this.muted = false;
+          this._ensurePlayCtx();
+          try {
+            await this.startCapture();
+          } catch (e) {
+            this.enabled = false;
+            if (this.stream) {
+              this.stream.getTracks().forEach((t) => t.stop());
+              this.stream = null;
+            }
+            const st = $("#voiceStatus");
+            st.hidden = false;
+            st.textContent =
+              "🎙️ Mic đã cấp quyền nhưng không khởi động được bộ thu âm trên trình duyệt này — hãy mở trang bằng Chrome rồi bấm lại nút Voice nhé.";
+            toast("Không khởi động được bộ thu âm — mở bằng Chrome nhé");
+            return;
+          }
           this.startLevelMonitor();
           $("#voiceBtn").textContent = "🔴 Voice: đang bật";
           $("#voiceBtn").classList.add("on");
           $("#voiceStatus").hidden = true;
           Transport.send("voice-hello", { channel: this.myRoomId() || "all" });
-          RoomState.members.forEach((m, id) => {
-            if (id !== RoomState.me.id) this.createPeer(id, true);
-          });
           this.broadcastState();
-          this.updateGains();
           renderVoicePanel();
           toast("Đã bật voice — bạn đang ở KÊNH CHUNG: cả làng nghe thấy nhau, bất kể đứng đâu 🎙️");
         },
-        createPeer(id, initiator) {
-          if (!this.enabled || this.peers.has(id)) return;
-          let pc;
+        /* ----- Thu mic → gói PCM: AudioWorklet nếu có, không thì
+           ScriptProcessor. Cả hai đều qua một GainNode gain=0 mới nối ra
+           loa (node xử lý phải nằm trong graph mới chạy; gain 0 nên mic
+           không bao giờ dội thẳng ra loa gây hú). ----- */
+        async startCapture() {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) throw new Error("no-audio-context");
+          this._carry = new Float32Array(0);
+          this._phase = 0;
+          this._chunk = [];
+          this._rms = 0;
+          this._rmsAt = 0;
+          this._lastSentAt = 0;
+          this.capCtx = new AC();
+          if (this.capCtx.state === "suspended") {
+            try {
+              await this.capCtx.resume();
+            } catch (e) {}
+          }
+          const rate = this.capCtx.sampleRate;
+          this.capSrc = this.capCtx.createMediaStreamSource(this.stream);
+          this.capSink = this.capCtx.createGain();
+          this.capSink.gain.value = 0;
+          this.capSink.connect(this.capCtx.destination);
+          const feed = (f32) => {
+            if (this.enabled && f32 && f32.length) this._feed(f32, rate);
+          };
+          let workletOk = false;
+          if (this.capCtx.audioWorklet && typeof Blob !== "undefined" && typeof URL !== "undefined") {
+            try {
+              const code =
+                "class VCap extends AudioWorkletProcessor{" +
+                "constructor(){super();this.b=new Float32Array(2048);this.n=0;}" +
+                "process(inputs){var ch=inputs[0]&&inputs[0][0];if(ch){for(var i=0;i<ch.length;i++){this.b[this.n++]=ch[i];if(this.n>=2048){this.port.postMessage(this.b.slice(0));this.n=0;}}}return true;}}" +
+                "registerProcessor('vcap',VCap);";
+              const url = URL.createObjectURL(new Blob([code], { type: "application/javascript" }));
+              try {
+                await this.capCtx.audioWorklet.addModule(url);
+              } finally {
+                try {
+                  URL.revokeObjectURL(url);
+                } catch (e) {}
+              }
+              const node = new AudioWorkletNode(this.capCtx, "vcap");
+              node.port.onmessage = (e) => feed(e.data);
+              this.capSrc.connect(node);
+              node.connect(this.capSink);
+              this.capNode = node;
+              workletOk = true;
+            } catch (e) {
+              workletOk = false;
+            }
+          }
+          if (!workletOk) {
+            const node = this.capCtx.createScriptProcessor(4096, 1, 1);
+            node.onaudioprocess = (e) => {
+              try {
+                feed(e.inputBuffer.getChannelData(0).slice(0));
+              } catch (err) {}
+            };
+            this.capSrc.connect(node);
+            node.connect(this.capSink);
+            this.capNode = node;
+          }
+        },
+        stopCapture() {
+          if (this.capNode) {
+            try {
+              this.capNode.disconnect();
+            } catch (e) {}
+            if (this.capNode.port) this.capNode.port.onmessage = null;
+            if ("onaudioprocess" in this.capNode) this.capNode.onaudioprocess = null;
+            this.capNode = null;
+          }
+          if (this.capSrc) {
+            try {
+              this.capSrc.disconnect();
+            } catch (e) {}
+            this.capSrc = null;
+          }
+          if (this.capSink) {
+            try {
+              this.capSink.disconnect();
+            } catch (e) {}
+            this.capSink = null;
+          }
+          if (this.capCtx) {
+            try {
+              this.capCtx.close();
+            } catch (e) {}
+            this.capCtx = null;
+          }
+          this._carry = new Float32Array(0);
+          this._chunk = [];
+          this._phase = 0;
+          this._rms = 0;
+        },
+        /* Hạ mẫu một mẻ mẫu gốc (rate của AudioContext, thường 44.1/48k)
+           về 16kHz bằng nội suy tuyến tính liên tục qua các mẻ; đủ 0.25
+           giây thì đóng gói gửi đi. RMS của mẻ gốc nuôi chỉ báo nói. */
+        _feed(samples, rate) {
+          let sum = 0;
+          for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+          this._rms = Math.sqrt(sum / Math.max(1, samples.length));
+          this._rmsAt = Date.now();
+          const prev = this._carry || new Float32Array(0);
+          const buf = new Float32Array(prev.length + samples.length);
+          buf.set(prev);
+          buf.set(samples, prev.length);
+          const step = rate / this.SR;
+          let pos = this._phase || 0;
+          while (pos < buf.length) {
+            const i0 = Math.floor(pos);
+            const frac = pos - i0;
+            const a = buf[i0];
+            const b = i0 + 1 < buf.length ? buf[i0 + 1] : a;
+            this._chunk.push(a + (b - a) * frac);
+            pos += step;
+            if (this._chunk.length >= this.CHUNK) {
+              const full = this._chunk.splice(0, this.CHUNK);
+              this._sendChunk(full);
+            }
+          }
+          const consumed = Math.min(Math.floor(pos), buf.length);
+          this._carry = buf.slice(consumed);
+          this._phase = pos - consumed;
+        },
+        _sendChunk(samples) {
+          if (!this.enabled || this.muted) return;
+          let sum = 0;
+          for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+          const rms = Math.sqrt(sum / samples.length);
+          const now = Date.now();
+          /* Cổng VAD: im lặng (RMS < 0.008) thì bỏ gói, nhưng giữ đuôi
+             600ms sau gói có tiếng cuối để không cụt cuối từ. */
+          if (rms < 0.008 && now - this._lastSentAt > 600) return;
+          this._lastSentAt = now;
+          const i16 = new Int16Array(samples.length);
+          for (let i = 0; i < samples.length; i++) {
+            let v = samples[i];
+            if (v > 1) v = 1;
+            else if (v < -1) v = -1;
+            i16[i] = v < 0 ? Math.round(v * 32768) : Math.round(v * 32767);
+          }
+          const bytes = new Uint8Array(i16.buffer);
+          let bin = "";
+          const STEP = 8192;
+          for (let i = 0; i < bytes.length; i += STEP)
+            bin += String.fromCharCode.apply(null, bytes.subarray(i, i + STEP));
+          Transport.send("vl-va", { ch: this.myRoomId() || "all", d: btoa(bin) });
+        },
+        /* ----- Nhận gói tiếng qua relay → phát theo phạm vi ----- */
+        receiveAudio(fromId, data) {
+          if (!this.enabled || !data || typeof data.d !== "string" || !data.d) return;
+          const ch = typeof data.ch === "string" ? data.ch : "all";
+          this.peerChannels.set(fromId, ch);
+          const mine = this.myRoomId();
+          if (mine ? ch !== mine : ch !== "all") return; // khác phạm vi → bỏ
+          let i16;
           try {
-            pc = new RTCPeerConnection({
-              iceServers: [
-                {
-                  urls: [
-                    "stun:stun.l.google.com:19302",
-                    "stun:stun1.l.google.com:19302",
-                    "stun:stun2.l.google.com:19302",
-                  ],
-                },
-                { urls: "stun:stun.cloudflare.com:3478" },
-              ],
-            });
+            const bin = atob(data.d);
+            if (!bin.length || bin.length % 2 || bin.length > this.CHUNK * 2) return;
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            i16 = new Int16Array(bytes.buffer);
           } catch (e) {
             return;
           }
-          const peer = {
-            pc: pc,
-            gain: null,
-            el: null,
-            /* Perfect negotiation: phía id lớn hơn là phía "nhường" (polite)
-               khi hai offer va chạm nhau */
-            polite: String(RoomState.me.id) > String(id),
-            makingOffer: false,
-            ignoreOffer: false,
-          };
-          this.peers.set(id, peer);
-          if (this.stream)
-            this.stream.getTracks().forEach((tr) => {
+          /* Mic xanh phía nghe: đo từ mức âm THẬT của gói vừa nhận —
+             có tiếng thật mới hiện, hết tiếng là tự hết hạn như cũ. */
+          let sum = 0;
+          for (let i = 0; i < i16.length; i++) {
+            const v = i16[i] / 32768;
+            sum += v * v;
+          }
+          if (Math.sqrt(sum / i16.length) > 0.04) this.speakingPeers.set(fromId, Date.now());
+          this._play(fromId, i16);
+        },
+        _ensurePlayCtx() {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          if (!this.playCtx) {
+            try {
+              this.playCtx = new AC();
+            } catch (e) {
+              return null;
+            }
+          }
+          if (this.playCtx.state === "suspended") {
+            const pr = this.playCtx.resume();
+            if (pr && pr.catch) pr.catch(() => {});
+          }
+          return this.playCtx;
+        },
+        /* Phát một gói với hàng đợi đệm theo từng người nói: điểm phát
+           dự kiến giữ ~0.35s trong tương lai (đệm rung), gói đến trễ/
+           sớm vẫn xếp nối tiếp nhau → tiếng liền mạch, trễ < 0.5s.
+           Nhiều người nói cùng lúc = nhiều nguồn phát song song, tự
+           trộn trong AudioContext. */
+        _play(fromId, i16) {
+          const ctx = this._ensurePlayCtx();
+          if (!ctx || !i16.length) return;
+          let st = this.playStates.get(fromId);
+          if (!st) {
+            st = { nextAt: 0, srcs: [] };
+            this.playStates.set(fromId, st);
+          }
+          const now = ctx.currentTime;
+          st.srcs = st.srcs.filter((s) => s.at > now);
+          let t = st.nextAt;
+          if (t < now + 0.05) t = now + 0.35;
+          else if (t > now + 1.0) {
+            /* Đệm tồn đọng > 1s (vừa treo máy / mạng lag dồn gói): cắt
+               hẳn tiếng cũ chưa phát, nhảy về tiếng mới nhất cho khỏi
+               nghe giọng "quá khứ" kéo dài. */
+            st.srcs.forEach((s) => {
               try {
-                pc.addTrack(tr, this.stream);
+                s.src.stop();
               } catch (e) {}
             });
-          pc.ontrack = (e) => {
-            const remote = e.streams[0];
-            if (!remote) return;
-            /* Phát tiếng TRỰC TIẾP qua thẻ <audio> gắn vào DOM, âm lượng theo
-               kênh (updateGains). Đường cũ qua AudioContext + GainNode câm
-               hẳn khi context suspended / trên Safari — một gốc của lỗi
-               "bật mic rồi mà hai bên không nghe thấy nhau". */
-            let holder = peer.el;
-            if (!holder) {
-              holder = document.createElement("audio");
-              holder.autoplay = true;
-              holder.setAttribute("playsinline", "");
-              holder.style.display = "none";
-              document.body.appendChild(holder);
-              peer.el = holder;
-            }
-            holder.srcObject = remote;
-            holder.muted = false;
-            this.updateGains();
-            const pr = holder.play();
-            if (pr && pr.catch) pr.catch(() => {});
-          };
-          pc.onicecandidate = (e) => {
-            if (e.candidate)
-              Transport.send("voice-signal", {
-                to: id,
-                data: { kind: "ice", candidate: e.candidate },
-              });
-          };
-          pc.oniceconnectionstatechange = () => {
-            /* Mạng di động đổi NAT giữa chừng làm ICE chết: tự đàm phán lại
-               thay vì câm vĩnh viễn tới khi tắt/bật mic thủ công */
-            if (pc.iceConnectionState === "failed") {
-              try {
-                pc.restartIce();
-              } catch (e) {}
-            }
-          };
-          /* onnegotiationneeded cho MỌI peer, không chỉ phía khởi tạo: phía
-             nhận offer cũng cần tự đàm phán để gửi tiếng của mình đi. */
-          pc.onnegotiationneeded = async () => {
-            try {
-              peer.makingOffer = true;
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              Transport.send("voice-signal", {
-                to: id,
-                data: { kind: "offer", sdp: pc.localDescription },
-              });
-            } catch (e) {
-            } finally {
-              peer.makingOffer = false;
-            }
-          };
-        },
-        async handleSignal(fromId, data) {
-          if (!this.enabled || !data) return;
-          if (!this.peers.has(fromId)) this.createPeer(fromId, false);
-          const peer = this.peers.get(fromId);
-          if (!peer) return;
-          const pc = peer.pc;
-          try {
-            if (data.kind === "offer") {
-              /* Va chạm offer (cả hai phía cùng gửi offer — xảy ra thường
-                 trực: người bật trước gửi offer lúc bên kia chưa bật mic nên
-                 bị bỏ; bên kia bật sau gửi offer ngược lại). Bản cũ gọi thẳng
-                 setRemoteDescription → văng lỗi glare bị nuốt im lặng → không
-                 bao giờ có answer → hai bên câm. Nay theo perfect
-                 negotiation: phía "nhường" rollback offer của mình để nhận
-                 offer của bạn, phía còn lại bỏ qua offer va chạm. */
-              const collision = peer.makingOffer || pc.signalingState !== "stable";
-              if (collision && !peer.polite) {
-                peer.ignoreOffer = true;
-                return;
-              }
-              if (collision) await pc.setLocalDescription({ type: "rollback" });
-              peer.ignoreOffer = false;
-              await pc.setRemoteDescription(data.sdp);
-              const ans = await pc.createAnswer();
-              await pc.setLocalDescription(ans);
-              Transport.send("voice-signal", {
-                to: fromId,
-                data: { kind: "answer", sdp: pc.localDescription },
-              });
-            } else if (data.kind === "answer") {
-              /* Answer chỉ hợp lệ khi mình đang chờ (have-local-offer);
-                 answer thừa/đến muộn bỏ qua thay vì văng lỗi */
-              if (pc.signalingState === "have-local-offer")
-                await pc.setRemoteDescription(data.sdp);
-            } else if (data.kind === "ice") {
-              if (!peer.ignoreOffer) await pc.addIceCandidate(data.candidate);
-            }
-          } catch (e) {}
-        },
-        closePeer(id) {
-          const peer = this.peers.get(id);
-          if (peer) {
-            try {
-              peer.pc.close();
-            } catch (e) {}
-            if (peer.el) {
-              try {
-                peer.el.srcObject = null;
-                peer.el.remove();
-              } catch (e) {}
-              peer.el = null;
-            }
-            this.peers.delete(id);
+            st.srcs = [];
+            t = now + 0.35;
           }
+          const buf = ctx.createBuffer(1, i16.length, this.SR);
+          const fd = buf.getChannelData(0);
+          for (let i = 0; i < i16.length; i++) fd[i] = i16[i] / 32768;
+          const srcNode = ctx.createBufferSource();
+          srcNode.buffer = buf;
+          srcNode.connect(ctx.destination);
+          try {
+            srcNode.start(t);
+          } catch (e) {
+            return;
+          }
+          st.srcs.push({ src: srcNode, at: t });
+          st.nextAt = t + i16.length / this.SR;
         },
         stop() {
           if (!this.enabled) return;
@@ -13920,16 +14021,17 @@
           this.stopLevelMonitor();
           this.enabled = false;
           this.channel = "all";
-          Array.from(this.peers.keys()).forEach((id) => this.closePeer(id));
+          this.stopCapture();
+          this.playStates.clear();
+          if (this.playCtx) {
+            try {
+              this.playCtx.close();
+            } catch (e) {}
+            this.playCtx = null;
+          }
           if (this.stream) {
             this.stream.getTracks().forEach((t) => t.stop());
             this.stream = null;
-          }
-          if (this.ctx) {
-            try {
-              this.ctx.close();
-            } catch (e) {}
-            this.ctx = null;
           }
           $("#voiceBtn").textContent = "🎙️ Voice: tắt";
           $("#voiceBtn").classList.remove("on");
@@ -14040,6 +14142,7 @@
         onMemberLeft(id) {
           this.peerChannels.delete(id);
           this.speakingPeers.delete(id);
+          this.playStates.delete(id);
           this.rooms.forEach((r, rid) => {
             if (r.ownerId === id) {
               this.rooms.delete(rid);
