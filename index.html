@@ -4328,6 +4328,21 @@
         #chatBox #chatInput {
           font-size: 16px;
         } /* ≥16px để iOS không tự zoom khi gõ */
+        /* Đầu khung chat 1 hàng duy nhất: trước đây flex-wrap làm tiêu đề +
+           nút Voice + nút thu gọn quấn thành 2 hàng, nút Voice phình to và
+           log bị bóp méo (đúng cảnh trong ảnh khách chụp gửi) */
+        #chatBox .chat-head {
+          flex-wrap: nowrap;
+        }
+        #chatBox .chat-head > span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          min-width: 0;
+        }
+        #chatBox #voiceBtn {
+          flex: none;
+        }
 
         /* --- Mọi panel = bottom sheet: bo góc trên, tay nắm, ≤86dvh, cuộn trong --- */
         .overlay {
@@ -4379,6 +4394,53 @@
           bottom: calc(var(--sab) + 108px);
           font-size: 0.85rem;
           padding: 9px 14px;
+        }
+      }
+      @media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 540px) {
+        /* Màn NGANG thấp (~360–430px chiều cao): bố cục cảm ứng dọc mặc định
+           vỡ hẳn — thanh tương tác dạng cột 6 nút × 48px + nhãn cao hơn cả
+           màn hình, tràn lên đè cụm nút HUD trên-phải và bị cắt mất nút đầu
+           (đúng ảnh khách chụp). Chuyển thanh tương tác thành lưới ngang
+           2 hàng gọn ở mép phải, chat thu theo chiều cao còn lại. */
+        #chatBox {
+          top: calc(var(--sat) + 56px);
+          width: min(264px, 56vw);
+          max-height: calc(100dvh - 128px);
+        }
+        #chatBox .chat-log {
+          max-height: 16dvh;
+        }
+        #chatPeek {
+          top: calc(var(--sat) + 56px);
+        }
+        #interactBar {
+          bottom: calc(var(--sab) + 170px);
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          width: 280px;
+          max-width: 64vw;
+          border-radius: 16px;
+          padding: 6px;
+          gap: 5px;
+        }
+        #interactBar .ib-label {
+          width: 100%;
+          text-align: right;
+          padding: 0 2px;
+        }
+        #interactBar button {
+          min-height: 40px;
+          padding: 6px 10px;
+          font-size: 0.76rem;
+        }
+        .stage3d .reaction-bar {
+          right: calc(var(--sar) + 106px);
+          bottom: calc(var(--sab) + 16px);
+          flex-direction: row;
+        }
+        #askPrompt {
+          top: calc(var(--sat) + 56px);
         }
       }
       @media (hover: none) and (pointer: coarse) and (max-width: 380px) {
@@ -6790,15 +6852,26 @@
           } else if (msg.type === "voice-hello") {
             VoiceChat.peerChannels.set(msg.from, msg.channel || "all");
             if (VoiceChat.enabled) {
+              /* Bên kia VỪA bật mic: peer cũ với họ (nếu có) là tàn dư của
+                 lần offer bị bỏ lúc họ chưa bật — createPeer sẽ no-op vì
+                 peer đã tồn tại và cả hai kẹt vĩnh viễn. Đóng hẳn, tạo mới
+                 để đàm phán lại từ đầu, lần này họ trả lời được. */
+              VoiceChat.closePeer(msg.from);
               VoiceChat.createPeer(msg.from, true);
               VoiceChat.broadcastState();
             }
           } else if (msg.type === "voice-bye") {
             VoiceChat.closePeer(msg.from);
             VoiceChat.peerChannels.delete(msg.from);
+            VoiceChat.speakingPeers.delete(msg.from);
           } else if (msg.type === "voice-state") {
             VoiceChat.peerChannels.set(msg.from, msg.channel || "all");
             VoiceChat.updateGains();
+          } else if (msg.type === "voice-speaking") {
+            /* Người nói tự đo âm mic của họ và phát trạng thái này; máy này
+               chỉ ghi mốc thời gian — quá 1.6s không có nhịp là tự ẩn mic */
+            if (msg.speaking) VoiceChat.speakingPeers.set(msg.from, Date.now());
+            else VoiceChat.speakingPeers.delete(msg.from);
           } else if (msg.type === "voice-room") {
             VoiceChat.onRoomState(msg.room, msg.roomId);
           } else if (msg.type === "voice-room-ask" && msg.toId === RoomState.me.id) {
@@ -8046,8 +8119,20 @@
       let camYaw = 0,
         camPitch = 0.42,
         camDist = 6.4;
+      /* Góc quay ĐÍCH: mọi thao tác kéo/chuột chỉ đổi đích, updateCamera nội
+         suy camYaw/camPitch/fpPitch về đích mỗi khung hình — kéo cảm ứng đến
+         theo từng đợt sự kiện rời rạc không còn làm góc nhìn giật cục. */
+      let camYawGoal = 0,
+        camPitchGoal = 0.42,
+        fpPitchGoal = 0;
+      function snapLookGoals() {
+        camYawGoal = camYaw;
+        camPitchGoal = camPitch;
+        fpPitchGoal = fpPitch;
+      }
       const keysDown = {};
       const joyVec = { x: 0, y: 0 };
+      const joySm = { x: 0, y: 0 }; /* joystick đã làm mượt theo thời gian */
       let dynJoyPid = null; /* pointerId đang giữ joystick động (màn hình cảm ứng) */
       const avatars3D = new Map();
       let three = null;
@@ -8073,6 +8158,7 @@
         myY = 0;
         camYaw = 0;
         camPitch = 0.42;
+        snapLookGoals();
         lastSentPosKey = "";
         if (three) three.snapCam = true;
       }
@@ -12530,6 +12616,36 @@
         const nameSp = makeNameSprite(member.name);
         grp.add(nameSp);
         grp.userData.nameSprite = nameSp;
+        /* Mic XANH "đang nói": sprite riêng gắn ngay trên bảng tên (bảng tên
+           ở y 2.12, mic ở 2.52 — trên đầu, không che mặt), mặc định ẩn, chỉ
+           hiện khi chủ nhân đang có tiếng vào mic (VoiceChat.levelTick đo
+           mức âm thật ở máy của người nói rồi phát cho cả phòng). */
+        const micCv = document.createElement("canvas");
+        micCv.width = micCv.height = 128;
+        const mg = micCv.getContext("2d");
+        mg.beginPath();
+        mg.arc(64, 64, 55, 0, Math.PI * 2);
+        mg.fillStyle = "#22b04b";
+        mg.fill();
+        mg.lineWidth = 7;
+        mg.strokeStyle = "rgba(255,255,255,0.92)";
+        mg.stroke();
+        mg.font = "66px sans-serif";
+        mg.textAlign = "center";
+        mg.textBaseline = "middle";
+        mg.fillText("🎙️", 64, 68);
+        const micSp = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(micCv),
+            transparent: true,
+            depthWrite: false,
+          }),
+        );
+        micSp.scale.set(0.42, 0.42, 1);
+        micSp.position.set(0, 2.52, 0);
+        micSp.visible = false;
+        grp.add(micSp);
+        grp.userData.micSprite = micSp;
         grp.traverse((o) => {
           if (o.isMesh) {
             o.castShadow = true;
@@ -12646,8 +12762,8 @@
         if (keysDown["KeyS"] || keysDown["ArrowDown"]) y -= 1;
         if (keysDown["KeyA"] || keysDown["ArrowLeft"]) x -= 1;
         if (keysDown["KeyD"] || keysDown["ArrowRight"]) x += 1;
-        x += joyVec.x;
-        y += -joyVec.y;
+        x += joySm.x;
+        y += -joySm.y;
         const d = Math.hypot(x, y);
         if (d > 1) {
           x /= d;
@@ -12716,6 +12832,14 @@
             sendMove(true);
           }
         }
+        /* Làm mượt vector joystick theo thời gian thực: sự kiện chạm trên
+           điện thoại đến theo đợt không đều, dùng thẳng joyVec thô khiến tốc
+           độ đi nhấp nhô → nhân vật giật. Nội suy mũ ~16/s cho bước đi đều. */
+        const jk = 1 - Math.exp(-dt * 16);
+        joySm.x += (joyVec.x - joySm.x) * jk;
+        joySm.y += (joyVec.y - joySm.y) * jk;
+        if (!joyVec.x && Math.abs(joySm.x) < 0.02) joySm.x = 0;
+        if (!joyVec.y && Math.abs(joySm.y) < 0.02) joySm.y = 0;
         const iv = inputVector();
         if (!iv.x && !iv.y) {
           if (rec) rec.moving = false;
@@ -12871,6 +12995,15 @@
             }
           }
           if (rec.bubble && Date.now() > rec.bubble.until) hideBubble(rec);
+          /* Mic xanh trên đầu người đang nói (nhún nhẹ theo nhịp cho dễ thấy) */
+          const micSp = rec.group.userData.micSprite;
+          if (micSp) {
+            const on = speakingVisible(id);
+            micSp.visible = on;
+            if (on)
+              micSp.position.y =
+                2.52 + Math.sin(three.clock.elapsedTime * 5 + rec.phase) * 0.035;
+          }
         });
       }
       const camSmooth = { x: 7.5, y: 5.4, z: 10.5 };
@@ -12919,6 +13052,7 @@
           fpLocked = false;
           document.body.classList.remove("fp-locked");
         }
+        snapLookGoals();
         const rec = avatars3D.get(RoomState.me.id);
         if (rec) rec.group.visible = viewMode !== "first";
         const vb = $("#hudViewBtn");
@@ -12939,6 +13073,12 @@
       }
       function updateCamera(dt) {
         const cam = three.camera;
+        /* Nội suy góc quay về đích: nuốt trọn các bước nhảy delta của sự kiện
+           chạm/chuột, quay đầu mượt thay vì giật theo từng sự kiện. */
+        const lk = 1 - Math.exp(-dt * 22);
+        camYaw = lerpAngle(camYaw, camYawGoal, lk);
+        camPitch += (camPitchGoal - camPitch) * lk;
+        fpPitch += (fpPitchGoal - fpPitch) * lk;
         if (!RoomState.inRoom) {
           const t = three.clock.elapsedTime * 0.06;
           cam.position.set(Math.sin(t) * 20, 8.5, 16 + Math.cos(t) * 4);
@@ -13018,6 +13158,7 @@
             )
               return;
             touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (touchPts.size === 1) drag = { x: e.clientX, y: e.clientY };
             if (touchPts.size === 2) {
               const p = Array.from(touchPts.values());
               pinchD = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
@@ -13034,7 +13175,14 @@
           } catch (err) {}
         });
         cv.addEventListener("pointermove", (e) => {
-          if (e.pointerType !== "mouse" && touchPts.has(e.pointerId)) {
+          if (e.pointerType !== "mouse") {
+            /* Ngón KHÔNG thuộc camera (vd ngón joystick bên trái) phải bỏ qua
+               hẳn ở đây. Trước đây nó rơi xuống nhánh kéo-chuột bên dưới, dùng
+               chung biến drag với ngón xoay camera: mỗi lần đẩy joystick,
+               camera nhận delta bằng khoảng cách giữa hai ngón tay → góc nhìn
+               "quặp" đi nơi khác, vừa đi vừa quay đầu là giật liên tục. Đây là
+               gốc của lỗi quay đầu góc thứ nhất trên điện thoại. */
+            if (!touchPts.has(e.pointerId)) return;
             touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (touchPts.size === 2) {
               /* Chụm 2 ngón = zoom camera */
@@ -13050,22 +13198,27 @@
               drag = { x: e.clientX, y: e.clientY };
               return;
             }
-            const tdx = e.clientX - drag.x,
-              tdy = e.clientY - drag.y;
+            /* Kẹp delta từng sự kiện: một bước kéo thật không nhảy quá 60px;
+               delta lớn hơn là nhiễu/nhảy điểm chạm → chỉ lấy phần hợp lệ */
+            const tdx = Math.max(-60, Math.min(60, e.clientX - drag.x)),
+              tdy = Math.max(-60, Math.min(60, e.clientY - drag.y));
             drag = { x: e.clientX, y: e.clientY };
             if (viewMode === "first") {
-              camYaw -= tdx * 0.0052;
-              fpPitch = Math.max(-FP_PITCH_MAX, Math.min(FP_PITCH_MAX, fpPitch - tdy * 0.0042));
+              camYawGoal -= tdx * 0.0052;
+              fpPitchGoal = Math.max(
+                -FP_PITCH_MAX,
+                Math.min(FP_PITCH_MAX, fpPitchGoal - tdy * 0.0042),
+              );
             } else {
-              camYaw -= tdx * 0.0052;
-              camPitch = Math.max(-0.55, Math.min(1.25, camPitch + tdy * 0.0042));
+              camYawGoal -= tdx * 0.0052;
+              camPitchGoal = Math.max(-0.55, Math.min(1.25, camPitchGoal + tdy * 0.0042));
             }
             return;
           }
           if (!drag) return;
           /* Đã nhả hết nút chuột mà vẫn còn trạng thái kéo (sự kiện nhả bị menu
        ngữ cảnh/cửa sổ khác nuốt mất) → kết thúc kéo ngay, đừng tự xoay nữa */
-          if (e.pointerType === "mouse" && e.buttons === 0) {
+          if (e.buttons === 0) {
             drag = null;
             return;
           }
@@ -13073,20 +13226,20 @@
             dy = e.clientY - drag.y;
           drag = { x: e.clientX, y: e.clientY };
           if (viewMode === "first") {
-            /* Cảm ứng / chưa khóa: kéo tay để quay đầu */
-            camYaw -= dx * 0.0052;
-            fpPitch = Math.max(-FP_PITCH_MAX, Math.min(FP_PITCH_MAX, fpPitch - dy * 0.0042));
+            /* Chuột chưa khóa: kéo tay để quay đầu */
+            camYawGoal -= dx * 0.0052;
+            fpPitchGoal = Math.max(-FP_PITCH_MAX, Math.min(FP_PITCH_MAX, fpPitchGoal - dy * 0.0042));
           } else {
-            camYaw -= dx * 0.0052;
-            camPitch = Math.max(-0.55, Math.min(1.25, camPitch + dy * 0.0042));
+            camYawGoal -= dx * 0.0052;
+            camPitchGoal = Math.max(-0.55, Math.min(1.25, camPitchGoal + dy * 0.0042));
           }
         });
         document.addEventListener("mousemove", (e) => {
           if (document.pointerLockElement !== cv || viewMode !== "first") return;
-          camYaw -= (e.movementX || 0) * 0.0026;
-          fpPitch = Math.max(
+          camYawGoal -= (e.movementX || 0) * 0.0026;
+          fpPitchGoal = Math.max(
             -FP_PITCH_MAX,
-            Math.min(FP_PITCH_MAX, fpPitch - (e.movementY || 0) * 0.0022),
+            Math.min(FP_PITCH_MAX, fpPitchGoal - (e.movementY || 0) * 0.0022),
           );
         });
         document.addEventListener("pointerlockchange", () => {
@@ -13103,10 +13256,26 @@
           if (viewMode === "first") showLockHint(true);
         });
         const end = (e) => {
+          /* Ngón lạ nhả ra (vd ngón joystick) không được xoá trạng thái kéo
+             của ngón camera đang giữ — trước đây nhả joystick giữa lúc quay
+             đầu là điểm kéo bị xoá/nhảy, camera khựng hoặc vọt. */
+          if (
+            e &&
+            e.pointerId !== undefined &&
+            e.pointerType !== "mouse" &&
+            !touchPts.has(e.pointerId)
+          )
+            return;
           drag = null;
           if (e && e.pointerId !== undefined) {
             touchPts.delete(e.pointerId);
             if (touchPts.size < 2) pinchD = 0;
+            if (touchPts.size === 1) {
+              /* Sau khi chụm zoom còn 1 ngón: neo lại điểm kéo vào đúng vị trí
+                 hiện tại của ngón đó, tránh cú nhảy ở lần kéo tiếp theo */
+              const p = Array.from(touchPts.values())[0];
+              drag = { x: p.x, y: p.y };
+            }
           }
         };
         cv.addEventListener("pointerup", end);
@@ -13414,9 +13583,13 @@
    - PHÒNG VOICE RIÊNG: ai cũng tạo được phòng (đặt tên); người ngoài XIN VÀO
      (chủ phòng duyệt) hoặc được chủ phòng MỜI; chỉ người trong cùng phòng
      riêng mới nghe nhau — vào phòng riêng là rời kênh chung.
-   Nhóm nghe chỉ là logic phía khách: mỗi peer qua một GainNode, gain = 1 khi
-   cùng kênh, 0 khi khác kênh. Trạng thái kênh/phòng đồng bộ qua các tin
-   game-wrap 'voice-state' / 'voice-room*' (máy chủ chỉ relay, không đổi). */
+   Nhóm nghe chỉ là logic phía khách: tiếng của mỗi peer phát qua thẻ
+   <audio> riêng, volume = 1 khi cùng kênh, 0 khi khác kênh. Đàm phán
+   WebRTC theo mẫu perfect negotiation (phía id lớn hơn "nhường" khi hai
+   offer va chạm) — bản cũ deadlock: offer gửi lúc bên kia chưa bật mic bị
+   bỏ, offer ngược lại sau đó văng lỗi glare bị nuốt → không bao giờ có
+   answer, hai bên bật mic mà câm. Trạng thái kênh/phòng đồng bộ qua các
+   tin game-wrap 'voice-state' / 'voice-room*' (máy chủ chỉ relay). */
       const VoiceChat = {
         enabled: false,
         muted: false,
@@ -13426,6 +13599,14 @@
         channel: "all", // 'all' = kênh chung; hoặc id phòng riêng
         peerChannels: new Map(), // id -> 'all' | roomId | null (chưa rõ)
         rooms: new Map(), // roomId -> {id, name, ownerId, ownerName, members:[id]}
+        speaking: false, // mình đang nói (đo từ mức âm mic thật, xem levelTick)
+        speakingPeers: new Map(), // id -> mốc thời gian lần cuối họ báo "đang nói"
+        levelCtx: null,
+        levelAnalyser: null,
+        levelTimer: null,
+        levelData: null,
+        lastLoudAt: 0,
+        lastSpeakPingAt: 0,
         myRoomId() {
           const r = this.rooms.get(this.channel);
           return r && r.members.includes(RoomState.me.id) ? this.channel : null;
@@ -13438,14 +13619,23 @@
           return theirs === "all" || theirs === undefined || theirs === null;
         },
         updateGains() {
-          if (!this.enabled || !this.ctx) return;
+          if (!this.enabled) return;
           this.peers.forEach((peer, id) => {
-            if (!peer.gain) return;
-            const g = this.sameChannel(id) ? 1 : 0;
-            try {
-              peer.gain.gain.setTargetAtTime(g, this.ctx.currentTime, 0.08);
-            } catch (e) {
-              peer.gain.gain.value = g;
+            const on = this.sameChannel(id) ? 1 : 0;
+            if (peer.gain && this.ctx) {
+              try {
+                peer.gain.gain.setTargetAtTime(on, this.ctx.currentTime, 0.08);
+              } catch (e) {
+                peer.gain.gain.value = on;
+              }
+            }
+            if (peer.el) {
+              peer.el.volume = on;
+              peer.el.muted = false;
+              if (on && peer.el.paused) {
+                const pr = peer.el.play();
+                if (pr && pr.catch) pr.catch(() => {});
+              }
             }
           });
         },
@@ -13465,6 +13655,73 @@
           this.updateGains();
           renderVoicePanel();
         },
+        /* ----- Chỉ báo "đang nói": đo mức âm THẬT từ mic của chính mình.
+           Chỉ máy của người nói mới đo được mic của họ → khi trạng thái đổi
+           (và một nhịp giữ mỗi 600ms lúc đang nói) máy đó phát tin
+           'voice-speaking' cho cả phòng; mọi máy hiện mic xanh trên đầu
+           người nói, máy nào quá 1.6s không thấy nhịp sẽ tự ẩn (mất gói
+           "đã im" cũng không treo mic). Ngưỡng RMS 0.05 + giữ 380ms sau
+           tiếng cuối để mic không nhấp nháy theo từng âm tiết. ----- */
+        startLevelMonitor() {
+          this.stopLevelMonitor();
+          if (!this.stream) return;
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            this.levelCtx = new AC();
+            const src = this.levelCtx.createMediaStreamSource(this.stream);
+            this.levelAnalyser = this.levelCtx.createAnalyser();
+            this.levelAnalyser.fftSize = 512;
+            this.levelData = new Uint8Array(this.levelAnalyser.fftSize);
+            src.connect(this.levelAnalyser); // chỉ đo, không nối ra loa
+            if (this.levelCtx.state === "suspended") this.levelCtx.resume();
+          } catch (e) {
+            this.levelCtx = null;
+            this.levelAnalyser = null;
+            return;
+          }
+          this.lastLoudAt = 0;
+          this.levelTimer = setInterval(() => this.levelTick(), 120);
+        },
+        stopLevelMonitor() {
+          if (this.levelTimer) {
+            clearInterval(this.levelTimer);
+            this.levelTimer = null;
+          }
+          if (this.levelCtx) {
+            try {
+              this.levelCtx.close();
+            } catch (e) {}
+            this.levelCtx = null;
+          }
+          this.levelAnalyser = null;
+          if (this.speaking) {
+            this.speaking = false;
+            Transport.send("voice-speaking", { speaking: false });
+          }
+        },
+        levelTick() {
+          if (!this.enabled || !this.levelAnalyser) return;
+          if (this.levelCtx && this.levelCtx.state === "suspended") this.levelCtx.resume();
+          this.levelAnalyser.getByteTimeDomainData(this.levelData);
+          let sum = 0;
+          for (let i = 0; i < this.levelData.length; i++) {
+            const v = (this.levelData[i] - 128) / 128;
+            sum += v * v;
+          }
+          const rms = Math.sqrt(sum / this.levelData.length);
+          const now = Date.now();
+          if (!this.muted && rms > 0.05) this.lastLoudAt = now;
+          const on = !this.muted && now - this.lastLoudAt < 380;
+          if (on !== this.speaking) {
+            this.speaking = on;
+            Transport.send("voice-speaking", { speaking: on });
+            this.lastSpeakPingAt = now;
+          } else if (on && now - this.lastSpeakPingAt > 600) {
+            Transport.send("voice-speaking", { speaking: true });
+            this.lastSpeakPingAt = now;
+          }
+        },
         async toggle() {
           if (!Transport.voiceReady) {
             const st = $("#voiceStatus");
@@ -13483,18 +13740,22 @@
             return;
           }
           try {
-            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.stream = await navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+            });
           } catch (e) {
             toast("Không mở được mic — kiểm tra quyền micro của trình duyệt");
             return;
           }
-          try {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          } catch (e) {
-            this.ctx = null;
-          }
+          /* Không dùng AudioContext cho tiếng nói nữa: đường cũ qua
+             createMediaStreamSource + GainNode bị câm hẳn khi context ở
+             trạng thái suspended (rất thường gặp trên điện thoại) và trên
+             Safari luồng WebRTC qua WebAudio cũng ra tiếng câm. Tiếng nay
+             phát thẳng qua thẻ <audio> của từng peer (xem createPeer). */
+          this.ctx = null;
           this.enabled = true;
           this.muted = false;
+          this.startLevelMonitor();
           $("#voiceBtn").textContent = "🔴 Voice: đang bật";
           $("#voiceBtn").classList.add("on");
           $("#voiceStatus").hidden = true;
@@ -13511,11 +13772,31 @@
           if (!this.enabled || this.peers.has(id)) return;
           let pc;
           try {
-            pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+            pc = new RTCPeerConnection({
+              iceServers: [
+                {
+                  urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                  ],
+                },
+                { urls: "stun:stun.cloudflare.com:3478" },
+              ],
+            });
           } catch (e) {
             return;
           }
-          const peer = { pc: pc, gain: null };
+          const peer = {
+            pc: pc,
+            gain: null,
+            el: null,
+            /* Perfect negotiation: phía id lớn hơn là phía "nhường" (polite)
+               khi hai offer va chạm nhau */
+            polite: String(RoomState.me.id) > String(id),
+            makingOffer: false,
+            ignoreOffer: false,
+          };
           this.peers.set(id, peer);
           if (this.stream)
             this.stream.getTracks().forEach((tr) => {
@@ -13526,23 +13807,24 @@
           pc.ontrack = (e) => {
             const remote = e.streams[0];
             if (!remote) return;
-            const holder = document.createElement("audio");
-            holder.autoplay = true;
-            holder.muted = true;
-            holder.srcObject = remote; // giữ luồng chảy, tiếng ra qua GainNode
-            if (this.ctx) {
-              try {
-                const srcNode = this.ctx.createMediaStreamSource(remote);
-                const g = this.ctx.createGain();
-                g.gain.value = 0;
-                srcNode.connect(g);
-                g.connect(this.ctx.destination);
-                peer.gain = g;
-                this.updateGains();
-              } catch (err) {
-                holder.muted = false;
-              }
-            } else holder.muted = false;
+            /* Phát tiếng TRỰC TIẾP qua thẻ <audio> gắn vào DOM, âm lượng theo
+               kênh (updateGains). Đường cũ qua AudioContext + GainNode câm
+               hẳn khi context suspended / trên Safari — một gốc của lỗi
+               "bật mic rồi mà hai bên không nghe thấy nhau". */
+            let holder = peer.el;
+            if (!holder) {
+              holder = document.createElement("audio");
+              holder.autoplay = true;
+              holder.setAttribute("playsinline", "");
+              holder.style.display = "none";
+              document.body.appendChild(holder);
+              peer.el = holder;
+            }
+            holder.srcObject = remote;
+            holder.muted = false;
+            this.updateGains();
+            const pr = holder.play();
+            if (pr && pr.catch) pr.catch(() => {});
           };
           pc.onicecandidate = (e) => {
             if (e.candidate)
@@ -13551,18 +13833,31 @@
                 data: { kind: "ice", candidate: e.candidate },
               });
           };
-          if (initiator) {
-            pc.onnegotiationneeded = async () => {
+          pc.oniceconnectionstatechange = () => {
+            /* Mạng di động đổi NAT giữa chừng làm ICE chết: tự đàm phán lại
+               thay vì câm vĩnh viễn tới khi tắt/bật mic thủ công */
+            if (pc.iceConnectionState === "failed") {
               try {
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                Transport.send("voice-signal", {
-                  to: id,
-                  data: { kind: "offer", sdp: pc.localDescription },
-                });
+                pc.restartIce();
               } catch (e) {}
-            };
-          }
+            }
+          };
+          /* onnegotiationneeded cho MỌI peer, không chỉ phía khởi tạo: phía
+             nhận offer cũng cần tự đàm phán để gửi tiếng của mình đi. */
+          pc.onnegotiationneeded = async () => {
+            try {
+              peer.makingOffer = true;
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              Transport.send("voice-signal", {
+                to: id,
+                data: { kind: "offer", sdp: pc.localDescription },
+              });
+            } catch (e) {
+            } finally {
+              peer.makingOffer = false;
+            }
+          };
         },
         async handleSignal(fromId, data) {
           if (!this.enabled || !data) return;
@@ -13572,6 +13867,20 @@
           const pc = peer.pc;
           try {
             if (data.kind === "offer") {
+              /* Va chạm offer (cả hai phía cùng gửi offer — xảy ra thường
+                 trực: người bật trước gửi offer lúc bên kia chưa bật mic nên
+                 bị bỏ; bên kia bật sau gửi offer ngược lại). Bản cũ gọi thẳng
+                 setRemoteDescription → văng lỗi glare bị nuốt im lặng → không
+                 bao giờ có answer → hai bên câm. Nay theo perfect
+                 negotiation: phía "nhường" rollback offer của mình để nhận
+                 offer của bạn, phía còn lại bỏ qua offer va chạm. */
+              const collision = peer.makingOffer || pc.signalingState !== "stable";
+              if (collision && !peer.polite) {
+                peer.ignoreOffer = true;
+                return;
+              }
+              if (collision) await pc.setLocalDescription({ type: "rollback" });
+              peer.ignoreOffer = false;
               await pc.setRemoteDescription(data.sdp);
               const ans = await pc.createAnswer();
               await pc.setLocalDescription(ans);
@@ -13580,9 +13889,12 @@
                 data: { kind: "answer", sdp: pc.localDescription },
               });
             } else if (data.kind === "answer") {
-              await pc.setRemoteDescription(data.sdp);
+              /* Answer chỉ hợp lệ khi mình đang chờ (have-local-offer);
+                 answer thừa/đến muộn bỏ qua thay vì văng lỗi */
+              if (pc.signalingState === "have-local-offer")
+                await pc.setRemoteDescription(data.sdp);
             } else if (data.kind === "ice") {
-              await pc.addIceCandidate(data.candidate);
+              if (!peer.ignoreOffer) await pc.addIceCandidate(data.candidate);
             }
           } catch (e) {}
         },
@@ -13592,12 +13904,20 @@
             try {
               peer.pc.close();
             } catch (e) {}
+            if (peer.el) {
+              try {
+                peer.el.srcObject = null;
+                peer.el.remove();
+              } catch (e) {}
+              peer.el = null;
+            }
             this.peers.delete(id);
           }
         },
         stop() {
           if (!this.enabled) return;
           this.leaveRoom(true);
+          this.stopLevelMonitor();
           this.enabled = false;
           this.channel = "all";
           Array.from(this.peers.keys()).forEach((id) => this.closePeer(id));
@@ -13719,6 +14039,7 @@
         },
         onMemberLeft(id) {
           this.peerChannels.delete(id);
+          this.speakingPeers.delete(id);
           this.rooms.forEach((r, rid) => {
             if (r.ownerId === id) {
               this.rooms.delete(rid);
@@ -13731,6 +14052,14 @@
           renderVoicePanel();
         },
       };
+      /* Mic xanh trên đầu có hiện không: mình thì theo cờ đo âm tại máy này,
+         người khác theo tin 'voice-speaking' họ phát (tự hết hạn sau 1.6s
+         không có nhịp giữ trạng thái). Tắt mic = không bao giờ hiện. */
+      function speakingVisible(id) {
+        if (id === RoomState.me.id) return VoiceChat.speaking;
+        const t = VoiceChat.speakingPeers.get(id);
+        return !!t && Date.now() - t < 1600;
+      }
       function updateMicIndicators() {
         $$(".mic-ind").forEach((el) => {
           const m = RoomState.members.get(el.dataset.mic);
@@ -14488,6 +14817,7 @@
         myY = y;
         myPos.rotY = rotY;
         camYaw = yaw;
+        snapLookGoals();
         if (three) three.snapCam = true;
         sendMove(true);
       }
@@ -18252,6 +18582,7 @@
         myPos.z = STAGE_POS.z;
         myPos.rotY = 0;
         camYaw = Math.PI;
+        snapLookGoals();
         sendMove(true);
         karaBroadcast();
         karaRender();
