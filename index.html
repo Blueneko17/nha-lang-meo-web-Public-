@@ -6746,17 +6746,19 @@
         SEAT_DEFS.push({ id: "M" + i, label: "Ghế họp " + i, zone: "meeting" });
       /* Vị trí 3D của từng ghế: x/z trên sàn, y = chiều cao mặt ghế, rotY = hướng mặt về màn hình */
       const SEAT_POS = {};
-      /* Vòng cung đồng tâm quanh TV (tâm 0,-17): ghế bệt r4.6 → sofa trước r8 → sofa sau r11.5, tỏa quạt ra ngoài */
+      /* Vòng cung đồng tâm quanh TV (tâm 0,-17): ghế bệt r6.4 → sofa trước r10.5 → sofa sau r14.5, tỏa quạt ra ngoài.
+         ĐÃ ĐẨY XA MÀN HÌNH (trước đây 4.6/8/11.5): hàng ghế bệt cũ chỉ cách TV ~4.6 m,
+         ngồi sát màn hình rất mỏi mắt và lối đi giữa các hàng bị nghẹt. */
       function arcPt(r, deg) {
         const t = (deg * Math.PI) / 180;
         return { x: r * Math.sin(t), z: -17 + r * Math.cos(t), rotY: t + Math.PI };
       }
       for (let i = 0; i < 5; i++)
-        SEAT_POS["B" + (i + 1)] = Object.assign(arcPt(11.5, (i - 2) * 20), { y: 0.62 });
+        SEAT_POS["B" + (i + 1)] = Object.assign(arcPt(14.5, (i - 2) * 20), { y: 0.62 });
       for (let i = 0; i < 5; i++)
-        SEAT_POS["F" + (i + 1)] = Object.assign(arcPt(8, (i - 2) * 20), { y: 0.62 });
+        SEAT_POS["F" + (i + 1)] = Object.assign(arcPt(10.5, (i - 2) * 20), { y: 0.62 });
       for (let i = 0; i < 8; i++)
-        SEAT_POS["C" + (i + 1)] = Object.assign(arcPt(4.6, -63 + i * 18), { y: 0.16 });
+        SEAT_POS["C" + (i + 1)] = Object.assign(arcPt(6.4, -63 + i * 18), { y: 0.16 });
       /* Ghế đơn: dời hết về góc đông phòng chiếu (dưới sàn lầu), quay mặt vào màn hình — nhường tường tây cho khu fanart và lối đi khu game */
       [
         [19.5, -14.5],
@@ -6913,8 +6915,14 @@
         { minX: -24.42, maxX: -23.92, minZ: -17, maxZ: 17 }, // tường tây
         { minX: 23.92, maxX: 24.42, minZ: -17, maxZ: 17 }, // tường đông
       ];
-      /* Vật cản cho sofa/ghế bệt xếp vòng cung (AABB của hình chữ nhật đã xoay) */
-      [["B", 5, 3.7, 1.3], ["F", 5, 2.7, 1.3], ["C", 8, 1.2, 1.0]].forEach((c) => {
+      /* Vật cản cho sofa/ghế bệt xếp vòng cung (AABB của hình chữ nhật đã xoay).
+         HITBOX ĐÃ THU VỀ LÕI GHẾ: AABB của sofa xoay ±40° phình ra rất lớn so với
+         thân ghế thật (sofa sau 3.7×1.3 thành hộp ~3.7×3.4), nuốt hết lối đi giữa
+         hai hàng và đẩy người chơi ra xa tâm ghế quá tầm bấm "Ngồi" (2 m) — đó là
+         gốc lỗi "ghế không vô được". Nay hộp cản chỉ ôm lõi ghế (B 3.1×1.05,
+         F 2.3×1.05, C 1.0×0.85); phần vươn tới ghế do tầm bấm Ngồi theo từng loại
+         ghế trong updateActionBtn đảm nhiệm. */
+      [["B", 5, 3.1, 1.05], ["F", 5, 2.3, 1.05], ["C", 8, 1.0, 0.85]].forEach((c) => {
         for (let i = 1; i <= c[1]; i++) {
           const sp = SEAT_POS[c[0] + i];
           const cs = Math.abs(Math.cos(sp.rotY)),
@@ -8219,6 +8227,11 @@
       }
       let blobShadowTex = null;
       function addContactShadow(x, y, z, w, d, opacity, parent) {
+        /* Bóng tiếp xúc (vệt tối giả dưới chân đồ) TRONG NHÀ CHÍNH cũng bỏ theo
+           yêu cầu "bỏ đổ bóng trong nhà": vệt tối dưới sofa/cây/lamp trong phòng
+           chính trông lem sàn. Ngoài nhà (phòng game, sân, công viên, sân thượng)
+           vẫn giữ để đồ vật không lơ lửng. */
+        if (y < 3 && x > -24.6 && x < 24.6 && z > -17.6 && z < 17.6) return null;
         if (!blobShadowTex) blobShadowTex = makeGlowTexture();
         const m = new THREE.Mesh(
           new THREE.PlaneGeometry(w, d),
@@ -10909,9 +10922,9 @@
           pic.position.set(fx, 4.4, -16.85);
           S.add(pic);
         });
-        // --- Bàn trà thấp giữa vòng cung (bỏng ngô + trà) ---
+        // --- Bàn trà thấp giữa vòng cung (bỏng ngô + trà) — nằm giữa hàng ghế bệt (r6.4) và sofa trước (r10.5) ---
         [-30, 0, 30].forEach((deg) => {
-          const pt = arcPt(6.3, deg);
+          const pt = arcPt(8.4, deg);
           cyl(0.58, 0.58, 0.07, 0xa9704b, pt.x, 0.44, pt.z);
           cyl(0.09, 0.09, 0.4, 0x5a3a24, pt.x, 0.22, pt.z);
           cyl(0.34, 0.34, 0.04, 0x5a3a24, pt.x, 0.03, pt.z);
@@ -10926,7 +10939,7 @@
         });
         // --- Đèn lồng giấy treo trên vòng cung ---
         [-40, -20, 0, 20, 40].forEach((deg) => {
-          const pt = arcPt(9.8, deg);
+          const pt = arcPt(12.4, deg);
           cyl(0.012, 0.012, 2.6, 0x2f2420, pt.x, 7.2, pt.z, null, 4);
           const sh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 12), basic(0xffd9a8));
           sh.scale.y = 0.85;
@@ -10965,9 +10978,9 @@
         ur.rotation.x = -Math.PI / 2;
         ur.position.set(13.2, 0.014, -10.5);
         S.add(ur);
-        makePlantProp(10.0, 0, 6.2, 1.0);
-        makePlantProp(-10.0, 0, 6.2, 1.0);
-        OBSTACLES.push({ minX: 9.6, maxX: 10.4, minZ: 5.8, maxZ: 6.6 }, { minX: -10.4, maxX: -9.6, minZ: 5.8, maxZ: 6.6 });
+        /* ĐÃ BỎ 2 chậu cây đứng giữa lối đi ở (±10, 6.2): chúng án ngữ ngay trục
+           đi từ khu xem phim xuống sảnh nghỉ và trùng với cặp chậu cây sẵn có ở
+           góc thảm sảnh (±10.5, 7.2) — cây cảnh trong nhà chỉ đặt áp tường/góc. */
       }
 
       /* ---------- TẦNG 2: CẦU THANG + PHÒNG HỌP ---------- */
@@ -13918,7 +13931,14 @@
               const sp = SEAT_POS[d.id];
               if (d.id.charAt(0) === "G" && sp.y > 3) return; // cabin vòng quay chưa xuống gần bệ thì không "ngồi" từ xa/trên cao được
               const dist = Math.hypot(sp.x - myPos.x, sp.z - myPos.z);
-              if (dist < 2.0 && (!best || dist < best.dist))
+              /* Tầm bấm "Ngồi" theo loại ghế: sofa vòng cung có thân ghế + hộp cản
+                 giữa người chơi và tâm ghế nên đứng sát ghế nhất cũng cách tâm
+                 ~2–2.3 m — tầm 2.0 m cũ khiến ghế hai đầu cung không bao giờ
+                 hiện nút Ngồi. Sofa sau 3.8 / sofa trước 3.4 / ghế bệt 2.8,
+                 các ghế còn lại giữ 2.0 như cũ. */
+              const reach =
+                d.zone === "back" ? 3.8 : d.zone === "front" ? 3.4 : d.zone === "cushion" ? 2.8 : 2.0;
+              if (dist < reach && (!best || dist < best.dist))
                 best = { type: "sit", seatId: d.id, dist, label: d.label };
             });
             const dp = Math.hypot(POOL_POS.x - myPos.x, POOL_POS.z - myPos.z);
@@ -14036,7 +14056,10 @@
           }
           onSeatClick(seatId);
           if (sp) {
-            /* Đứng dậy = bước lùi ra sau ghế (ngược hướng mặt), thử 4 hướng nếu hướng chính bị chặn */
+            /* Đứng dậy = bước ra khỏi ghế: thử 4 hướng × 3 khoảng cách (1.45 → 2.2
+               → 3.0). Trước đây chỉ thử đúng 1.45 m: sofa hai đầu vòng cung có hộp
+               cản vươn quá 1.45 m nên cả 4 hướng đều bị chặn, người chơi đứng dậy
+               mà kẹt cứng ngay trong thân ghế không đi nổi nữa. */
             const fx = Math.sin(sp.rotY),
               fz = Math.cos(sp.rotY);
             const tries = [
@@ -14045,13 +14068,18 @@
               [-fz, fx],
               [fz, -fx],
             ];
-            for (const tr of tries) {
-              const cx = sp.x + tr[0] * 1.45,
-                cz = sp.z + tr[1] * 1.45;
-              if (posAllowed(cx, cz, sp.y > 2 ? LOFT_Y : 0)) {
-                myPos.x = cx;
-                myPos.z = cz;
-                break;
+            let stepped = false;
+            for (const stepLen of [1.45, 2.2, 3.0]) {
+              if (stepped) break;
+              for (const tr of tries) {
+                const cx = sp.x + tr[0] * stepLen,
+                  cz = sp.z + tr[1] * stepLen;
+                if (posAllowed(cx, cz, sp.y > 2 ? LOFT_Y : 0)) {
+                  myPos.x = cx;
+                  myPos.z = cz;
+                  stepped = true;
+                  break;
+                }
               }
             }
             myPos.rotY = sp.rotY;
@@ -14510,7 +14538,11 @@
           renderer.outputEncoding = THREE.sRGBEncoding;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
           renderer.toneMappingExposure = 1.14;
-          renderer.shadowMap.enabled = !lowGpu;
+          /* ĐỔ BÓNG TRONG NHÀ ĐÃ TẮT HẲN theo yêu cầu: spot chính trên trần hắt
+             bóng lan can/cầu thang/nội thất thành vệt chéo xấu khắp tường và sàn
+             phòng chính. Tắt shadow map toàn cục (đèn vẫn chiếu sáng bình thường,
+             chỉ không đổ bóng nữa) — trong nhà sáng đều, sạch mắt, lại nhẹ máy. */
+          renderer.shadowMap.enabled = false;
           renderer.shadowMap.type = THREE.PCFSoftShadowMap;
           const scene = new THREE.Scene();
           scene.background = new THREE.Color(0x1d130c);
@@ -14523,7 +14555,7 @@
           const spot = new THREE.SpotLight(0xffd9a8, 1.15, 46, 1.08, 0.55, 0.5);
           spot.position.set(2, 10.5, 1.5);
           spot.target.position.set(0, 0, -1);
-          spot.castShadow = true;
+          spot.castShadow = false; // đã bỏ đổ bóng trong nhà (xem ghi chú ở shadowMap)
           spot.shadow.mapSize.set(lowGpu ? 512 : 1024, lowGpu ? 512 : 1024);
           spot.shadow.bias = -0.0004;
           spot.shadow.normalBias = 0.02;
@@ -24133,47 +24165,32 @@
           bx(3.05, 7.4, 0.11, 0xe9dcc2, -9.25, 4.1, -16.83, G, pho(0xe9dcc2, 15));
           bx(3.05, 7.4, 0.11, 0xe9dcc2, 9.25, 4.1, -16.83, G, pho(0xe9dcc2, 15));
           slatWall(-8.4, 8.4, 4.1, -16.62, -7.3, 7.3);
-          consoleTable(0, -15.92);
-          var movieRug = pl(16.2, 8.6, 0xd7c4a4, 0, 0.024, -8.55, G, pho(0xd7c4a4, 8));
-          var movieRug2 = pl(14.8, 7.2, 0xe9dcc2, 0, 0.028, -8.55, G, pho(0xe9dcc2, 8));
+          /* ĐÃ BỎ consoleTable(0, -15.92) ở đây: nó là TỦ TV THỨ HAI chồng xuyên
+             vào tủ TV chi tiết mà buildMainMakeover đã dựng ở (0, -16.4) — hai tủ
+             lồng nhau ngay dưới màn hình. Chỉ giữ một tủ TV duy nhất. */
+          var movieRug = pl(19, 12.5, 0xd7c4a4, 0, 0.024, -7.6, G, pho(0xd7c4a4, 8));
+          var movieRug2 = pl(17.5, 11, 0xe9dcc2, 0, 0.028, -7.6, G, pho(0xe9dcc2, 8));
           movieRug2.rotation.z = 0.02;
-          /* Giữ khoảng cách hai hàng sofa nguyên bản; không đặt bàn chồng ghế. */
+          /* Thảm xem phim đã nới theo vòng cung ghế mới (ghế bệt r6.4 / sofa r10.5 / r14.5). */
           sideTable(-8.65, -7.1);
           sideTable(8.65, -7.1);
-          function displayShelf(x, z, rotY) {
-            var grp = new th.Group();
-            grp.position.set(x, 0, z);
-            grp.rotation.y = rotY || 0;
-            G.add(grp);
-            bx(2.2, 2.5, 0.44, 0x6a3e26, 0, 1.25, 0, grp, pho(0x6a3e26, 28));
-            [0.55, 1.25, 1.95].forEach(function (h) {
-              bx(2.0, 0.06, 0.34, 0xb98a5a, 0, h, 0, grp, pho(0xb98a5a, 18));
-            });
-            [-0.68, -0.08, 0.48].forEach(function (px, idx) {
-              bx(
-                0.28,
-                0.42 + idx * 0.08,
-                0.2,
-                [0x748b6f, 0xe9c9a6, 0xa9704b][idx],
-                px,
-                0.77 + idx * 0.01,
-                0.02,
-                grp,
-              );
-            });
-            sp(0.16, 0xf2b705, 0.7, 1.45, 0.02, grp, pho(0xf2b705, 55, 0xbb8c00));
-            sp(0.12, 0xe77fb0, -0.6, 2.12, 0.01, grp, pho(0xe77fb0, 50));
-            return grp;
-          }
-          displayShelf(-18.9, -13.2, 0);
-          displayShelf(18.9, -13.2, 0);
+          /* ĐÃ BỎ cặp kệ trưng bày displayShelf ở (±18.9, -13.2): hai kệ sách đứng
+             LƠ LỬNG GIỮA SÀN, không áp vào tường nào, lại án ngữ ngay cạnh cụm ghế
+             đơn A1–A3 và lối đi hai bên phòng chiếu. Kệ sách trong nhà từ nay chỉ
+             ở đúng chỗ của nó: kệ áp tường tây (buildPolish), kệ áp tường trước ở
+             sảnh nghỉ (buildHouse) và dãy kệ dọc tường sau gác lửng — không đặt
+             thêm kệ rời giữa phòng nữa. */
+          /* ĐÃ BỎ 4 cây to trồng GIỮA NHÀ ở (±20.8, -4.8) và (±20.5, -14.3): cây
+             ngoài trời nguyên cỡ mọc trong phòng khách, tán che cả ghế đơn và lối
+             đi. Thay bằng bụi cây thấp ÁP SÁT hai tường bên, đúng vai trò trang
+             trí trong nhà, không chìa tán ra giữa phòng. */
           [
-            [-20.8, -4.8, 1.18],
-            [20.8, -4.8, 1.18],
-            [-20.5, -14.3, 1.05],
-            [20.5, -14.3, 1.05],
+            [-23.55, -4.8],
+            [23.55, -4.8],
+            [-23.55, -14.3],
+            [23.55, -14.3],
           ].forEach(function (p) {
-            tree(p[0], p[1], p[2]);
+            shrub(p[0], p[1], 0.9);
           });
           [
             [-23.84, 4.2, -7.8, Math.PI / 2],
@@ -24241,8 +24258,11 @@
           bx(0.9, 0.24, 0.24, 0xa9704b, 12.1, 1.22, 16.67, G);
           bx(0.65, 0.28, 0.24, 0x748b6f, 14.25, 1.24, 16.68, G);
           sp(0.13, 0xf2b705, 16.25, 1.28, 16.68, G, pho(0xf2b705, 50, 0xbb8c00));
-          tree(10.9, 13.6, 0.96);
-          tree(-10.9, 13.6, 0.96);
+          /* ĐÃ BỎ 2 cây to ở (±10.9, 13.6) giữa sảnh nghỉ (tán cây án ngữ hai bên
+             trục cửa ra sân) — thay bằng bụi cây thấp áp tường trước, cạnh hai kệ
+             sách áp tường sẵn có. */
+          shrub(10.9, 16.15, 0.85);
+          shrub(-10.9, 16.15, 0.85);
           [
             [-13.2, 4.25, 16.86, Math.PI],
             [13.2, 4.25, 16.86, Math.PI],
