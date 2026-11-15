@@ -1073,7 +1073,8 @@
         #chatPeek{ max-width:56vw; }
       }
     </style>
-  </head>
+  <!-- Làng Mèo | visual/performance upgrade V3, 2026-11-15 -->
+</head>
   <body>
     <h1 class="sr-only">Làng Mèo — nhà xem phim chung duy nhất của làng, xem YouTube và chơi game cùng bầy mèo</h1>
 
@@ -6333,11 +6334,14 @@ function init3D(){
   }
   try {
     const renderer = new THREE.WebGLRenderer({ canvas: $('#glCanvas'), antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // Adaptive graphics profile: preserve full world/game logic and lower GPU load on touch devices.
+    const lowGpu = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) ||
+      (typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowGpu ? 1.25 : 1.75));
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.14;
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = !lowGpu;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1d130c);
@@ -6351,7 +6355,7 @@ function init3D(){
     spot.position.set(2, 10.5, 1.5);
     spot.target.position.set(0, 0, -1);
     spot.castShadow = true;
-    spot.shadow.mapSize.set(2048, 2048);
+    spot.shadow.mapSize.set(lowGpu ? 512 : 1024, lowGpu ? 512 : 1024);
     spot.shadow.bias = -0.0004;
     spot.shadow.normalBias = 0.02;
     spot.shadow.radius = 3;
@@ -10984,23 +10988,24 @@ kqRender();
   function build(th){
     var S = three.scene;
     var G = new th.Group(); S.add(G);
-    var mats = {};
+    var mats = {}, geomCache = {};
     function M(c){ if (!mats[c]) mats[c] = new th.MeshLambertMaterial({ color: c }); return mats[c]; }
-    function bx(w, h, d, c, x, y, z, p){ var m = new th.Mesh(new th.BoxGeometry(w, h, d), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
-    function cy(rt, rb, h, c, x, y, z, p, seg){ var m = new th.Mesh(new th.CylinderGeometry(rt, rb, h, seg || 14), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
-    function sp(r, c, x, y, z, p){ var m = new th.Mesh(new th.SphereGeometry(r, 12, 10), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
-    function pl(w, d, c, x, y, z, p){ var m = new th.Mesh(new th.PlaneGeometry(w, d), M(c)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); (p || G).add(m); return m; }
+    function cachedGeo(key, make){ return geomCache[key] || (geomCache[key] = make()); }
+    function bx(w, h, d, c, x, y, z, p){ var m = new th.Mesh(cachedGeo('b|'+w+'|'+h+'|'+d, function(){ return new th.BoxGeometry(w,h,d); }), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
+    function cy(rt, rb, h, c, x, y, z, p, seg){ seg=seg||14; var m = new th.Mesh(cachedGeo('c|'+rt+'|'+rb+'|'+h+'|'+seg,function(){ return new th.CylinderGeometry(rt, rb, h, seg); }), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
+    function sp(r, c, x, y, z, p){ var m = new th.Mesh(cachedGeo('s|'+r,function(){ return new th.SphereGeometry(r, 12, 10); }), M(c)); m.position.set(x, y, z); (p || G).add(m); return m; }
+    function pl(w, d, c, x, y, z, p){ var m = new th.Mesh(cachedGeo('p|'+w+'|'+d,function(){ return new th.PlaneGeometry(w, d); }), M(c)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); (p || G).add(m); return m; }
     function sign(text, w, h, bg, fg, x, y, z, ry){
       var cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.round(512 * h / w);
       var g = cv.getContext('2d'); g.fillStyle = bg; g.fillRect(0, 0, cv.width, cv.height);
       g.strokeStyle = 'rgba(255,233,201,.65)'; g.lineWidth = 8; g.strokeRect(8, 8, cv.width - 16, cv.height - 16);
       g.fillStyle = fg; g.font = '800 ' + Math.round(cv.height * 0.52) + 'px "Baloo 2", sans-serif';
-      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, cv.width / 2, cv.height / 2 + 3);
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, cv.width / 2, cv.height / 2 + 3, cv.width - 40);
       var t = new th.CanvasTexture(cv);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){
         g.fillStyle = bg; g.fillRect(0, 0, cv.width, cv.height);
         g.strokeStyle = 'rgba(255,233,201,.65)'; g.lineWidth = 8; g.strokeRect(8, 8, cv.width - 16, cv.height - 16);
-        g.fillStyle = fg; g.fillText(text, cv.width / 2, cv.height / 2 + 3); t.needsUpdate = true;
+        g.fillStyle = fg; g.fillText(text, cv.width / 2, cv.height / 2 + 3, cv.width - 40); t.needsUpdate = true;
       });
       /* Biển HAI MẶT THẬT (tấm nền + 2 mặt chữ đối nhau) — hết chữ ngược gương */
       var grp = new th.Group();
@@ -11029,6 +11034,13 @@ kqRender();
       for (var i = 0; i < Math.floor(w * 2.2); i++) sp(0.09, cols[i % cols.length], x - w / 2 + 0.3 + i * 0.42, 0.3, z + (i % 2 ? 0.14 : -0.14));
     }
     var WALL = 0xF2E7D8, WOOD = 0x8B4A2B, TERRA = 0xA9704B, CREAM2 = 0xE9D9BE;
+    // Interiors must remain visible in third-person camera; roofs fade when player enters.
+    window.__lmRoomRoofs = [];
+    function roomRoof(mesh, minX,maxX,minZ,maxZ){
+      mesh.material = mesh.material.clone();
+      mesh.material.transparent = true; mesh.material.depthWrite = true;
+      window.__lmRoomRoofs.push({ mesh:mesh, minX:minX, maxX:maxX, minZ:minZ, maxZ:maxZ });
+    }
 
     /* ===== Mặt đất toàn khu + quảng trường + đường đi lát đá ===== */
     pl(90, 150, 0x51683F, 0, -0.045, 45);                       // cỏ phủ kín khung đất mới
@@ -11063,14 +11075,35 @@ kqRender();
       bx(15, H, 0.25, WALL, -35.5, H / 2, z0); bx(15, H, 0.25, WALL, -35.5, H / 2, z1); // tường bắc/nam
       var seg = (r.d / 2 - 1.2) ;
       bx(0.25, H, seg, WALL, -27.9, H / 2, z0 + seg / 2); bx(0.25, H, seg, WALL, -27.9, H / 2, z1 - seg / 2); // tường đông chừa cửa 2.4
-      bx(15.9, 0.18, r.d + 0.9, r.roof, -35.5, H + 0.12, r.z);                     // mái chính
-      bx(6.5, 0.5, 4.2, r.roof, -38.5, H + 0.42, r.z);                             // khối mái lệch tầng
+      var roofMain=bx(15.9, 0.18, r.d + 0.9, r.roof, -35.5, H + 0.12, r.z);
+      var roofTop=bx(6.5, 0.5, 4.2, r.roof, -38.5, H + 0.42, r.z);
+      roomRoof(roofMain, -43.1,-27.9,z0,z1);
+      roomRoof(roofTop, -43.1,-27.9,z0,z1);                             // khối mái lệch tầng
       bx(2.8, 0.1, 1.3, 0x7C4F27, -27.9, 0.05, r.z);                               // thềm cửa
       sign(r.name, 4.6, 0.85, '#8B4A2B', '#FFE9C9', -27.72, H - 0.35, r.z, Math.PI / 2);
       glow(0xFFB36B, 1.6, 0.5, -27.6, 2.4, r.z - 1.5); glow(0xFFB36B, 1.6, 0.5, -27.6, 2.4, r.z + 1.5);
       var OB = function(a, b, c, d){ OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d }); };
       OB(-43.25, -42.95, z0, z1); OB(-43, -28, z0 - 0.15, z0 + 0.15); OB(-43, -28, z1 - 0.15, z1 + 0.15);
       OB(-28.05, -27.75, z0, r.z - 1.2); OB(-28.05, -27.75, r.z + 1.2, z1);
+      // Bespoke decorative interior: wall panels, sconces, storage, lounge seating.
+      // Keep the middle of each room clear for the existing interactive game station.
+      var accent = [0xD9A46F,0x79B4A2,0xC48AB5,0xE7B75D,0xDFA3C5][i%5];
+      for(var wi=0;wi<3;wi++){
+        bx(0.075,1.65,1.35,accent,-42.88,1.72,r.z-2.8+wi*2.8);
+        bx(0.09,1.48,1.17,0xF9F0DF,-42.82,1.72,r.z-2.8+wi*2.8);
+        bx(0.12,0.12,1.25,WOOD,-42.75,2.48,r.z-2.8+wi*2.8);
+      }
+      [-1,1].forEach(function(side){
+        var zz=r.z+side*(r.d/2-0.75);
+        bx(2.4,0.75,0.65,WOOD,-39.7,0.375,zz);
+        bx(2.2,0.12,0.58,CREAM2,-39.7,0.81,zz);
+        sp(0.18,accent,-40.5,1.05,zz);
+      });
+      cy(0.6,0.6,0.08,0xEAD8BD,-34.8,0.045,r.z-2.9,G,16);
+      cy(0.16,0.2,0.48,0x7B9B76,-34.8,0.3,r.z-2.9,G,10);
+      sp(0.33,0x5A8A64,-34.8,0.77,r.z-2.9);
+      bx(2.6,0.05,1.6,accent,-32.5,0.035,r.z+2.7);
+      glow(0xFFE2A6,1.2,0.28,-41.9,2.7,r.z);
     });
     // Trạm vẽ đoán chữ trong phòng riêng (giá vẽ + bảng đoán chữ)
     (function(){
@@ -11091,7 +11124,7 @@ kqRender();
       bx(0.25, H, 14, 0x3A2C4A, 43.4, H / 2, cz);
       var seg = 5.8;
       bx(0.25, H, seg, 0x3A2C4A, 27.6, H / 2, 23.1 + seg / 2); bx(0.25, H, seg, 0x3A2C4A, 27.6, H / 2, 36.9 - seg / 2);
-      bx(16.8, 0.2, 14.8, 0x241A30, cx, H + 0.12, cz);
+      roomRoof(bx(16.8, 0.2, 14.8, 0x241A30, cx, H + 0.12, cz),27.5,43.5,23,37);
       bx(16.8, 0.1, 0.3, 0xE77FB0, cx, H - 0.25, 23.35); bx(16.8, 0.1, 0.3, 0x7FD4FF, cx, H - 0.25, 36.65); // viền neon nóc phòng
       // màn hình karaoke riêng trên tường bắc + rèm đỏ hai bên
       bx(7.6, 3.1, 0.14, 0x0B0B10, cx, 2.45, 23.32);
@@ -11123,7 +11156,7 @@ kqRender();
       bx(0.25, H, 13, CREAM2, cx + 7.5, H / 2, cz);
       var seg = 5.4;
       bx(0.25, H, seg, CREAM2, cx - 7.5, H / 2, cz - 6.5 + seg / 2); bx(0.25, H, seg, CREAM2, cx - 7.5, H / 2, cz + 6.5 - seg / 2);
-      bx(15.9, 0.2, 13.9, TERRA, cx, H + 0.12, cz);                       // mái chính đất nung
+      roomRoof(bx(15.9, 0.2, 13.9, TERRA, cx, H + 0.12, cz),28,43,cz-6.5,cz+6.5);                       // mái chính đất nung
       bx(8, 0.55, 6, WOOD, cx, H + 0.48, cz);                            // khối mái nâng (giếng trời)
       bx(7.6, 0.08, 5.6, 0xBFD9E8, cx, H + 0.78, cz);
       bx(0.3, 1.1, 1.8, WOOD, cx - 7.6, 3.1, cz - 3.4); bx(0.3, 1.1, 1.8, WOOD, cx - 7.6, 3.1, cz + 3.4); // cửa kính hai bên cửa chính
@@ -11142,7 +11175,7 @@ kqRender();
       bx(0.25, H, 12, WALL, cx + 7.5, H / 2, cz);
       var seg = 4.8;
       bx(0.25, H, seg, WALL, cx - 7.5, H / 2, cz - 6 + seg / 2); bx(0.25, H, seg, WALL, cx - 7.5, H / 2, cz + 6 - seg / 2);
-      bx(15.9, 0.2, 12.9, WOOD, cx, H + 0.12, cz);
+      roomRoof(bx(15.9, 0.2, 12.9, WOOD, cx, H + 0.12, cz),28,43,cz-6,cz+6);
       bx(9, 0.1, 2.2, 0xBFD9E8, cx, H + 0.26, cz);                       // giếng trời phòng tranh
       bx(2.2, 0.45, 0.55, 0x748B6F, cx + 2.5, 0.24, cz + 2.5); bx(2.2, 0.45, 0.55, 0xA9704B, cx - 3.5, 0.24, cz - 3);
       sign('🎨 PHÒNG TRANH FANART', 5.6, 0.95, '#8B4A2B', '#FFE9C9', cx - 7.68, H - 0.5, cz, -Math.PI / 2);
@@ -11160,6 +11193,29 @@ kqRender();
       sign('CÔNG VIÊN · HỒ BƠI ↓', 3.2, 0.6, '#A9704B', '#FFE9C9', 3.4, 1.45, 19.5, Math.PI / 2.6);
       OBSTACLES.push({ minX: 3.2, maxX: 3.6, minZ: 19.4, maxZ: 19.8 });
     })();
+
+    /* ===== Mặt tiền kiểu phố đi bộ: mái hiên, khung cửa, ô cửa sổ; không bít lối vào ===== */
+    rooms.forEach(function(r,idx){
+      var hh=3.3+(idx%3)*0.45;
+      var k=[0xD9A46F,0x79B4A2,0xC48AB5,0xE7B75D,0xDFA3C5][idx%5];
+      bx(2.9,0.16,0.9,k,-27.25,hh-1.26,r.z);       // mái hiên cửa chính
+      [-1.14,1.14].forEach(function(s){
+        bx(0.1,2.2,0.12,WOOD,-27.53,1.15,r.z+s);
+        bx(0.08,1.15,1.45,0xA6D8E5,-27.65,1.8,r.z+s*2.55);
+        bx(0.09,0.09,1.55,WOOD,-27.59,2.4,r.z+s*2.55);
+      });
+      bx(0.4,0.08,1.6,k,-27.4,0.34,r.z-3.35);
+      bx(0.4,0.08,1.6,k,-27.4,0.34,r.z+3.35);
+    });
+    // Warm, uncluttered character for the opposite-side public buildings.
+    [[35.5,30,7.6,0xE77FB0],[MEET_POS.x,MEET_POS.z,7.2,0xD9A46F],[35.5,74,7.0,0x79B4A2]].forEach(function(q){
+      var left=27.27;
+      for(var wi=0;wi<3;wi++){
+        var zz=q[1]-q[2]/2+wi*q[2]/2;
+        bx(0.1,0.85,0.75,0xBFD9E8,left,2.3,zz);
+        bx(0.13,0.08,0.83,q[3],left-0.02,2.77,zz);
+      }
+    });
 
     /* ===== Trang trí ngoài trời: cây, đèn đường, bồn hoa, ghế nghỉ dọc lối ===== */
     [[-24.6, 24], [-24.6, 44], [-24.6, 64], [24.6, 24], [24.6, 62], [-24.6, 84], [24.6, 84], [-24.6, 104],
@@ -11301,7 +11357,7 @@ kqRender();
       var seg = 56, pts = [];
       for (var i = 0; i < seg; i++){
         var a = i / seg * Math.PI * 2, x = cx + Math.cos(a) * RX, z = cz + Math.sin(a) * RZ;
-        var y = 1.3 + Math.sin(a * 2) * 0.5 + Math.max(0, Math.sin(a)) * 1.1; // thêm 1 dốc cao rõ rệt cho ra dáng tàu siêu tốc (khớp công thức ở tick)
+        var y = 2.2 + Math.sin(a * 2) * 0.85 + Math.max(0, Math.sin(a)) * 2.2; // thêm 1 dốc cao rõ rệt cho ra dáng tàu siêu tốc (khớp công thức ở tick)
         pts.push({ x: x, z: z, y: y, a: a });
         if (i % 2 === 0) bx(0.16, y, 0.16, 0x6E5136, x, y / 2, z);
       }
@@ -11309,9 +11365,16 @@ kqRender();
         var p = pts[j], q = pts[(j + 1) % seg];
         var len = Math.hypot(q.x - p.x, q.z - p.z), mid = { x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, y: (p.y + q.y) / 2 };
         var tie = new th.Mesh(new th.BoxGeometry(0.85, 0.06, len + 0.1), H.M(0x8B4A2B));
-        tie.position.set(mid.x, mid.y, mid.z); tie.rotation.y = Math.atan2(q.x - p.x, q.z - p.z); G.add(tie);
-        var rail = new th.Mesh(new th.BoxGeometry(0.9, 0.05, len + 0.1), H.M(0xB9C0C7));
-        rail.position.set(mid.x, mid.y + 0.07, mid.z); rail.rotation.y = tie.rotation.y; G.add(rail);
+        var dy=q.y-p.y, length3=Math.hypot(len,dy);
+        tie.geometry.dispose(); tie.geometry=new th.BoxGeometry(0.85,0.06,length3+0.08);
+        tie.position.set(mid.x,mid.y,mid.z);
+        tie.rotation.order='YXZ'; tie.rotation.y=Math.atan2(q.x-p.x,q.z-p.z);
+        tie.rotation.x=-Math.atan2(dy,len); G.add(tie);
+        [-0.34,0.34].forEach(function(offset){
+          var rail=new th.Mesh(new th.BoxGeometry(0.09,0.095,length3+0.09),H.M(0xB9C0C7));
+          rail.position.set(mid.x+Math.cos(tie.rotation.y)*offset,mid.y+0.10,mid.z-Math.sin(tie.rotation.y)*offset);
+          rail.rotation.order='YXZ';rail.rotation.y=tie.rotation.y;rail.rotation.x=tie.rotation.x;G.add(rail);
+        });
       }
       var cart = new th.Group(); G.add(cart);
       var cbody = new th.Mesh(new th.BoxGeometry(1.15, 0.5, 1.7), H.M(0xE0393E)); cbody.position.y = 0.35; cart.add(cbody);
@@ -11320,6 +11383,45 @@ kqRender();
       window.__bcCoaster = { cart: cart, cx: cx, cz: cz, RX: RX, RZ: RZ };
       sign('🎢 TÀU SIÊU TỐC — đứng gần toa để lên tàu', 5.2, 0.7, '#8A2F2B', '#FFE9C9', 0, 1.9, 113.2, Math.PI);
     })();
+    /* --- KHU HỒ BƠI CÔNG VIÊN / MÁNG TRƯỢT NƯỚC: riêng tại x=35,z=99,
+           không chồng lên hồ villa x=-20..-4, không chặn đường chính. --- */
+    (function(){
+      var px=35,pz=98;
+      bx(14.0,0.28,10.4,0xE8DCC8,px,0.13,pz);
+      bx(12.0,0.12,8.4,0x2E6B8A,px,0.22,pz);
+      var surface=new th.Mesh(new th.PlaneGeometry(11.75,8.15),
+        new th.MeshPhongMaterial({ color:0x53BED5, shininess:100,transparent:true,opacity:0.88,side:th.DoubleSide }));
+      surface.rotation.x=-Math.PI/2;surface.position.set(px,0.32,pz);G.add(surface);
+      for(var stripe=0;stripe<5;stripe++){
+        var line=bx(11.2,0.015,0.05,0xC7F8FF,px,0.33,pz-3.3+stripe*1.6);
+        line.material=line.material.clone();line.material.transparent=true;line.material.opacity=0.38;
+      }
+      [[29.0,93.8],[41.0,93.8],[29.0,102.2],[41.0,102.2]].forEach(function(pt){
+        cy(0.12,0.15,0.95,0xF9F0DF,pt[0],0.64,pt[1],G,10);
+        sp(0.13,0x7FD4FF,pt[0],1.16,pt[1]);
+      });
+      // Slide tower rises at north edge; slope lands INSIDE the pool.
+      var sx=35,sz=90.1;
+      bx(2.8,0.26,2.2,0xFFCB6D,sx,2.45,sz);
+      [-1.2,1.2].forEach(function(dx){
+        [-0.85,0.85].forEach(function(dz){bx(0.13,2.5,0.13,0x3B7C94,sx+dx,1.25,sz+dz);});
+      });
+      for(var i=0;i<8;i++){
+        var zstep=sz-3.3+i*0.41;
+        bx(1.0,0.12,0.34,0xE9D9BE,sx+0.65,(i+1)*0.3,zstep);
+      }
+      var slide=new th.Mesh(new th.BoxGeometry(1.35,0.11,5.1), H.M(0xE77FB0));
+      slide.position.set(sx,1.31,sz+3.15);slide.rotation.x=0.44;G.add(slide);
+      [-0.66,0.66].forEach(function(dx){
+        var edge=new th.Mesh(new th.BoxGeometry(0.11,0.35,5.1),H.M(0xFFCB6D));
+        edge.position.set(sx+dx,1.53,sz+3.15);edge.rotation.x=0.44;G.add(edge);
+      });
+      sign('🏊 HỒ BƠI & CẦU TRƯỢT NƯỚC',5.1,0.75,'#2E6B8A','#EAF7FF',35,2.9,87.3,0);
+      // Pool collision: only curb/tower, never a solid blocker covering the water.
+      OBSTACLES.push({minX:33.5,maxX:36.5,minZ:88.85,maxZ:91.25});
+      window.__lmParkPool={water:surface,baseY:0.32};
+    })();
+
     /* --- Quầy kẹo bông + bóng bay trang trí --- */
     (function(){
       [[10, 76, '🍭 KẸO BÔNG', 0xE77FB0], [-10, 76, '🎈 BÓNG BAY', 0xF2B705]].forEach(function(q){
@@ -11400,6 +11502,19 @@ kqRender();
       var dt = Math.min(0.05, (now - last) / 1000); last = now; f++;
       var t = Date.now() / 1000;
       try {
+        /* Water ripples: subtle vertical movement; no geometry reconstruction. */
+        var PP=window.__lmParkPool;
+        if(PP && PP.water) PP.water.position.y=PP.baseY+Math.sin(t*1.7)*0.008;
+        /* Show interiors from inside rooms; outside retain full opaque roofs. */
+        if(f%6===0 && window.__lmRoomRoofs && typeof myPos!=='undefined'){
+          // Local camera/player coordinates, never network member metadata.
+          var mx=myPos.x, mz=myPos.z;
+          if(isFinite(mx)&&isFinite(mz)) window.__lmRoomRoofs.forEach(function(rr){
+            var isIn=mx>rr.minX&&mx<rr.maxX&&mz>rr.minZ&&mz<rr.maxZ;
+            var op=isIn?0.09:1;
+            if(rr.mesh.material.opacity!==op){rr.mesh.material.opacity=op;rr.mesh.material.depthWrite=!isIn;}
+          });
+        }
         /* Đài phun nước */
         var F = window.__bcFountain;
         if (F){
@@ -11441,9 +11556,11 @@ kqRender();
         if (CO){
           var ca = (t * 0.16) % (Math.PI * 2);
           var cxp = CO.cx + Math.cos(ca) * CO.RX, czp = CO.cz + Math.sin(ca) * CO.RZ;
-          var cyp = 1.3 + Math.sin(ca * 2) * 0.5 + Math.max(0, Math.sin(ca)) * 1.1;
+          var cyp = 2.2 + Math.sin(ca * 2) * 0.85 + Math.max(0, Math.sin(ca)) * 2.2;
           CO.cart.position.set(cxp, cyp + 0.12, czp);
           CO.cart.rotation.y = Math.atan2(-Math.sin(ca) * CO.RX, Math.cos(ca) * CO.RZ);
+          var grad=1.7*Math.cos(ca*2)+(Math.sin(ca)>0?Math.cos(ca)*2.2:0);
+          CO.cart.rotation.x = Math.max(-0.40,Math.min(0.40,Math.atan2(grad,Math.hypot(Math.sin(ca)*CO.RX,Math.cos(ca)*CO.RZ))));
           var spT = SEAT_POS.T1;
           if (spT){ spT.x = cxp; spT.z = czp; spT.y = cyp + 0.95; spT.rotY = CO.cart.rotation.y; }
         }
@@ -11630,5 +11747,275 @@ kqRender();
   }
 })();
 </script>
+
+<script>
+/* =====================================================================
+   ĐỢT C — CẢNH QUAN LỐI ĐI + VIỀN MAP MỀM + NÂNG CẤP NHÀ CHÍNH
+   - Không chạm network / WebSocket / voice / control / camera.
+   - Chỉ thêm cảnh quan, đường dạo, ánh sáng và nội thất trang trí.
+   ===================================================================== */
+(function LuxePathsAndHouseV4(){
+  'use strict';
+  if (window.__lmLuxePathsAndHouseV4Loaded) return;
+  window.__lmLuxePathsAndHouseV4Loaded = true;
+
+  var built = false;
+  function waitAndBuild(){
+    if (built) return;
+    if (typeof THREE === 'undefined' || typeof three === 'undefined' || !three || !three.scene) return;
+    if (!three.scene.children || three.scene.children.length < 18) return;
+    built = true;
+    try { buildEnhancements(); } catch (e) { if (window.console) console.warn('LuxePathsAndHouseV4', e); }
+  }
+  var iv = setInterval(waitAndBuild, 450);
+  setTimeout(function(){ clearInterval(iv); waitAndBuild(); }, 25000);
+  if (document.readyState === 'complete') setTimeout(waitAndBuild, 1200);
+  else window.addEventListener('load', function(){ setTimeout(waitAndBuild, 1200); });
+
+  function buildEnhancements(){
+    var th = THREE, S = three.scene;
+    var G = new th.Group();
+    G.name = 'LM_LuxePathsAndHouseV4';
+    S.add(G);
+    window.__lmLuxePathsAndHouseV4 = G;
+
+    var mats = {}, geos = {};
+    function geo(k, maker){ return geos[k] || (geos[k] = maker()); }
+    function lam(c){ return mats['l'+c] || (mats['l'+c] = new th.MeshLambertMaterial({ color: c })); }
+    function pho(c, sh, sp){ var k='p'+c+'|'+(sh||50)+'|'+(sp||0x666666); return mats[k] || (mats[k] = new th.MeshPhongMaterial({ color:c, shininess:sh||50, specular:sp||0x666666 })); }
+    function bas(c, op){ var k='b'+c+'|'+(op==null?1:op); return mats[k] || (mats[k] = new th.MeshBasicMaterial({ color:c, transparent:op!=null&&op<1, opacity:op==null?1:op })); }
+    function bx(w,h,d,c,x,y,z,p,mat){ var m=new th.Mesh(geo('b|'+w+'|'+h+'|'+d, function(){ return new th.BoxGeometry(w,h,d); }), mat || lam(c)); m.position.set(x,y,z); (p||G).add(m); return m; }
+    function cy(rt,rb,h,c,x,y,z,p,seg,mat){ seg=seg||14; var m=new th.Mesh(geo('c|'+rt+'|'+rb+'|'+h+'|'+seg, function(){ return new th.CylinderGeometry(rt,rb,h,seg); }), mat || lam(c)); m.position.set(x,y,z); (p||G).add(m); return m; }
+    function sp(r,c,x,y,z,p,mat){ var m=new th.Mesh(geo('s|'+r, function(){ return new th.SphereGeometry(r, 14, 12); }), mat || lam(c)); m.position.set(x,y,z); (p||G).add(m); return m; }
+    function pl(w,d,c,x,y,z,p,mat){ var m=new th.Mesh(geo('pl|'+w+'|'+d, function(){ return new th.PlaneGeometry(w,d); }), mat || lam(c)); m.rotation.x = -Math.PI/2; m.position.set(x,y,z); (p||G).add(m); return m; }
+    function glow(c, sc, op, x, y, z, p){ if (typeof makeGlowSprite !== 'function') return null; var g = makeGlowSprite(c, sc, op); g.position.set(x,y,z); (p||G).add(g); return g; }
+    function contact(x,y,z,w,d,op){ if (typeof addContactShadow === 'function') addContactShadow(x,y,z,w,d,op,G); }
+
+    function bollard(x, z, h, tone){
+      h = h || 1.35;
+      tone = tone || 0xFFD59C;
+      cy(0.06, 0.08, h, 0x4A3A2E, x, h/2, z, G, 8);
+      sp(0.16, tone, x, h + 0.08, z, G, bas(tone));
+      glow(0xFFB36B, 2.4, 0.48, x, h + 0.08, z, G);
+    }
+    function shrub(x,z,s,col1,col2){
+      s = s || 1;
+      var grp = new th.Group(); grp.position.set(x,0,z); G.add(grp);
+      var c1 = col1 || 0x5F7A5E, c2 = col2 || 0x748B6F;
+      [[0,0,0.55],[0.38,0.08,0.42],[-0.36,-0.03,0.38],[0.12,0.24,0.35],[-0.15,0.21,0.33]].forEach(function(p,i){
+        var b = new th.Mesh(geo('s|'+(p[2]*s), function(){ return new th.SphereGeometry(p[2]*s, 12, 10); }), lam(i%2?c1:c2));
+        b.position.set(p[0]*s, 0.28*s + p[1]*s, p[1]*0.15*s); b.scale.y = 0.8; grp.add(b);
+      });
+      return grp;
+    }
+    function tree(x,z,s){
+      s = s || 1;
+      var grp = new th.Group(); grp.position.set(x,0,z); G.add(grp);
+      cy(0.16*s, 0.24*s, 1.9*s, 0x7A4B2E, 0, 0.95*s, 0, grp, 8);
+      [
+        [0, 2.05, 0, 0.92], [0.42, 2.3, 0.08, 0.78], [-0.45, 2.28, -0.06, 0.76],
+        [0.08, 2.7, -0.18, 0.62], [-0.12, 2.52, 0.32, 0.56]
+      ].forEach(function(p, i){
+        var crown = new th.Mesh(geo('s|'+(p[3]*s), function(){ return new th.SphereGeometry(p[3]*s, 14, 12); }), lam(i % 2 ? 0x6D8A63 : 0x7F9D74));
+        crown.position.set(p[0]*s, p[1]*s, p[2]*s); crown.scale.y = 0.92; grp.add(crown);
+      });
+      contact(x, 0.018, z, 2.5*s, 2.5*s, 0.22);
+      return grp;
+    }
+    function flowerBed(x,z,w,d,rot,cols){
+      cols = cols || [0xE77FB0, 0xF2B705, 0xE4572E, 0xC95D8F];
+      var grp = new th.Group(); grp.position.set(x,0.01,z); grp.rotation.y = rot || 0; G.add(grp);
+      cy(Math.max(w,d)*0.52, Math.max(w,d)*0.52, 0.15, 0xB98A5A, 0, 0.075, 0, grp, 20);
+      var soil = cy(Math.max(w,d)*0.46, Math.max(w,d)*0.46, 0.08, 0x6E5037, 0, 0.13, 0, grp, 20);
+      soil.scale.set(w/Math.max(w,d), 1, d/Math.max(w,d));
+      for (var i = 0; i < 16; i++){
+        var a = i / 16 * Math.PI * 2;
+        var fx = Math.cos(a) * (w * 0.32 + (i%2)*0.08), fz = Math.sin(a) * (d * 0.32 + ((i+1)%2)*0.06);
+        sp(0.10 + (i%3)*0.015, cols[i % cols.length], fx, 0.27 + (i%3)*0.02, fz, grp, bas(cols[i % cols.length]));
+      }
+      return grp;
+    }
+    function wallSconce(x, y, z, ry){
+      var grp = new th.Group(); grp.position.set(x, y, z); grp.rotation.y = ry || 0; G.add(grp);
+      bx(0.22, 0.36, 0.07, 0x5A3A24, 0, 0, 0, grp);
+      var sh = new th.Mesh(geo('c|0.1|0.18|0.26|12', function(){ return new th.CylinderGeometry(0.1, 0.18, 0.26, 12, 1, true); }), bas(0xFFD59C, 0.95));
+      sh.position.set(0, 0.02, 0.16); grp.add(sh);
+      glow(0xFFB36B, 2.2, 0.42, x, y + 0.03, z + Math.cos(ry||0) * 0.16, G);
+      return grp;
+    }
+    function sideTable(x,z){
+      var grp = new th.Group(); grp.position.set(x,0,z); G.add(grp);
+      bx(0.72, 0.08, 0.72, 0x7A4526, 0, 0.52, 0, grp, pho(0x7A4526, 30));
+      [[-0.26,-0.26],[0.26,-0.26],[-0.26,0.26],[0.26,0.26]].forEach(function(p){ bx(0.07, 0.48, 0.07, 0x5A3A24, p[0], 0.24, p[1], grp); });
+      sp(0.12, 0xE9DCC2, 0, 0.68, 0, grp, pho(0xE9DCC2, 55, 0xBBBBBB));
+      sp(0.07, 0x748B6F, 0.12, 0.82, 0.05, grp);
+      contact(x, 0.02, z, 1.0, 1.0, 0.16);
+      return grp;
+    }
+    function coffeeTable(x,z){
+      var grp = new th.Group(); grp.position.set(x,0,z); G.add(grp);
+      bx(3.5, 0.1, 1.28, 0x7A4526, 0, 0.54, 0, grp, pho(0x7A4526, 36));
+      bx(1.55, 0.06, 0.48, 0xE9DCC2, -0.55, 0.63, -0.16, grp, pho(0xE9DCC2, 70, 0xCCCCCC));
+      bx(0.82, 0.05, 0.62, 0x2F2420, 0.9, 0.625, 0.1, grp, pho(0x2F2420, 80));
+      sp(0.13, 0xF2B705, 0.9, 0.73, -0.18, grp, pho(0xF2B705, 60, 0xC28B00));
+      [[-1.45,-0.46],[1.45,-0.46],[-1.45,0.46],[1.45,0.46]].forEach(function(p){ bx(0.1, 0.46, 0.1, 0x5A3A24, p[0], 0.23, p[1], grp); });
+      if (typeof OBSTACLES !== 'undefined') OBSTACLES.push({ minX:x-1.75, maxX:x+1.75, minZ:z-0.64, maxZ:z+0.64 });
+      contact(x, 0.02, z, 4.1, 1.9, 0.24);
+      return grp;
+    }
+    function consoleTable(x,z){
+      var grp = new th.Group(); grp.position.set(x,0,z); G.add(grp);
+      bx(12.2, 0.34, 0.72, 0x6A3E26, 0, 0.36, 0, grp, pho(0x6A3E26, 34));
+      bx(11.6, 0.08, 0.62, 0xE9DCC2, 0, 0.55, 0.02, grp, pho(0xE9DCC2, 70));
+      [-5.2, 5.2].forEach(function(px){ bx(0.14, 0.58, 0.56, 0x4F3020, px, 0.08, 0, grp); });
+      bx(0.9, 0.26, 0.28, 0x748B6F, -4.1, 0.78, 0.08, grp);
+      bx(0.78, 0.22, 0.26, 0xA9704B, -3.0, 0.74, -0.03, grp);
+      sp(0.15, 0xF2B705, 4.3, 0.83, 0.04, grp, pho(0xF2B705, 50, 0xBB8C00));
+      sp(0.11, 0x748B6F, 4.0, 0.72, -0.12, grp);
+      return grp;
+    }
+    function pendantCluster(x,y,z){
+      var grp = new th.Group(); grp.position.set(x,y,z); G.add(grp);
+      [[0,0,0.0,0xFFD59C],[1.2,-0.25,-0.2,0xFFC37A],[-1.15,-0.15,0.15,0xFFDEB8]].forEach(function(p,i){
+        bx(0.03, 0.95 + i*0.12, 0.03, 0x2F2420, p[0], -0.55, p[2], grp);
+        var sh = new th.Mesh(geo('c|0.18|0.30|0.42|16', function(){ return new th.CylinderGeometry(0.18,0.30,0.42,16,1,true); }), bas(p[3], 0.95));
+        sh.position.set(p[0], -1.12 - i*0.08, p[2]); grp.add(sh);
+        glow(0xFFB36B, 2.3 + i*0.25, 0.35, x + p[0], y - 1.12 - i*0.08, z + p[2], G);
+      });
+      return grp;
+    }
+    function slatWall(xStart, xEnd, y, z, skipMin, skipMax){
+      for (var x = xStart; x <= xEnd; x += 0.62){
+        if (skipMin != null && x > skipMin && x < skipMax) continue;
+        bx(0.10, 7.0, 0.12, 0xA9704B, x, y, z, G, pho(0xA9704B, 28));
+      }
+    }
+    function pathStrip(points, width, baseColor, edgeColor, lightEvery){
+      baseColor = baseColor || 0xD9C7A8; edgeColor = edgeColor || 0xA88A68; lightEvery = lightEvery || 2;
+      var counter = 0;
+      for (var i = 0; i < points.length - 1; i++){
+        var p0 = points[i], p1 = points[i+1];
+        var dx = p1[0] - p0[0], dz = p1[1] - p0[1], len = Math.hypot(dx, dz);
+        var mx = (p0[0] + p1[0]) / 2, mz = (p0[1] + p1[1]) / 2;
+        var ang = Math.atan2(dx, dz);
+        var seg = bx(width, 0.055, len, baseColor, mx, 0.045, mz, G, pho(baseColor, 18));
+        seg.rotation.y = ang;
+        var offX = Math.cos(ang) * (width / 2 + 0.08), offZ = -Math.sin(ang) * (width / 2 + 0.08);
+        var e1 = bx(0.12, 0.075, len + 0.08, edgeColor, mx + offX, 0.055, mz + offZ, G, pho(edgeColor, 24)); e1.rotation.y = ang;
+        var e2 = bx(0.12, 0.075, len + 0.08, edgeColor, mx - offX, 0.055, mz - offZ, G, pho(edgeColor, 24)); e2.rotation.y = ang;
+        for (var u = 0.4; u < len; u += 1.7){
+          var px = p0[0] + dx * (u / len), pz = p0[1] + dz * (u / len);
+          var st = cy(0.34, 0.38, 0.05, 0xE9DCC2, px, 0.075, pz, G, 10, pho(0xE9DCC2, 20));
+          st.scale.z = 0.78;
+          if (counter % lightEvery === 0){
+            var nx = Math.cos(ang) * (width / 2 + 0.62), nz = -Math.sin(ang) * (width / 2 + 0.62);
+            bollard(px + nx, pz + nz, 1.24);
+            if (counter % (lightEvery * 2) === 0) bollard(px - nx, pz - nz, 1.18);
+          }
+          counter++;
+        }
+      }
+    }
+
+    /* ===================== 1) LỐI ĐI & QUẢNG TRƯỜNG ===================== */
+    pathStrip([[0,18.4],[0,30],[0,45],[0,68],[0,84]], 3.15, 0xDCC9AA, 0xB89A73, 3);
+    pathStrip([[0,68],[-12,68],[-26.2,68],[-26.2,92],[-26.2,111]], 3.0, 0xDCC9AA, 0xB89A73, 3);
+    pathStrip([[0,50],[12,50],[26.2,50],[26.2,29]], 3.0, 0xDCC9AA, 0xB89A73, 3);
+    pathStrip([[26.2,50],[26.2,74]], 3.0, 0xDCC9AA, 0xB89A73, 3);
+    pathStrip([[0,84],[15,84],[24,92],[24,106]], 2.5, 0xD6C2A1, 0xAA8A64, 3);
+    pathStrip([[0,84],[-12,84],[-20,92],[-22,106]], 2.5, 0xD6C2A1, 0xAA8A64, 3);
+    pathStrip([[0,84],[0,102],[0,116]], 2.6, 0xD6C2A1, 0xAA8A64, 4);
+    var plaza = cy(6.3, 6.45, 0.05, 0xE9DCC2, 0, 0.05, 70.5, G, 28, pho(0xE9DCC2, 20));
+    plaza.scale.z = 0.72;
+    cy(5.45, 5.55, 0.04, 0xD6C2A1, 0, 0.072, 70.5, G, 28, pho(0xD6C2A1, 20)).scale.z = 0.62;
+    contact(0, 0.016, 70.5, 9.5, 7.0, 0.18);
+    [[-8.5,70.5],[8.5,70.5],[-18,84],[18,84],[-26.2,48.2],[26.2,48.2],[26.2,72.2],[-26.2,103.5]].forEach(function(p){ shrub(p[0], p[1], 0.95); });
+    [[-10.5,70.2],[10.5,70.2],[-15.2,84.5],[15.2,84.5],[-26.2,57.5],[26.2,57.5]].forEach(function(p){ flowerBed(p[0], p[1], 1.5, 1.1, 0, [0xE77FB0,0xF2B705,0xE4572E]); });
+
+    /* ===================== 2) VIỀN MAP MỀM – CÂY/BỤI/ĐÈN ===================== */
+    function borderBand(side){
+      if (side === 'west' || side === 'east'){
+        var sx = side === 'west' ? -43.1 : 43.1;
+        for (var z = -24; z <= 117; z += 4.6){
+          var off = Math.sin(z * 0.37) * 0.65;
+          var x = sx + (side === 'west' ? off : -off);
+          if (Math.round(z) % 14 < 5) shrub(x, z, 1.12);
+          else tree(x - (side === 'west' ? 0.3 : -0.3), z, 0.88 + ((Math.round(z*10)%2)*0.07));
+          if (((z + 24) / 4.6 | 0) % 4 === 0) bollard(sx * 0.92, z, 1.75);
+        }
+      } else {
+        var sz = side === 'north' ? -28.2 : 118.1;
+        for (var x = -40; x <= 40; x += 4.8){
+          var off2 = Math.sin(x * 0.31) * 0.6;
+          var zz = sz + (side === 'north' ? off2 : -off2);
+          if (Math.round((x + 40) / 4.8) % 3 === 0) tree(x, zz, 0.84 + (Math.abs(x)%2)*0.05);
+          else shrub(x, zz, 1.08);
+          if (Math.round((x + 40) / 4.8) % 5 === 0) bollard(x, side === 'north' ? -25.8 : 115.7, 1.7);
+        }
+      }
+    }
+    borderBand('west'); borderBand('east'); borderBand('north'); borderBand('south');
+    [[-41.5,-23.5],[41.5,-23.2],[-41.2,116.2],[41.2,116.1],[-34,112],[34,110],[-35,-18],[35,-17]].forEach(function(p,i){ tree(p[0],p[1],1.15+(i%2)*0.08); shrub(p[0]+(i%2?1.6:-1.4), p[1]+0.9, 1.22); shrub(p[0]+(i%2?-1.2:1.3), p[1]-1.1, 1.0); });
+    [[-30,25],[-34,44],[-33,63],[-34,84],[33,25],[34,45],[33,66],[34,86],[-12,117],[12,117]].forEach(function(p){ bollard(p[0], p[1], 1.8); });
+
+    /* ===================== 3) NHÀ CHÍNH – NÂNG CẤP PHÒNG KHÁCH ===================== */
+    /* Giữ nguyên vùng TV x=-6.9..6.9, không che màn hình hay khung TV. */
+    bx(3.05, 7.4, 0.11, 0xE9DCC2, -9.25, 4.1, -16.83, G, pho(0xE9DCC2, 15));
+    bx(3.05, 7.4, 0.11, 0xE9DCC2, 9.25, 4.1, -16.83, G, pho(0xE9DCC2, 15));
+    slatWall(-8.4, 8.4, 4.1, -16.62, -7.3, 7.3);
+    consoleTable(0, -15.92);
+    var movieRug = pl(16.2, 8.6, 0xD7C4A4, 0, 0.024, -8.55, G, pho(0xD7C4A4, 8));
+    var movieRug2 = pl(14.8, 7.2, 0xE9DCC2, 0, 0.028, -8.55, G, pho(0xE9DCC2, 8));
+    movieRug2.rotation.z = 0.02;
+    /* Giữ khoảng cách hai hàng sofa nguyên bản; không đặt bàn chồng ghế. */
+    sideTable(-8.65, -7.1); sideTable(8.65, -7.1);
+    function displayShelf(x,z,rotY){
+      var grp = new th.Group(); grp.position.set(x,0,z); grp.rotation.y = rotY || 0; G.add(grp);
+      bx(2.2, 2.5, 0.44, 0x6A3E26, 0, 1.25, 0, grp, pho(0x6A3E26, 28));
+      [0.55,1.25,1.95].forEach(function(h){ bx(2.0, 0.06, 0.34, 0xB98A5A, 0, h, 0, grp, pho(0xB98A5A, 18)); });
+      [-0.68,-0.08,0.48].forEach(function(px, idx){ bx(0.28, 0.42 + idx*0.08, 0.20, [0x748B6F,0xE9C9A6,0xA9704B][idx], px, 0.77 + idx*0.01, 0.02, grp); });
+      sp(0.16, 0xF2B705, 0.70, 1.45, 0.02, grp, pho(0xF2B705, 55, 0xBB8C00));
+      sp(0.12, 0xE77FB0, -0.60, 2.12, 0.01, grp, pho(0xE77FB0, 50));
+      return grp;
+    }
+    displayShelf(-18.9, -13.2, 0); displayShelf(18.9, -13.2, 0);
+    [[-20.8,-4.8,1.18],[20.8,-4.8,1.18],[-20.5,-14.3,1.05],[20.5,-14.3,1.05]].forEach(function(p){ tree(p[0], p[1], p[2]); });
+    [[-23.84,4.2,-7.8,Math.PI/2],[-23.84,4.2,-2.2,Math.PI/2],[23.84,4.2,-7.8,-Math.PI/2],[23.84,4.2,-2.2,-Math.PI/2]].forEach(function(p){ wallSconce(p[0],p[1],p[2],p[3]); });
+    function artPanel(x,y,z,ry,bg,fg){
+      var cv=document.createElement('canvas'); cv.width=256; cv.height=320; var g=cv.getContext('2d');
+      g.fillStyle=bg; g.fillRect(0,0,256,320);
+      g.fillStyle='rgba(255,255,255,.45)'; g.beginPath(); g.moveTo(48,246); g.lineTo(102,124); g.lineTo(164,210); g.lineTo(210,96); g.lineTo(210,246); g.closePath(); g.fill();
+      g.fillStyle=fg; g.beginPath(); g.arc(122,150,46,0,7); g.fill();
+      g.fillStyle='rgba(47,36,32,.75)'; g.font='700 22px "Baloo 2", sans-serif'; g.textAlign='center'; g.fillText('CAT LOUNGE', 128, 292);
+      var tex=new th.CanvasTexture(cv); var grp=new th.Group(); grp.position.set(x,y,z); grp.rotation.y=ry; G.add(grp);
+      bx(1.55,1.95,0.07,0x8B4A2B,0,0,0,grp); var p=new th.Mesh(new th.PlaneGeometry(1.3,1.7), new th.MeshLambertMaterial({ map: tex })); p.position.z=0.05; grp.add(p);
+    }
+    artPanel(23.86,4.2,-12.2,-Math.PI/2,'#E9DCC2','#748B6F'); artPanel(23.86,4.2,-5.0,-Math.PI/2,'#D7C4A4','#A9704B');
+    pendantCluster(0, 7.2, -7.35);
+    pendantCluster(0, 6.9, 10.9);
+    var warm1 = new th.PointLight(0xFFD5A2, 0.85, 22); warm1.position.set(-6, 6.9, -7.2); G.add(warm1);
+    var warm2 = new th.PointLight(0xFFD5A2, 0.85, 22); warm2.position.set(6, 6.9, -7.2); G.add(warm2);
+    var warm3 = new th.PointLight(0xFFD8AE, 0.65, 20); warm3.position.set(0, 6.4, 10.9); G.add(warm3);
+    var loungeOval = cy(4.15, 4.3, 0.04, 0xE9DCC2, 0, 0.03, 10.95, G, 24, pho(0xE9DCC2, 10));
+    loungeOval.scale.z = 0.72;
+    /* Khu trà đã có bàn gốc; chỉ đổi chất liệu thảm để tránh chồng đồ. */
+    bx(5.9, 1.05, 0.42, 0x6A3E26, 14.2, 0.56, 16.66, G, pho(0x6A3E26, 26));
+    bx(5.3, 0.08, 0.32, 0xE9DCC2, 14.2, 1.04, 16.66, G, pho(0xE9DCC2, 70));
+    bx(0.9,0.24,0.24,0xA9704B,12.1,1.22,16.67,G); bx(0.65,0.28,0.24,0x748B6F,14.25,1.24,16.68,G); sp(0.13,0xF2B705,16.25,1.28,16.68,G,pho(0xF2B705,50,0xBB8C00));
+    tree(10.9, 13.6, 0.96); tree(-10.9, 13.6, 0.96);
+    [[-13.2, 4.25, 16.86, Math.PI], [13.2, 4.25, 16.86, Math.PI]].forEach(function(p){ wallSconce(p[0], p[1], p[2], p[3]); });
+    for (var i = -2; i <= 2; i++){
+      var px = i * 0.86;
+      var st = cy(0.46, 0.5, 0.07, 0xB7A184, px, 0.08, 18.42 + Math.abs(i)*0.12, G, 10, pho(0xB7A184, 15));
+      st.scale.z = 0.82;
+    }
+    [[-3.4,18.5],[3.4,18.5]].forEach(function(p){ flowerBed(p[0], p[1], 1.2, 1.0, 0, [0xE77FB0,0xF2B705,0xE4572E]); bollard(p[0]*0.82, 19.4, 1.5); });
+    contact(0, 0.018, -8.55, 15.5, 8.5, 0.22);
+    contact(0, 0.018, 10.95, 8.0, 6.2, 0.18);
+    contact(14.2, 0.018, 16.66, 6.0, 1.8, 0.16);
+  }
+})();
+</script>
+
 </body>
 </html>
