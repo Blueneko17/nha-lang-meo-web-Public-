@@ -14185,12 +14185,7 @@
         f.removeAttribute("src");
         DJ.cur = s && s.kind ? s : null;
         if (DJ.cur && DJ.cur.kind === "yt") {
-          f.src =
-            "https://www.youtube-nocookie.com/embed/" +
-            DJ.cur.id +
-            "?autoplay=1&loop=1&playlist=" +
-            DJ.cur.id +
-            "&controls=0&enablejsapi=1";
+          f.src = ytEmbedUrl(DJ.cur.id, "loop=1&playlist=" + DJ.cur.id + "&controls=0");
           f.onload = () => setTimeout(window.vlVolume, 1200);
         } else if (DJ.cur) {
           DJ.audio = new Audio(DJ.cur.url);
@@ -14206,10 +14201,7 @@
         const f = document.getElementById("barFrame"),
           ov = document.getElementById("barOverlay");
         if (V.bar) {
-          f.src =
-            "https://www.youtube-nocookie.com/embed/" +
-            V.bar.videoId +
-            "?autoplay=1&rel=0&enablejsapi=1&vq=hd1080";
+          f.src = ytEmbedUrl(V.bar.videoId);
           ov.classList.add("on");
           f.onload = () => {
             setTimeout(window.vlVolume, 1200);
@@ -14339,7 +14331,8 @@
         const fr = document.createElement("iframe");
         fr.id = "djFrame";
         fr.title = "DJ";
-        fr.allow = "autoplay; encrypted-media";
+        fr.allow = "accelerometer; autoplay; encrypted-media; picture-in-picture";
+        fr.referrerPolicy = "strict-origin-when-cross-origin";
         document.body.appendChild(fr);
         const ov = document.createElement("div");
         ov.id = "barOverlay";
@@ -14919,6 +14912,32 @@
       }, 2500);
 
       /* ---------------- Screen (YouTube) ---------------- */
+      /* URL nhúng YouTube — sửa Lỗi 153 ("Lỗi cấu hình trình phát video"):
+         1) Dùng miền www.youtube.com/embed thay cho youtube-nocookie.com:
+            từ 2025 YouTube trả Lỗi 153 hàng loạt cho bản nocookie khi phát
+            trong trình duyệt trong ứng dụng (Discord…) và webview.
+         2) Kèm tham số origin = đúng tên miền trang đang chạy khi dùng
+            enablejsapi=1 — thiếu origin, trình phát bị coi là thiếu cấu hình.
+         3) Bỏ tham số vq=hd1080 khỏi URL (tham số không chính thức, có thể
+            làm cấu hình trình phát không hợp lệ); độ nét vẫn xin qua lệnh
+            setPlaybackQuality như cũ.
+         4) playsinline=1 để video phát ngay trong trang trên điện thoại. */
+      function ytEmbedUrl(id, extra) {
+        let u =
+          "https://www.youtube.com/embed/" +
+          encodeURIComponent(id) +
+          "?autoplay=1&rel=0&enablejsapi=1&playsinline=1";
+        if (extra) u += "&" + extra;
+        try {
+          if (
+            (location.protocol === "https:" || location.protocol === "http:") &&
+            location.origin &&
+            location.origin !== "null"
+          )
+            u += "&origin=" + encodeURIComponent(location.origin);
+        } catch (e) {}
+        return u;
+      }
       function parseYouTubeId(raw) {
         if (!raw) return null;
         raw = raw.trim();
@@ -14933,10 +14952,7 @@
         const frame = $("#ytFrame"),
           overlay = $("#ytOverlay");
         if (RoomState.screen.videoId) {
-          frame.src =
-            "https://www.youtube-nocookie.com/embed/" +
-            RoomState.screen.videoId +
-            "?autoplay=1&rel=0&enablejsapi=1&vq=hd1080";
+          frame.src = ytEmbedUrl(RoomState.screen.videoId);
           frame.onload = () =>
             setTimeout(() => {
               try {
