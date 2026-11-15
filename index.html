@@ -2332,27 +2332,39 @@
       #chatBox.collapsed {
         display: none;
       }
-      /* ---------- Hộp điều khiển TV (chỉ hiện khi đứng trong vùng trước TV) ---------- */
+      /* ---------- Thanh điều khiển phát — GỘP trong bảng điều khiển TV (#tvOverlay) ----------
+         Không còn thanh nổi ở đáy màn hình: #tvCtl nằm tĩnh trong modal TV,
+         ngay dưới ô dán link. Hàng 1: tiến độ + thời gian; hàng 2: nút phát. */
       #tvCtl {
-        position: absolute;
-        left: 50%;
-        bottom: 150px;
-        transform: translateX(-50%);
-        z-index: 7;
         display: flex;
+        flex-direction: column;
         gap: 8px;
-        align-items: center;
-        background: rgba(20, 14, 10, 0.82);
-        border: 1px solid rgba(255, 220, 180, 0.3);
-        backdrop-filter: blur(14px);
-        padding: 8px 12px;
-        border-radius: 999px;
-        max-width: 96%;
+        margin-top: 12px;
+        background: rgba(20, 14, 10, 0.92);
+        border: 1px solid rgba(120, 84, 50, 0.55);
+        padding: 10px 12px;
+        border-radius: 16px;
         color: #ffe9c9;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 22px rgba(20, 10, 2, 0.25);
       }
       #tvCtl[hidden] {
         display: none;
+      }
+      #tvCtl .tvp-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #ffd9a8;
+      }
+      #tvCtl .tvp-prog {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      #tvCtl .tvp-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
       }
       #tvCtl button {
         border: 1px solid rgba(255, 233, 201, 0.3);
@@ -2388,19 +2400,19 @@
         align-items: center;
         gap: 4px;
         font-size: 0.85rem;
+        margin-left: auto;
       }
       #tvCtl #tvVol {
-        width: 64px;
+        width: 72px;
         accent-color: #ffb36b;
       }
       @media (max-width: 640px) {
         #tvCtl {
-          bottom: 158px;
-          padding: 7px 9px;
-          gap: 6px;
+          padding: 9px 10px;
+          gap: 7px;
         }
         #tvCtl #tvVol {
-          width: 44px;
+          width: 52px;
         }
       }
       /* ---------- Hộp hỏi đồng ý (hành động đôi / lời mời voice) ---------- */
@@ -2955,6 +2967,48 @@
         align-items: center;
         gap: 8px;
         margin-bottom: 10px;
+      }
+      /* Khối trạng thái làng — chuyển từ thanh nổi góc trên-trái vào đầu menu ☰.
+         Giữ nguyên id hudCount/hudNet nên JS cập nhật trực tiếp không đổi. */
+      .sysmenu-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        background: rgba(255, 233, 201, 0.08);
+        border: 1px solid rgba(255, 233, 201, 0.18);
+        border-radius: 12px;
+        padding: 8px 12px;
+        margin-bottom: 10px;
+      }
+      .sysmenu-status .hud-house {
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 800;
+        font-size: 0.95rem;
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+      .sysmenu-status .hud-count {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #ffd9a8;
+        border-left: 1px solid rgba(255, 220, 180, 0.3);
+        padding-left: 8px;
+        white-space: nowrap;
+      }
+      .sysmenu-status .hud-net {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #ffd9a8;
+        border-left: 1px solid rgba(255, 220, 180, 0.3);
+        padding-left: 8px;
+        white-space: nowrap;
+      }
+      .sysmenu-status .hud-net.warn {
+        color: #ffb59d;
+      }
+      .sysmenu-status .hud-net[hidden] {
+        display: none;
       }
       .sysmenu-head .font-disp {
         font-size: 1.12rem;
@@ -4368,41 +4422,13 @@
             </div>
             <div class="reactions" id="reactions"></div>
             <button id="btnFull" type="button" hidden>⛶ Full màn hình</button>
-            <div id="tvCtl" hidden>
-              <button id="tvPlayBtn" type="button" aria-label="Phát / dừng video TV">⏸</button>
-              <button id="tvBackBtn" type="button" aria-label="Tua lại 10 giây">⏪</button>
-              <input
-                id="tvProg"
-                type="range"
-                min="0"
-                max="1000"
-                value="0"
-                aria-label="Tiến độ video"
-              />
-              <span id="tvTime">0:00 / 0:00</span>
-              <button id="tvFwdBtn" type="button" aria-label="Tua tới 10 giây">⏩</button>
-              <span class="tvc-vol"
-                >🔊
-                <input
-                  id="tvVol"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value="80"
-                  aria-label="Âm lượng TV"
-              /></span>
-              <button id="tvZoomBtn" type="button" aria-label="Phóng to màn hình TV">⛶</button>
-            </div>
+            <!-- Thanh điều khiển phát #tvCtl đã gộp vào bảng điều khiển TV (#tvOverlay) -->
             <div id="askPrompt" hidden>
               <span id="askText">Ai đó muốn tương tác cùng bạn</span>
               <button id="askYes" type="button">Đồng ý</button>
               <button id="askNo" type="button">Từ chối</button>
             </div>
-            <div class="hud hud-tl">
-              <span class="hud-house">🐾 Làng Mèo</span
-              ><span class="hud-count" id="hudCount">1/30 mèo</span
-              ><span class="hud-net" id="hudNet" hidden></span>
-            </div>
+            <!-- Thanh trạng thái (tên làng · số mèo · kết nối) đã chuyển vào đầu menu ☰ -->
             <div class="hud hud-tr">
               <button
                 class="hud-btn"
@@ -4452,6 +4478,11 @@
                 <button class="sysmenu-x" id="sysMenuClose" type="button" aria-label="Đóng menu">
                   ✕
                 </button>
+              </div>
+              <div class="sysmenu-status" role="status" aria-label="Trạng thái làng">
+                <span class="hud-house">🐾 Làng Mèo</span
+                ><span class="hud-count" id="hudCount">1/30 mèo</span
+                ><span class="hud-net" id="hudNet" hidden></span>
               </div>
               <div class="sysmenu-list">
                 <button class="sysmenu-item" id="menuCharBtn" type="button">
@@ -5000,8 +5031,9 @@
         <button class="x" type="button" data-close="tvOverlay" aria-label="Đóng">✕</button>
         <h2 class="font-disp">📺 Điều khiển TV tai mèo</h2>
         <p class="desc">
-          Dán link YouTube để chiếu lên màn hình lớn cho cả làng cùng xem. Bấm “Full màn hình” để
-          xem phủ kín cửa sổ.
+          Dán link YouTube để chiếu lên màn hình lớn cho cả làng cùng xem. Thanh điều khiển phát —
+          phát/dừng, tua ±10 giây, tiến độ, âm lượng và phóng to ⛶ — nằm ngay trong bảng này, dưới
+          ô dán link.
         </p>
         <form class="yt-form" id="ytForm">
           <input
@@ -5014,6 +5046,36 @@
           />
           <button class="btn" type="submit">Chiếu lên TV</button>
         </form>
+        <div id="tvCtl" hidden>
+          <div class="tvp-label">🎬 ĐIỀU KHIỂN PHÁT</div>
+          <div class="tvp-prog">
+            <input
+              id="tvProg"
+              type="range"
+              min="0"
+              max="1000"
+              value="0"
+              aria-label="Tiến độ video"
+            />
+            <span id="tvTime">0:00 / 0:00</span>
+          </div>
+          <div class="tvp-row">
+            <button id="tvPlayBtn" type="button" aria-label="Phát / dừng video TV">⏸</button>
+            <button id="tvBackBtn" type="button" aria-label="Tua lại 10 giây">⏪</button>
+            <button id="tvFwdBtn" type="button" aria-label="Tua tới 10 giây">⏩</button>
+            <span class="tvc-vol"
+              >🔊
+              <input
+                id="tvVol"
+                type="range"
+                min="0"
+                max="100"
+                value="80"
+                aria-label="Âm lượng TV"
+            /></span>
+            <button id="tvZoomBtn" type="button" aria-label="Phóng to màn hình TV">⛶</button>
+          </div>
+        </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px">
           <button class="btn teal" type="button" id="ytPlay">▶ Phát</button>
           <button class="btn ghost" type="button" id="ytPause">⏸ Dừng</button>
@@ -7096,12 +7158,17 @@
         ].forEach((p) => W(p[0] - 0.5, p[0] + 0.5, p[1] - 1.0, p[1] + 1.0)); // ghế tắm nắng
         W(-1.6, -1.4, 37.9, 38.1);
         // Hàng rào cây vườn: chặn các đoạn rào, chừa 3 cổng (hông tây/đông z 42–46, cổng nam x −2..2 xuống công viên)
-        W(-25.8, -25.0, 17, 42);
-        W(-25.8, -25.0, 46, 65.4);
-        W(25.0, 25.8, 17, 42);
-        W(25.0, 25.8, 46, 65.4);
-        W(-25.5, -2.0, 65.0, 65.8);
-        W(2.0, 25.5, 65.0, 65.8);
+        // ĐÃ LÙI RÀO VÀO PHÍA VƯỜN (x ±25.4 → ±24.0): trước đây rào nằm ngay trên
+        // lối dọc hai bên (tâm lối ±26.3, mặt rào tới ±25.0/±25.8) khiến lối đi
+        // dọc dãy phòng game/phòng đông bị ép còn ~1 m và điểm dịch chuyển
+        // "Khu game" (−25.3, 47) rơi ĐÚNG VÀO đoạn rào z 46–65.4 → kẹt cứng.
+        // Nay mặt rào cách tường phòng (∓27.45…27.9) tối thiểu ~3.0–3.3 m thông thủy.
+        W(-24.4, -23.6, 17, 42);
+        W(-24.4, -23.6, 46, 65.4);
+        W(23.6, 24.4, 17, 42);
+        W(23.6, 24.4, 46, 65.4);
+        W(-24.4, -2.0, 65.0, 65.8);
+        W(2.0, 24.4, 65.0, 65.8);
       })();
 
       function vLabel(text, w, h, bg, fg, fs) {
@@ -7212,21 +7279,21 @@
         // lối dọc tây/đông đi các phòng), mép nam chừa cổng x −2..2 thẳng trục giữa
         // xuống công viên. Trước đây rào liền một dải che kín mọi đường đi.
         [
-          [-25.4, 29.5, 0.8, 25],
-          [-25.4, 55.5, 0.8, 19],
-          [25.4, 29.5, 0.8, 25],
-          [25.4, 55.5, 0.8, 19],
-          [-13.75, 65.4, 23.5, 0.8],
-          [13.75, 65.4, 23.5, 0.8],
+          [-24.0, 29.5, 0.8, 25],
+          [-24.0, 55.5, 0.8, 19],
+          [24.0, 29.5, 0.8, 25],
+          [24.0, 55.5, 0.8, 19],
+          [-13.2, 65.4, 22.4, 0.8],
+          [13.2, 65.4, 22.4, 0.8],
         ].forEach((h) => {
           bx(h[2], 1.3, h[3], 0x4f6b47, h[0], 0.65, h[1]);
         });
         // Trụ gỗ + đèn ấm đánh dấu 3 cổng qua rào
         [
-          [-25.4, 42.2],
-          [-25.4, 45.8],
-          [25.4, 42.2],
-          [25.4, 45.8],
+          [-24.0, 42.2],
+          [-24.0, 45.8],
+          [24.0, 42.2],
+          [24.0, 45.8],
           [-2.1, 65.4],
           [2.1, 65.4],
         ].forEach((p) => {
@@ -12637,6 +12704,18 @@
           if (rec) rec.moving = false;
           return;
         }
+        /* Tự thoát kẹt: nếu vị trí hiện tại đang trùng vật cản (điểm hạ cánh
+           cũ, vật cản mới dựng thêm…) thì tự nudge ra ô trống gần nhất thay
+           vì kẹt cứng không đi được. */
+        if (!posAllowed(myPos.x, myPos.z, myY)) {
+          const safe = findFreeSpot(myPos.x, myPos.z, myY);
+          if (safe) {
+            myPos.x = safe.x;
+            myPos.z = safe.z;
+            if (three) three.snapCam = true;
+            sendMove(true);
+          }
+        }
         const iv = inputVector();
         if (!iv.x && !iv.y) {
           if (rec) rec.moving = false;
@@ -13391,7 +13470,7 @@
             const st = $("#voiceStatus");
             st.hidden = false;
             st.textContent =
-              '🎙️ Voice đi qua máy chủ online — hiện trang chưa nối được tới máy chủ (đang nối hoặc mất kết nối) nên chưa bật voice được. Chờ dòng trạng thái trên góc trái báo "Đã nối máy chủ" rồi bấm lại nút này nhé.';
+              '🎙️ Voice đi qua máy chủ online — hiện trang chưa nối được tới máy chủ (đang nối hoặc mất kết nối) nên chưa bật voice được. Chờ trạng thái trong menu ☰ báo "Đã nối máy chủ" rồi bấm lại nút này nhé.';
             $("#voiceBtn").textContent = "🎙️ Voice: chờ kết nối";
             return;
           }
@@ -13976,12 +14055,10 @@
         if (window.vlVolume) window.vlVolume();
         const ctl = $("#tvCtl");
         if (ctl)
-          ctl.hidden = !(
-            RoomState.inRoom &&
-            RoomState.screen &&
-            RoomState.screen.videoId &&
-            inTvInteractZone()
-          );
+          /* Thanh phát đã gộp vào bảng điều khiển TV (#tvOverlay): hiện khi
+             đang có video chiếu; bảng đóng thì thanh ẩn theo bảng, không còn
+             phụ thuộc vùng đứng trước TV như thanh nổi cũ. */
+          ctl.hidden = !(RoomState.screen && RoomState.screen.videoId);
         const ov = $("#ytOverlay");
         if (ov && !ov.classList.contains("zoomed"))
           ov.style.pointerEvents = inTvInteractZone() ? "auto" : "none";
@@ -14377,12 +14454,35 @@
         chk("vscreen", V.SCRCTL.x, V.SCRCTL.z, 3.6);
         return best;
       }
+      /* ---------- An toàn vị trí: tìm ô trống gần nhất ----------
+         Quét vòng tròn nở dần quanh điểm đích; dùng cho điểm hạ cánh dịch
+         chuyển và tự thoát kẹt khi vị trí hiện tại lỡ trùng vật cản (ví dụ
+         điểm "Khu game" cũ rơi đúng vào hàng rào cây). */
+      function findFreeSpot(x, z, curY) {
+        if (posAllowed(x, z, curY)) return { x: x, z: z };
+        for (let ring = 1; ring <= 16; ring++) {
+          const rad = ring * 0.45;
+          const steps = Math.max(8, ring * 4);
+          for (let i = 0; i < steps; i++) {
+            const a = (i / steps) * Math.PI * 2;
+            const cx = x + Math.cos(a) * rad,
+              cz = z + Math.sin(a) * rad;
+            if (posAllowed(cx, cz, curY)) return { x: cx, z: cz };
+          }
+        }
+        return null;
+      }
       function vlTP(x, z, y, rotY, yaw) {
         if (!RoomState.inRoom || RoomState.me.seat) {
           toast("Hãy vào nhà (và đứng dậy) rồi hãy dịch chuyển nhé");
           return;
         }
         villaRide = null;
+        const safe = findFreeSpot(x, z, y);
+        if (safe) {
+          x = safe.x;
+          z = safe.z;
+        }
         myPos.x = x;
         myPos.z = z;
         myY = y;
@@ -15436,9 +15536,11 @@
       $("#ytFullBtn").addEventListener("click", toggleFullScreen);
       document.addEventListener("fullscreenchange", sizeRenderer);
 
-      /* ---------------- Hộp điều khiển TV kiểu YouTube (vùng tương tác trước TV) ----------------
-   Chỉ hiện khi người chơi đứng trong vùng trước TV; phát/dừng/tua/âm lượng
-   áp dụng trên máy của mình (đổi video mới là việc chung của cả phòng). */
+      /* ---------------- Thanh điều khiển phát kiểu YouTube — trong bảng điều khiển TV ----------------
+   #tvCtl nằm trong #tvOverlay cùng ô dán link (không còn thanh nổi ở đáy
+   màn hình); phát/dừng/tua/âm lượng áp dụng trên máy của mình, qua cùng
+   kênh lệnh postMessage nên tương thích cả phát thẳng lẫn trang cầu
+   vlplayer (đổi video mới là việc chung của cả phòng). */
       function ytSeekTo(sec) {
         const f = $("#ytFrame");
         if (!f || !f.contentWindow) return;
@@ -22134,25 +22236,25 @@
             [
               "🎮 Khu game",
               function () {
-                vlTP(-25.3, 47, 0, -Math.PI / 2, Math.PI / 2);
+                vlTP(-26.2, 47, 0, -Math.PI / 2, Math.PI / 2);
               },
             ],
             [
               "🎤 Karaoke",
               function () {
-                vlTP(25.8, 30, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(25.9, 30, 0, Math.PI / 2, -Math.PI / 2);
               },
             ],
             [
               "🏢 Phòng họp",
               function () {
-                vlTP(25.8, 52, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(25.9, 52, 0, Math.PI / 2, -Math.PI / 2);
               },
             ],
             [
               "🎨 Phòng tranh",
               function () {
-                vlTP(25.8, 74, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(25.9, 74, 0, Math.PI / 2, -Math.PI / 2);
               },
             ],
             [
@@ -22382,15 +22484,15 @@
           function path(x, z, w, d) {
             pl(w, d, 0xcfc0a4, x, 0.03, z);
           } // 0.03: nằm trên sàn gỗ hiên (0.015) — trước đây 0.004 bị sàn đè mất đoạn qua vườn
-          path(-26.3, 67.5, 3.0, 95); // lối dọc tây: nhà → các phòng game → công viên
-          path(26.3, 50, 3.0, 62); // lối dọc đông: karaoke/họp/tranh
+          path(-26.05, 67.5, 4.4, 95); // lối dọc tây: nhà → các phòng game → công viên (ĐÃ MỞ RỘNG 3.0 → 4.4, khớp mặt rào mới ±24.0 và tường phòng −27.9)
+          path(26.05, 50, 4.4, 62); // lối dọc đông: karaoke/họp/tranh (ĐÃ MỞ RỘNG 3.0 → 4.4)
           path(0, 68.2, 55, 3.0); // lối ngang vào công viên
           path(0, 45, 3.0, 44); // trục giữa vườn → công viên
           path(-13, 84, 24, 2.4);
           path(13, 99, 22, 2.4);
           // lối rẽ vào từng cửa phòng game
           [25, 34.5, 44, 53.5, 63, 72.5, 82, 91.5, 101, 110.5].forEach(function (cz) {
-            path(-27.2, cz, 1.6, 2.2);
+            path(-27.55, cz, 2.5, 2.2);
           });
 
           /* ===== CỘT PHÒNG GAME phía tây: mỗi game 1 phòng riêng ===== */
@@ -22669,7 +22771,7 @@
           rooms.forEach(function (r, idx) {
             var hh = 3.3 + (idx % 3) * 0.45;
             var k = [0xd9a46f, 0x79b4a2, 0xc48ab5, 0xe7b75d, 0xdfa3c5][idx % 5];
-            bx(2.9, 0.16, 0.9, k, -27.25, hh - 1.26, r.z); // mái hiên cửa chính
+            bx(2.2, 0.16, 0.9, k, -27.7, hh - 1.26, r.z); // mái hiên cửa chính (đã thu gọn về phía tường, không chìa ra lối đi)
             [-1.14, 1.14].forEach(function (s) {
               bx(0.1, 2.2, 0.12, WOOD, -27.53, 1.15, r.z + s);
               bx(0.08, 1.15, 1.45, 0xa6d8e5, -27.65, 1.8, r.z + s * 2.55);
@@ -22694,14 +22796,14 @@
 
           /* ===== Trang trí ngoài trời: cây, đèn đường, bồn hoa, ghế nghỉ dọc lối ===== */
           [
-            [-24.6, 24],
-            [-24.6, 44],
-            [-24.6, 64],
-            [24.6, 24],
-            [24.6, 62],
-            [-24.6, 84],
-            [24.6, 84],
-            [-24.6, 104],
+            [-22.8, 24],
+            [-22.8, 44],
+            [-22.8, 64],
+            [22.8, 24],
+            [22.8, 62],
+            [-23.9, 84],
+            [27.0, 84],
+            [-23.9, 104],
             [8, 66.4],
             [-8, 66.4],
             [16, 88],
@@ -22732,10 +22834,10 @@
           ].forEach(function (p) {
             lamp(p[0], p[1]);
           });
-          flowers(-24.9, 34, 3);
-          flowers(24.9, 44, 3);
-          flowers(-24.9, 90, 3);
-          flowers(24.9, 100, 3);
+          flowers(-22.9, 31, 3);
+          flowers(22.9, 44, 3);
+          flowers(-23.0, 86, 3);
+          flowers(27.2, 100, 3);
           flowers(5.4, 66.2, 3);
           flowers(-5.4, 70.2, 3);
           // ghế nghỉ công viên (khớp SEAT_POS P1/P2)
@@ -24229,7 +24331,7 @@
               [-26.2, 92],
               [-26.2, 111],
             ],
-            3.0,
+            3.4,
             0xdcc9aa,
             0xb89a73,
             3,
@@ -24241,7 +24343,7 @@
               [26.2, 50],
               [26.2, 29],
             ],
-            3.0,
+            3.4,
             0xdcc9aa,
             0xb89a73,
             3,
@@ -24251,7 +24353,7 @@
               [26.2, 50],
               [26.2, 74],
             ],
-            3.0,
+            3.4,
             0xdcc9aa,
             0xb89a73,
             3,
@@ -24300,10 +24402,10 @@
             [8.5, 70.5],
             [-18, 84],
             [18, 84],
-            [-26.2, 48.2],
-            [26.2, 48.2],
-            [26.2, 72.2],
-            [-26.2, 103.5],
+            [-23.7, 48.2],
+            [23.7, 48.2],
+            [24.2, 72.2],
+            [-24.0, 103.5],
           ].forEach(function (p) {
             shrub(p[0], p[1], 0.95);
           });
@@ -24312,8 +24414,8 @@
             [10.5, 70.2],
             [-15.2, 84.5],
             [15.2, 84.5],
-            [-26.2, 57.5],
-            [26.2, 57.5],
+            [-23.6, 57.5],
+            [23.6, 57.5],
           ].forEach(function (p) {
             flowerBed(p[0], p[1], 1.5, 1.1, 0, [0xe77fb0, 0xf2b705, 0xe4572e]);
           });
