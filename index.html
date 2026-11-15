@@ -4,6 +4,66 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <script>
+      /* ===== Chế độ TRANG CẦU trình phát (sửa tận gốc YouTube Lỗi 153) =====
+         Lỗi 153 là EMBEDDER_IDENTITY_MISSING_REFERRER: YouTube chỉ lỗi khi
+         request nhúng KHÔNG mang Referer. Khi trang game chạy trong ngữ cảnh
+         origin mờ (iframe sandbox của app, mở file trực tiếp, một số webview
+         trong ứng dụng), trình duyệt cắt sạch Referer và không tham số URL
+         nào (kể cả origin=) thay thế được.
+         Trang cầu là chính file này mở tại địa chỉ live (origin thật) kèm
+         ?vlplayer=<id video>: nó dừng tải game, chỉ dựng một iframe YouTube
+         toàn khung — request đó mang Referer của trang cầu nên phát được —
+         và chuyển tiếp hai chiều mọi lệnh/sự kiện postMessage giữa trang
+         game (cha) và trình phát YouTube (con), giữ nguyên điều khiển từ xa. */
+      (function () {
+        var q;
+        try {
+          q = new URLSearchParams(location.search);
+        } catch (e) {
+          return;
+        }
+        var vid = q.get("vlplayer");
+        if (!vid || !/^[\w-]{6,20}$/.test(vid)) return;
+        var extra = q.get("vlx") || "";
+        try {
+          window.stop();
+        } catch (e) {}
+        var src =
+          "https://www.youtube.com/embed/" +
+          encodeURIComponent(vid) +
+          "?autoplay=1&rel=0&enablejsapi=1&playsinline=1" +
+          (extra ? "&" + extra : "") +
+          "&origin=" +
+          encodeURIComponent(location.origin);
+        document.documentElement.innerHTML =
+          "<head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+          "<meta name='referrer' content='strict-origin-when-cross-origin'>" +
+          "<title>Trình phát video — Làng Mèo</title>" +
+          "<style>html,body{margin:0;padding:0;background:#000;height:100%;overflow:hidden}" +
+          "iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}</style></head><body></body>";
+        var f = document.createElement("iframe");
+        f.title = "Trình phát YouTube";
+        f.setAttribute(
+          "allow",
+          "accelerometer; autoplay; encrypted-media; picture-in-picture",
+        );
+        f.setAttribute("allowfullscreen", "");
+        f.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+        f.src = src;
+        document.body.appendChild(f);
+        window.addEventListener("message", function (e) {
+          var host = (e.origin || "").replace(/^https?:\/\//, "");
+          if (/youtube(-nocookie)?\.com$/.test(host)) {
+            if (window.parent && window.parent !== window)
+              window.parent.postMessage(e.data, "*");
+          } else if (e.source !== f.contentWindow && f.contentWindow) {
+            f.contentWindow.postMessage(e.data, "*");
+          }
+        });
+      })();
+    </script>
     <link rel="icon" href="data:," />
     <title>Làng Mèo — Nhà xem phim chung</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -2121,6 +2181,32 @@
         border: 0;
         display: block;
         transform-origin: 0 0;
+      }
+      /* Nút dự phòng trên mặt TV khi cả nhúng trực tiếp lẫn trang cầu đều
+         không phát được (môi trường chặn Referer quá sâu): mở video ở
+         YouTube thay vì để màn hình chết ở Lỗi 153. */
+      .yt-fallback {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(8, 6, 10, 0.88);
+        z-index: 2;
+      }
+      .yt-fallback.on {
+        display: flex;
+      }
+      .yt-fallback a {
+        font-family: "Baloo 2", sans-serif;
+        font-size: 44px;
+        font-weight: 800;
+        color: #fff;
+        background: #c93a2e;
+        padding: 26px 46px;
+        border-radius: 999px;
+        text-decoration: none;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
       }
       .stage3d .reactions {
         position: absolute;
@@ -14185,7 +14271,7 @@
         f.removeAttribute("src");
         DJ.cur = s && s.kind ? s : null;
         if (DJ.cur && DJ.cur.kind === "yt") {
-          f.src = ytEmbedUrl(DJ.cur.id, "loop=1&playlist=" + DJ.cur.id + "&controls=0");
+          loadYtFrame(f, DJ.cur.id, "loop=1&playlist=" + DJ.cur.id + "&controls=0");
           f.onload = () => setTimeout(window.vlVolume, 1200);
         } else if (DJ.cur) {
           DJ.audio = new Audio(DJ.cur.url);
@@ -14201,7 +14287,7 @@
         const f = document.getElementById("barFrame"),
           ov = document.getElementById("barOverlay");
         if (V.bar) {
-          f.src = ytEmbedUrl(V.bar.videoId);
+          loadYtFrame(f, V.bar.videoId);
           ov.classList.add("on");
           f.onload = () => {
             setTimeout(window.vlVolume, 1200);
@@ -14912,16 +14998,18 @@
       }, 2500);
 
       /* ---------------- Screen (YouTube) ---------------- */
-      /* URL nhúng YouTube — sửa Lỗi 153 ("Lỗi cấu hình trình phát video"):
-         1) Dùng miền www.youtube.com/embed thay cho youtube-nocookie.com:
-            từ 2025 YouTube trả Lỗi 153 hàng loạt cho bản nocookie khi phát
-            trong trình duyệt trong ứng dụng (Discord…) và webview.
-         2) Kèm tham số origin = đúng tên miền trang đang chạy khi dùng
-            enablejsapi=1 — thiếu origin, trình phát bị coi là thiếu cấu hình.
-         3) Bỏ tham số vq=hd1080 khỏi URL (tham số không chính thức, có thể
-            làm cấu hình trình phát không hợp lệ); độ nét vẫn xin qua lệnh
-            setPlaybackQuality như cũ.
-         4) playsinline=1 để video phát ngay trong trang trên điện thoại. */
+      /* URL nhúng YouTube — Lỗi 153 đã kiểm chứng tận gốc (2026-11-15):
+         gọi thẳng endpoint /embed cho thấy lỗi chỉ xuất hiện khi request
+         KHÔNG mang Referer (mã nội bộ EMBEDDER_IDENTITY_MISSING_REFERRER);
+         mọi biến thể có Referer — kể cả nocookie, kể cả origin lạ — đều
+         phát được, và có origin= mà thiếu Referer vẫn 153. Vì vậy:
+         1) Nhúng trực tiếp giữ chuẩn: miền www.youtube.com/embed + origin
+            của trang + playsinline=1 (bỏ tham số vq không chính thức).
+         2) Khi ngữ cảnh chạy cắt Referer (origin mờ: iframe sandbox, mở
+            file trực tiếp…) hoặc trình phát chết/báo 153: loadYtFrame tự
+            chuyển sang TRANG CẦU trên địa chỉ live (origin thật, có
+            Referer) — xem ytBridgeUrl/loadYtFrame ngay dưới và script
+            ?vlplayer= ở đầu trang. */
       function ytEmbedUrl(id, extra) {
         let u =
           "https://www.youtube.com/embed/" +
@@ -14938,6 +15026,110 @@
         } catch (e) {}
         return u;
       }
+      /* ---------- Trang cầu trình phát (đường vòng khi mất Referer) ----------
+         Địa chỉ live chính thức của game: trang cầu là chính file này tại đó
+         kèm ?vlplayer= (xem script ở đầu trang). Chỉ dùng khi nhúng trực tiếp
+         không thể chạy: origin mờ (iframe sandbox / file://) khiến trình
+         duyệt cắt Referer — YouTube trả Lỗi 153 — hoặc trình phát không hề
+         trả lời / tự báo lỗi 153 sau khi nạp. */
+      const VL_LIVE_BASE = "https://blueneko17.github.io/nha-lang-meo-web-Public-/";
+      function ytBridgeUrl(id, extra) {
+        return (
+          VL_LIVE_BASE +
+          "?vlplayer=" +
+          encodeURIComponent(id) +
+          (extra ? "&vlx=" + encodeURIComponent(extra) : "")
+        );
+      }
+      function ytRefererBlocked() {
+        try {
+          return (
+            location.protocol === "file:" ||
+            !location.origin ||
+            location.origin === "null"
+          );
+        } catch (e) {
+          return true;
+        }
+      }
+      function ytFallback(frame, show) {
+        const ov = frame && frame.parentElement;
+        /* Chỉ hiện trên mặt các màn hình (lớp phủ *Overlay); khung DJ ẩn
+           nằm ngoài lớp phủ thì bỏ qua, tránh đè nút lên cả trang. */
+        if (!ov || !/Overlay$/.test(ov.id || "")) return;
+        let box = ov.querySelector(".yt-fallback");
+        if (show && !box) {
+          box = document.createElement("div");
+          box.className = "yt-fallback";
+          const a = document.createElement("a");
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = "▶ Mở video trên YouTube";
+          box.appendChild(a);
+          ov.appendChild(box);
+        }
+        if (!box) return;
+        if (show)
+          box.querySelector("a").href =
+            "https://www.youtube.com/watch?v=" + encodeURIComponent(frame.dataset.vid || "");
+        box.classList.toggle("on", !!show);
+      }
+      function ytBridge(frame) {
+        if (!frame || frame.dataset.bridged === "1" || !frame.dataset.vid) return;
+        frame.dataset.bridged = "1";
+        frame.src = ytBridgeUrl(frame.dataset.vid, frame.dataset.vlx || "");
+        const token = frame.dataset.vtoken;
+        setTimeout(() => {
+          if (
+            frame.dataset.vtoken === token &&
+            frame.dataset.bridged === "1" &&
+            frame.dataset.alive !== "1" &&
+            frame.getAttribute("src")
+          )
+            ytFallback(frame, true);
+        }, 10000);
+      }
+      function loadYtFrame(frame, id, extra) {
+        if (!frame) return;
+        frame.dataset.vid = id;
+        frame.dataset.vlx = extra || "";
+        frame.dataset.alive = "";
+        ytFallback(frame, false);
+        if (ytRefererBlocked()) {
+          frame.dataset.bridged = "1";
+          frame.src = ytBridgeUrl(id, extra);
+          return;
+        }
+        frame.dataset.bridged = "";
+        frame.src = ytEmbedUrl(id, extra);
+        const token = (frame.dataset.vtoken = String(Date.now()) + Math.random());
+        setTimeout(() => {
+          if (
+            frame.dataset.vtoken === token &&
+            frame.dataset.bridged !== "1" &&
+            frame.dataset.alive !== "1" &&
+            frame.getAttribute("src")
+          )
+            ytBridge(frame);
+        }, 8000);
+      }
+      /* Trình phát còn sống sẽ trả lời qua postMessage (onReady/infoDelivery);
+         gặp sự kiện onError 153 thì chuyển cầu ngay, không chờ hết giờ. */
+      window.addEventListener("message", (e) => {
+        let d = null;
+        try {
+          d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+        } catch (err) {}
+        if (!d || typeof d.event !== "string") return;
+        $$("#ytFrame, #barFrame, #djFrame").forEach((fr) => {
+          if (e.source !== fr.contentWindow) return;
+          if (d.event === "onReady" || d.event === "infoDelivery") {
+            fr.dataset.alive = "1";
+            ytFallback(fr, false);
+          }
+          if (d.event === "onError" && Number(d.info) === 153) ytBridge(fr);
+        });
+      });
       function parseYouTubeId(raw) {
         if (!raw) return null;
         raw = raw.trim();
@@ -14952,7 +15144,7 @@
         const frame = $("#ytFrame"),
           overlay = $("#ytOverlay");
         if (RoomState.screen.videoId) {
-          frame.src = ytEmbedUrl(RoomState.screen.videoId);
+          loadYtFrame(frame, RoomState.screen.videoId);
           frame.onload = () =>
             setTimeout(() => {
               try {
@@ -14969,6 +15161,9 @@
           overlay.classList.add("on");
         } else {
           frame.removeAttribute("src");
+          frame.dataset.vid = "";
+          frame.dataset.bridged = "";
+          frame.dataset.alive = "";
           overlay.classList.remove("on");
           overlay.classList.remove("zoomed");
           overlay.style.display = "none";
@@ -15285,7 +15480,16 @@
         );
       });
       window.addEventListener("message", (e) => {
-        if (!/youtube(-nocookie)?\.com$/.test((e.origin || "").replace(/^https?:\/\//, ""))) return;
+        const host = (e.origin || "").replace(/^https?:\/\//, "");
+        const ytF = $("#ytFrame");
+        /* Qua trang cầu, sự kiện của trình phát về từ origin của trang cầu
+           (chính là bản live của game) và cửa sổ gửi là khung TV đang bridged. */
+        const fromBridge =
+          ytF &&
+          ytF.dataset.bridged === "1" &&
+          e.source === ytF.contentWindow &&
+          (e.origin || "") === new URL(VL_LIVE_BASE).origin;
+        if (!/youtube(-nocookie)?\.com$/.test(host) && !fromBridge) return;
         let d = null;
         try {
           d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
