@@ -7961,11 +7961,11 @@
      WebSocket và relay cho cả nhà (xem khối Transport).
    ===================================================================== */
       const WORLD = {
-        minX: -58,
-        maxX: 58,
+        minX: -172,
+        maxX: 172,
         minZ: -65,
         maxZ: 248,
-      }; /* Khung đất x[-58,58] z[-65,248]: biên bắc lùi -35 (từ -30) theo đợt đẩy nhà chính ra xa, sân vườn giữa sâu gấp đôi */
+      }; /* Khung đất x[-172,172] z[-65,248]: ĐỢT A (2026-11-16) nới biên x từ ±58 lên ±172 (biên z giữ nguyên); trước đó biên bắc lùi -35 theo đợt đẩy nhà chính ra xa */
       const OBSTACLES = [
         /* GHÉP V2: tủ TV — do buildHouseV2 nạp (số đo y hệt: -5.3..5.3 / -16.9..-15.9) */
         { minX: 26.7, maxX: 29.3, minZ: 226.0, maxZ: 230.0 }, // KHU MỚI: bàn bi-a engine trong phòng Bi-a (28, 228)
@@ -9582,17 +9582,15 @@
         return 0;
       }
       function inWorld2(x, z) {
-        /* Khung đất HỢP: làng cũ x[-45,45] z[-30,120] + KHU TRÒ CHƠI MỚI phía
-     nam x[-58,58] z[118,248] (khu riêng v2; cổng ở hàng rào z=120, x∈[−6,6] —
-     rào nam có vật cản riêng nên chỉ qua được đúng cổng). Thu vào 0.4 trong
-     mép như cũ để nhân vật không lẹm ra ngoài rào. */
-        if (x >= -44.6 && x <= 44.6 && z >= -64.6 && z <= 119.6) return true;
-        if (x >= -57.6 && x <= 57.6 && z >= 118 && z <= 247.6) return true;
-        /* Khu bar lục giác: mở khung đi được theo dấu chân lục giác + bệ
-           chân 10 thang (metric 1.30 ≈ sàn + 8.8 m), vẫn kẹp trong biên
-           thế giới x ±57.6 / z -64.6..247.6. */
-        if (x >= -57.6 && x <= 57.6 && z >= -64.6 && z <= 247.6 && hexMetric(x, z) <= 1.3) return true;
-        return false;
+        /* ĐỢT A MỞ RỘNG (2026-11-16): biên x nới ±58 → ±172, biên z giữ
+           −65..248. Khung đi được nay là MỘT hình chữ nhật duy nhất
+           x[-171.6,171.6] z[-64.6,247.6] (thu vào 0.4 trong mép như cũ để
+           nhân vật không lẹm ra ngoài vòng rào chu vi mới). Hàng rào ngăn
+           giữa các khu đã gỡ hết nên làng + vườn + công viên + khu bar
+           lục giác (dấu chân nằm trọn trong khung) + khu trò chơi phía
+           nam + đất mở mới hai bên thông nhau hoàn toàn — không còn cổng
+           hay đoạn kẹp riêng nào. */
+        return x >= -171.6 && x <= 171.6 && z >= -64.6 && z <= 247.6;
       }
       function posAllowed(x, z, curY) {
         if (!inWorld2(x, z)) return false;
@@ -9637,8 +9635,8 @@
       }
       function collide(p) {
         if (inWorld2(p.x, p.z)) return;
-        /* Kẹp về hộp bao của cả hai khung đất (làng + khu mới), thu vào 0.4 như inWorld2 */
-        p.x = Math.max(-57.6, Math.min(57.6, p.x));
+        /* Kẹp về khung đất mới x ±172 (ĐỢT A), thu vào 0.4 như inWorld2 */
+        p.x = Math.max(-171.6, Math.min(171.6, p.x));
         p.z = Math.max(-64.6, Math.min(247.6, p.z));
       }
       function resetSpawn() {
@@ -11225,7 +11223,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             " vec3 col = h >= 0.0 ? mix(horizonColor, topColor, pow(h, exponent)) : mix(horizonColor, bottomColor, pow(-h, 0.6));" +
             " gl_FragColor = vec4(col, 1.0); }",
         });
-        const dome = new THREE.Mesh(new THREE.SphereGeometry(165, 28, 14), skyMat); /* vòm trời nới rộng: vòng quay công viên (24,108, cao ~27) trước đây chọc ra NGOÀI vòm r88 nên bị nền tối đặc bọc quanh; nay cả công viên nằm gọn trong vòm */
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(340, 28, 14), skyMat); /* vòm trời: r165 cũ → r340 (ĐỢT A) — điểm xa nhất của map mới (±172, 248) cách tâm vòm (0,0,55) ≈ 258 nên người chơi đứng ở mép xa nhất (x ±168, mọi z) vẫn ở TRONG vòm, trời không vỡ; vật liệu vòm fog:false nên sương FogExp2 không phủ lên trời. (Đợt trước: r88 → r165 vì vòng quay công viên chọc ra ngoài vòm.) */
         dome.position.set(0, 0, 55);
         S.add(dome);
         three.skyMat = skyMat;
@@ -13173,13 +13171,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         camSmooth.x += (px - camSmooth.x) * k;
         camSmooth.y += (py - camSmooth.y) * k;
         camSmooth.z += (pz - camSmooth.z) * k;
-          /* Kẹp camera theo ĐÚNG khung đất hiện tại (x ±58, z −30..248). Trước đây vẫn
-     kẹp theo biên biệt thự cũ (x ±31, z −22..72): qua công viên (z > 72)
-     camera bị ghì lại ở sau lưng, có lúc bị ép sang PHÍA TRƯỚC nhân vật trong
-     khi hướng di chuyển vẫn tính theo camYaw → nhìn bị "khóa", tiến thành lùi,
-     phải thành trái. Nay nới đúng biên thế giới nên camera luôn ở sau lưng. */
+          /* Kẹp camera theo ĐÚNG khung đất hiện tại (x ±172, z −65..248 — ĐỢT A
+     nới từ x ±58). Trước đây vẫn kẹp theo biên biệt thự cũ (x ±31, z −22..72):
+     qua công viên (z > 72) camera bị ghì lại ở sau lưng, có lúc bị ép sang
+     PHÍA TRƯỚC nhân vật trong khi hướng di chuyển vẫn tính theo camYaw →
+     nhìn bị "khóa", tiến thành lùi, phải thành trái. Nay nới đúng biên thế
+     giới nên camera luôn ở sau lưng. */
         cam.position.set(
-            Math.max(-59.5, Math.min(59.5, camSmooth.x)),
+            Math.max(-173.5, Math.min(173.5, camSmooth.x)),
           Math.max(
             0.5,
             Math.min(
@@ -15320,12 +15319,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const scene = new THREE.Scene();
           scene.background = new THREE.Color(0x1d130c);
           scene.fog = new THREE.FogExp2(0x1d130c, 0.0032); /* CÔNG VIÊN: mật độ sương đêm hạ hẳn — trước đây 0.0075 khiến khu công viên ở xa (z 68–120) bị một màn sương nâu-đen phủ kín, tối hơn hẳn các khu gần; nay công viên trong rõ như các khu khác cả ngày lẫn đêm (màu sương/giờ giấc giữ nguyên) */
-          const camera = new THREE.PerspectiveCamera(55, 1.5, 0.1, 240);
-          /* GIẢM LAG (eco): rút tầm nhìn xa 240 → 200 ở nấc eco (sương mù
-             FogExp2 đã phủ mờ vật ở xa; các khu chơi chính đều trong 200 m
-             tính từ điểm đứng thường gặp). __lmApplyQuality cập nhật lại
-             khi người chơi đổi nấc trong menu. */
-          if (window.__lmEco) camera.far = 200;
+          const camera = new THREE.PerspectiveCamera(55, 1.5, 0.1, 720);
+          /* Tầm nhìn xa cố định 720 (ĐỢT A): vòm trời nới lên r340 quanh tâm
+             (0,0,55) — đứng ở góc xa nhất của map (x ±171.6, z 247.6, cách
+             tâm vòm ≈ 258) thì mặt vòm phía đối diện cách ≈ 258 + 340 =
+             598 nên far phải > 600 ở MỌI nấc chất lượng, nếu không vòm bị
+             cắt và trời "vỡ" ở mép map. Trước đây eco rút far 240 → 200:
+             bỏ rút đó (sương FogExp2 vẫn phủ mờ vật ở xa như cũ, chi phí
+             far lớn không đáng kể vì cảnh chính nằm trong ~350 m). */
           camera.position.set(7.5, 5.4, -24.5);
           /* Ánh sáng theo brief: hemisphere ấm nhẹ + spot chính ấm đổ bóng mềm + các point ấm cục bộ */
           const hemi = new THREE.HemisphereLight(0xffe9c4, 0x3a2a1c, 0.44);
@@ -15430,7 +15431,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             window.LMQuality.applyTo(three.renderer, three.spot);
             window.LMQuality.applyDecorShadows(three.scene);
             if (three.camera) {
-              var f = window.__lmEco ? 200 : 240;
+              var f = 720; /* ĐỢT A: far cố định 720 cho vòm trời r340 — xem ghi chú ở chỗ tạo camera */
               if (three.camera.far !== f) {
                 three.camera.far = f;
                 three.camera.updateProjectionMatrix();
@@ -24669,6 +24670,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           }
 
           /* ===== Mặt đất toàn khu + quảng trường + đường đi lát đá ===== */
+          pl(344, 313, 0x51683f, 0, -0.055, 91.5); // ĐỢT A: cỏ nền phủ kín biên MỚI x ±172, z −65..248 — nằm dưới mọi lớp cỏ/đất cũ (−0.045/−0.04) nên liền mạch, không chớp chồng
           pl(90, 185, 0x51683f, 0, -0.045, 27.5); // cỏ phủ kín khung đất mới (kéo dài về bắc tới z -65 theo biên mới)
           pl(58, 48, 0xd9c7a8, 0, -0.028, -35); // sân lát quanh nhà chính (đã dời -35 theo nhà)
           pl(90, 60, 0x5c7350, 0, -0.038, 90); // cỏ nam (dưới công viên)
@@ -25038,33 +25040,35 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               maxZ: p[1] + 0.35,
             });
           });
-          // hàng rào bao quanh toàn khu (đúng mép khung đất)
+          // HÀNG RÀO CHU VI DUY NHẤT (ĐỢT A, 2026-11-16 — lệnh chủ nhân: "bỏ
+          // mấy cái hàng rào giữa các khu đi vướng quá, để nó bao quanh thôi,
+          // giữa các khu không cần"): GỠ TOÀN BỘ rào ngăn giữa các khu —
+          // rào bắc (kể cả 2 đoạn mép còn lại tại z −29,8), rào nam z 119,8
+          // hai đoạn chừa cổng + 2 vật cản của nó, rào đông/tây x ±44,8 và
+          // mọi cọc kèm theo. DỰNG MỘT vòng rào bao duy nhất theo chu vi
+          // map mới x ±172, z −65..248, đúng phong cách rào cũ (tấm
+          // 0x6e5136 cao 1,0 dày 0,35 + cọc gỗ WOOD 0,18×1,35 cách 4 m);
+          // vòng rào nằm sát mép ngoài khung đi được (inWorld2 thu vào
+          // 0.4) nên không cần đăng ký vật cản riêng, như rào bắc/đông/tây
+          // cũ. Rào vốn là một phần của trò chơi (vòng quay ngựa gỗ ở
+          // buildPark, rào khu trò chơi phía nam gỡ ở buildGate của
+          // GameZoneV2 — cổng vòm (0,120) giữ làm trang trí) không thuộc
+          // khối này.
           (function () {
             var fc = 0x6e5136;
-            /* RÀO BẮC: BỎ ĐOẠN XUYÊN NHÀ CHÍNH (2026-11-16, theo ảnh chủ nhân
-               chụp): đoạn cũ là MỘT thanh gỗ nâu 90.6 × 1.0 × 0.35 m tại
-               z −29.8 kèm cọc 0.18 × 1.35 × 0.18 m cách 4 m — nhà chính nay
-               nằm ở z −52.4..−17.6 nên thanh này chạy XUYÊN QUA nhà: trong
-               thư viện nó hiện thành "thanh/phân vách thấp màu nâu có cọc
-               nhỏ chạy dọc giữa sàn", nhìn qua cửa chính nó thành "băng nâu
-               dày chắn ngang phòng trên bàn trà, trước dãy sofa". Nay chỉ
-               giữ 2 đoạn mép NGOÀI nhà (x −45.3..−32.8 và 32.8..45.3) nối
-               rào đông/tây; đoạn rào bắc vốn không đăng ký vật cản riêng
-               (chỉ rào nam có) nên gỡ mesh + cọc là hết chắn hẳn. */
-            bx(12.5, 1.0, 0.35, fc, -39.05, 0.5, -29.8);
-            bx(12.5, 1.0, 0.35, fc, 39.05, 0.5, -29.8);
-            bx(50, 1.0, 0.35, fc, -31, 0.5, 119.8); // rào nam đoạn tây: nới tới x −56, CHỪA CỔNG x∈[−6,6] vào khu trò chơi mới
-            bx(50, 1.0, 0.35, fc, 31, 0.5, 119.8); // rào nam đoạn đông: nới tới x +56
-            bx(0.35, 1.0, 150, fc, -44.8, 0.5, 45);
-            bx(0.35, 1.0, 150, fc, 44.8, 0.5, 45);
-            for (var fx = -44; fx <= 44; fx += 4) {
-              if (Math.abs(fx) >= 36) bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -29.8); // cọc rào bắc: chỉ còn trên 2 đoạn mép ngoài nhà
-              if (Math.abs(fx) > 6) bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 119.8); // cọc rào nam (chừa cổng)
+            bx(344, 1.0, 0.35, fc, 0, 0.5, -64.8); // rào bắc: z −65, x −172..172
+            bx(344, 1.0, 0.35, fc, 0, 0.5, 247.8); // rào nam: z 248, x −172..172
+            bx(0.35, 1.0, 313, fc, -171.8, 0.5, 91.5); // rào tây: x −172, z −65..248
+            bx(0.35, 1.0, 313, fc, 171.8, 0.5, 91.5); // rào đông: x 172, z −65..248
+            for (var fx = -172; fx <= 172; fx += 4) {
+              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -64.8);
+              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 247.8);
+            }
+            for (var fz = -60; fz <= 244; fz += 4) {
+              bx(0.18, 1.35, 0.18, WOOD, -171.8, 0.67, fz);
+              bx(0.18, 1.35, 0.18, WOOD, 171.8, 0.67, fz);
             }
           })();
-          // Vật cản hàng rào NAM theo hai đoạn mới (chừa cổng x∈[−6,6] vào khu trò chơi mới)
-          OBSTACLES.push({ minX: -56, maxX: -6, minZ: 119.6, maxZ: 120.05 });
-          OBSTACLES.push({ minX: 6, maxX: 56, minZ: 119.6, maxZ: 120.05 });
 
           buildPark(th, { bx: bx, cy: cy, sp: sp, pl: pl, sign: sign, glow: glow, M: M, G: G });
           three.bcomplex = { fountain: window.__bcFountain || null };
@@ -26114,12 +26118,12 @@ function buildGate() {
   for (let i = -5; i <= 5; i++) glow(0xffd98a, 1.1, 0.6, i * 1.1, 5.9 - Math.abs(i) * 0.02, z + 0.7);
   // điểm dịch chuyển / spawn
   cy(2.4, 2.4, 0.06, 0x7fd0e8, 0, 0.06, 64, null, 32); cy(1.8, 1.8, 0.08, 0xf2e7d4, 0, 0.07, 64, null, 32); glow(0x9fe0ff, 6, 0.4, 0, 0.4, 64);
-  // hàng rào quanh khu
-  const fc = 0x6e5136;
-  bx(112, 1.0, 0.35, fc, 0, 0.5, -56); bx(0.35, 1.0, 124, fc, -56, 0.5, 6); bx(0.35, 1.0, 124, fc, 56, 0.5, 6);
-  // rào nam của khu (local z=68) KHÔNG dựng ở bản ghép: hàng rào nam của làng tại world z=120 đã nới tới ±56 và chừa cổng — tránh hai mặt rào trùng khít
-  for (let x = -56; x <= 56; x += 4) { bx(0.2, 1.4, 0.2, WOOD, x, 0.7, -56); } // cọc chỉ còn ở rào bắc (local z=-56 → world z=244)
-  for (let zz = -56; zz <= 68; zz += 4) { bx(0.2, 1.4, 0.2, WOOD, -56, 0.7, zz); bx(0.2, 1.4, 0.2, WOOD, 56, 0.7, zz); }
+  // HÀNG RÀO QUANH KHU ĐÃ GỠ (ĐỢT A, 2026-11-16): toàn bộ tấm rào + cọc
+  // bao quanh khu trò chơi (tấm bắc local z=−56 → world z=244, hai tấm
+  // sườn local x=±56 → world x=∓56 dài tới cổng) đã bỏ — giữa các khu
+  // không còn rào ngăn; cả làng chỉ còn MỘT vòng rào chu vi ở biên mới
+  // x ±172, z −65..248 do ComplexB dựng. Cổng vòm ở trên (local z=68 →
+  // world (0,120)) GIỮ NGUYÊN làm cổng trang trí.
   // mây của bản độc lập: không ghép (làng có bầu trời riêng)
 }
 const clouds = [];
