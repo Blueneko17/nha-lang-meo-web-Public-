@@ -7705,11 +7705,12 @@
           rotY: Math.atan2(FIRE_POS.x - p[0], FIRE_POS.z - p[1]),
         };
       });
-      /* ĐỢT B: phòng họp thành tòa riêng ở phía đông (trung tâm 35.5, 52 · mặt đất) */
-      const MEET_POS = { x: 35.5, z: 52 };
-      [33.3, 35.5, 37.7].forEach((mx, i) => {
-        SEAT_POS["M" + (i + 1)] = { x: mx, z: 50.95, y: 0.55, rotY: 0 };
-        SEAT_POS["M" + (i + 4)] = { x: mx, z: 53.05, y: 0.55, rotY: Math.PI };
+      /* KHU PHỐ GIẢI TRÍ v3: tòa họp đông-bắc x[46,58] z[22,40], tâm (52, 31);
+         ghế M1–M3 dãy tây (50.95) nhìn đông, M4–M6 dãy đông (53.05) nhìn tây */
+      const MEET_POS = { x: 52, z: 31 };
+      [28.8, 31, 33.2].forEach((mz, i) => {
+        SEAT_POS["M" + (i + 1)] = { x: 50.95, z: mz, y: 0.55, rotY: Math.PI / 2 };
+        SEAT_POS["M" + (i + 4)] = { x: 53.05, z: mz, y: 0.55, rotY: -Math.PI / 2 };
       });
       /* Vị trí ghế nội thất nhà v2: [id, x, z, y mặt ghế, rotY] */
       [
@@ -7748,10 +7749,10 @@
       /* KHU TRÒ CHƠI MỚI (v2): các game đã chuyển về KHU RIÊNG phía nam
    (script GameZoneV2; vị trí trạm world nằm ở window.GAME_SPOTS, các điểm
    tương tác trong file dùng thẳng tọa độ world mới). */
-      /* ĐỢT B: sân khấu karaoke chuyển vào PHÒNG KARAOKE riêng phía đông */
-      const STAGE_POS = { x: 35.5, z: 26.5 };
-      /* ĐỢT B: giá vẽ fanart chuyển vào PHÒNG TRANH riêng phía đông */
-      const ART_POS = { x: 35.5, z: 74 };
+      /* KHU PHỐ GIẢI TRÍ v3: sân khấu trong PHÒNG KARAOKE tây-bắc (x[25,37] z[22,40]) */
+      const STAGE_POS = { x: 26.4, z: 31 };
+      /* KHU PHỐ GIẢI TRÍ v3: giá vẽ fanart trong PHÒNG TRANH tây-nam (x[25,37] z[54,72]) */
+      const ART_POS = { x: 31.5, z: 63 };
       const TV_POS = { x: 0, z: -50 };
       const ENV_POS = { x: 3.2, z: -19.1 }; /* hộp điện tầng trệt gắn tường trước cạnh cửa chính (3.2, -18.1) — đã dời -35 theo nhà */
       /* Kệ sách thư viện dọc tường tây (6 ô kệ, tâm z -48..-22, thân kệ x -32..-31.5): đứng trước kệ (x -30.5) là bấm đọc được */
@@ -7831,7 +7832,7 @@
         { minX: -29.9, maxX: -26.1, minZ: 186.1, maxZ: 189.9 }, // KHU MỚI: bàn bầu cua cá khô (-28, 188)
         { minX: -30.2, maxX: -25.8, minZ: 145.8, maxZ: 150.2 }, // KHU MỚI: bàn làng ma sói (-28, 148)
         { minX: -31.0, maxX: -29.9, minZ: 166.0, maxZ: 170.0 }, // KHU MỚI: giá vẽ đoán chữ (-28, 168)
-        { minX: 34.8, maxX: 36.2, minZ: 73.3, maxZ: 74.7 }, // ĐỢT B: giá vẽ fanart trong Phòng Tranh (35.5, 74)
+        { minX: 30.8, maxX: 32.2, minZ: 62.3, maxZ: 63.7 }, // KHU PHỐ v3: giá vẽ fanart trong Phòng Tranh (31.5, 63)
         { minX: -23.2, maxX: -21.8, minZ: -51.2, maxZ: -49.8 }, // cây cào móng (đã dời -35 theo nhà)
         { minX: 21.5, maxX: 23.5, minZ: -51.3, maxZ: -49.7 }, // bể cá (đã dời -35 theo nhà)
         { minX: 18.85, maxX: 20.15, minZ: -50.15, maxZ: -48.85 }, // ghế đơn A1
@@ -10303,16 +10304,16 @@
         three.yarnBall = yb;
         // Sân khấu karaoke nhỏ trước màn hình
         const stage = new THREE.Mesh(
-          new THREE.BoxGeometry(5.4, 0.12, 1.7),
+          new THREE.BoxGeometry(2.2, 0.12, 7),
           new THREE.MeshLambertMaterial({ color: 0x8a2f2b }),
         );
         stage.position.set(STAGE_POS.x, 0.06, STAGE_POS.z);
-        S.add(stage); /* ĐỢT B: sân khấu trong phòng karaoke riêng */
+        S.add(stage); /* KHU PHỐ v3: sân khấu trong phòng karaoke tây-bắc */
         const stageTrim = new THREE.Mesh(
-          new THREE.BoxGeometry(5.4, 0.05, 0.14),
+          new THREE.BoxGeometry(0.14, 0.05, 7),
           new THREE.MeshBasicMaterial({ color: 0xf2b705 }),
         );
-        stageTrim.position.set(STAGE_POS.x, 0.13, STAGE_POS.z + 0.82);
+        stageTrim.position.set(STAGE_POS.x + 1.15, 0.13, STAGE_POS.z);
         S.add(stageTrim);
         stationSign(
           "🎤 KARAOKE",
@@ -10320,9 +10321,9 @@
           STAGE_POS.x,
           2.6,
           STAGE_POS.z - 1.2,
-        ); /* ĐỢT B: biển ở phòng karaoke riêng */
-        // ===== PHÒNG TRANH FANART (ĐỢT B: khu riêng phía đông, tường tây của phòng) =====
-        box(0.18, 3.9, 12, 0x8b4a2b, 28.12, 3.6, 74);
+        ); /* KHU PHỐ v3: biển ở phòng karaoke */
+        // ===== PHÒNG TRANH FANART (KHU PHỐ v3: bảng tường tây, khung F1–F8 tường bắc) =====
+        box(0.12, 3.7, 9.9, 0x8b4a2b, 25.2, 3.4, 63);
         const boardCv = document.createElement("canvas");
         boardCv.width = 1024;
         boardCv.height = 448;
@@ -10331,20 +10332,19 @@
           new THREE.PlaneGeometry(9.5, 3.45),
           new THREE.MeshBasicMaterial({ map: boardTex }),
         );
-        boardMesh.rotation.y = 0;
-        boardMesh.position.set(35.5, 3.4, 68.32);
-        S.add(boardMesh); /* bảng lớn treo tường bắc Phòng Tranh */
+        boardMesh.rotation.y = Math.PI / 2;
+        boardMesh.position.set(25.3, 3.4, 63);
+        S.add(boardMesh); /* KHU PHỐ v3: bảng lớn treo tường TÂY Phòng Tranh */
         ART3D.board = { canvas: boardCv, ctx: boardCv.getContext("2d"), tex: boardTex };
-        const boardSign = stationSign("🎨 BẢNG FANART LÀNG MÈO", "#8B4A2B", 35.5, 5.6, 68.4);
-        boardSign.rotation.y = 0;
+        const boardSign = stationSign("🎨 BẢNG FANART LÀNG MÈO", "#8B4A2B", 25.4, 5.3, 63);
+        boardSign.rotation.y = Math.PI / 2;
         boardSign.scale.set(1.6, 1.3, 1);
-        const frameZs = [70, 72.8, 75.6, 78.4];
-        frameZs.forEach((fz, ci) => {
+        const frameXs = [27.3, 29.95, 32.6, 35.25];
+        frameXs.forEach((fx, ci) => {
           [4.9, 2.3].forEach((fy, ri) => {
             const fid = "F" + (ci * 2 + ri + 1);
             const fg = new THREE.Group();
-            fg.position.set(28.28, fy, fz);
-            fg.rotation.y = Math.PI / 2;
+            fg.position.set(fx, fy, 54.28);
             S.add(fg);
             const fr = new THREE.Mesh(
               new THREE.BoxGeometry(2.0, 1.6, 0.09),
@@ -10374,7 +10374,9 @@
               canvas: fcv,
               ctx: fcv.getContext("2d"),
               tex: ftex,
-              z: fz,
+              x: fx,
+              z: 56.4,
+              wallZ: 54.28,
               y: fy,
               filledBy: null,
             };
@@ -11165,9 +11167,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         /* GHÉP V2: gác lửng + cầu thang + ban công của hàm này đã thay bằng loft()
            của nhà v2 (trong buildHouseV2); phần dưới đây CHỈ còn nội thất tòa họp
            riêng ở MEET_POS — giữ nguyên từng dòng. */
-        /* ĐỢT B: Phòng họp ở TÒA RIÊNG mặt đất (MEET_POS mới) — dựng y=0, vỏ tòa do ComplexB xây */
+        /* KHU PHỐ v3: Phòng họp ở TÒA HỌP đông-bắc (MEET_POS (52,31)) — dựng y=0,
+           vỏ tòa do ComplexB (buildDistrict) xây; bàn dọc theo trục z, màn hình tường đông */
         const mrug = new THREE.Mesh(
-          new THREE.PlaneGeometry(8.6, 4.6),
+          new THREE.PlaneGeometry(4.8, 8.8),
           new THREE.MeshLambertMaterial({ color: 0xbecfbd }),
         );
         mrug.rotation.x = -Math.PI / 2;
@@ -11177,16 +11180,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         tbl.position.set(MEET_POS.x, 0, MEET_POS.z);
         S.add(tbl);
         const tTop = new THREE.Mesh(
-          new THREE.BoxGeometry(6.4, 0.12, 1.7),
+          new THREE.BoxGeometry(1.7, 0.12, 6.4),
           new THREE.MeshLambertMaterial({ color: woodMid }),
         );
         tTop.position.y = 0.74;
         tbl.add(tTop);
         [
-          [-3.0, -0.7],
-          [3.0, -0.7],
-          [-3.0, 0.7],
-          [3.0, 0.7],
+          [-0.7, -3.0],
+          [0.7, -3.0],
+          [-0.7, 3.0],
+          [0.7, 3.0],
         ].forEach((p) => {
           const leg = new THREE.Mesh(
             new THREE.BoxGeometry(0.12, 0.74, 0.12),
@@ -11196,9 +11199,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           tbl.add(leg);
         });
         [
-          [-1.4, 0.15, 0.3],
-          [0.4, -0.3, -0.4],
-          [1.5, 0.35, 0.9],
+          [0.15, -1.4, 0.3],
+          [-0.3, 0.4, -0.4],
+          [0.35, 1.5, 0.9],
         ].forEach((p) => {
           const paper = new THREE.Mesh(
             new THREE.BoxGeometry(0.42, 0.015, 0.3),
@@ -11242,13 +11245,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             post.position.y = 0.22;
             ch.add(post);
           });
-        /* Màn hình trình chiếu trên tường bắc của tòa họp (tường ở z = MEET_POS.z - 6.5) */
-        box(5.0, 2.6, 0.12, 0x2f2420, MEET_POS.x, 2.35, MEET_POS.z - 6.42);
+        /* KHU PHỐ v3: màn hình trình chiếu trên tường ĐÔNG của tòa họp (57.74, 2.35, 31) cỡ 4.6×2.3 */
+        box(0.12, 2.6, 5.0, 0x2f2420, MEET_POS.x + 5.82, 2.35, MEET_POS.z);
         const slide = new THREE.Mesh(
           new THREE.PlaneGeometry(4.6, 2.3),
           new THREE.MeshBasicMaterial({ map: slideTexture() }),
         );
-        slide.position.set(MEET_POS.x, 2.35, MEET_POS.z - 6.34);
+        slide.position.set(MEET_POS.x + 5.74, 2.35, MEET_POS.z);
+        slide.rotation.y = -Math.PI / 2;
         S.add(slide);
         const meetSign = new THREE.Mesh(
           new THREE.PlaneGeometry(2.6, 0.65),
@@ -11257,69 +11261,70 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             side: THREE.DoubleSide,
           }),
         );
-        meetSign.position.set(MEET_POS.x - 5.2, 1.9, MEET_POS.z + 6.4);
+        meetSign.position.set(MEET_POS.x - 5.74, 1.9, MEET_POS.z);
+        meetSign.rotation.y = Math.PI / 2;
         S.add(meetSign);
         /* Chậu cây + chồng sách ở góc tòa họp */
         const pot = new THREE.Mesh(
           new THREE.CylinderGeometry(0.2, 0.15, 0.3, 12),
           new THREE.MeshLambertMaterial({ color: 0xa9704b }),
         );
-        pot.position.set(MEET_POS.x - 6.4, 0.15, MEET_POS.z - 5.6);
+        pot.position.set(MEET_POS.x - 5.1, 0.15, MEET_POS.z - 8.1);
         S.add(pot);
         const bush = new THREE.Mesh(
           new THREE.SphereGeometry(0.32, 10, 8),
           new THREE.MeshLambertMaterial({ color: 0x748b6f }),
         );
-        bush.position.set(MEET_POS.x - 6.4, 0.55, MEET_POS.z - 5.6);
+        bush.position.set(MEET_POS.x - 5.1, 0.55, MEET_POS.z - 8.1);
         S.add(bush);
         [0xa9704b, 0x748b6f, 0xb56a3a].forEach((c, i) => {
-          box(0.5 - i * 0.05, 0.07, 0.36, c, MEET_POS.x + 6.2, 0.05 + i * 0.075, MEET_POS.z - 5.4);
+          box(0.5 - i * 0.05, 0.07, 0.36, c, MEET_POS.x + 4.2, 0.05 + i * 0.075, MEET_POS.z - 8.3);
         });
         /* Chau chuốt phòng họp (P5): thảm viền đất nung dưới thảm sage, 2 đèn thả trên bàn, tranh mèo tường bắc, cây góc đông, bóng tiếp xúc dưới bàn */
         const mrug2 = new THREE.Mesh(
-          new THREE.PlaneGeometry(9.5, 5.4),
+          new THREE.PlaneGeometry(5.6, 9.6),
           new THREE.MeshLambertMaterial({ color: 0xa9704b }),
         );
         mrug2.rotation.x = -Math.PI / 2;
         mrug2.position.set(MEET_POS.x, 0.008, MEET_POS.z);
         S.add(mrug2);
-        [MEET_POS.x - 1.3, MEET_POS.x + 1.3].forEach((px) => {
+        [MEET_POS.z - 1.3, MEET_POS.z + 1.3].forEach((pz) => {
           const cord = new THREE.Mesh(
             new THREE.CylinderGeometry(0.02, 0.02, 1.1, 6),
             new THREE.MeshLambertMaterial({ color: 0x2f2420 }),
           );
-          cord.position.set(px, 3.35, MEET_POS.z);
+          cord.position.set(MEET_POS.x, 3.35, pz);
           S.add(cord);
           const shade2 = new THREE.Mesh(
             new THREE.CylinderGeometry(0.16, 0.34, 0.34, 14, 1, true),
             new THREE.MeshBasicMaterial({ color: 0xffc37a, side: THREE.DoubleSide }),
           );
-          shade2.position.set(px, 2.72, MEET_POS.z);
+          shade2.position.set(MEET_POS.x, 2.72, pz);
           S.add(shade2);
           const gl2 = makeGlowSprite(0xffb36b, 1.9, 0.5);
-          gl2.position.set(px, 2.6, MEET_POS.z);
+          gl2.position.set(MEET_POS.x, 2.6, pz);
           S.add(gl2);
         });
-        box(1.5, 1.15, 0.07, woodDark, MEET_POS.x - 4.6, 2.35, MEET_POS.z - 6.44);
+        box(1.5, 1.15, 0.07, woodDark, MEET_POS.x - 3.6, 2.35, MEET_POS.z - 8.94);
         const mPic = new THREE.Mesh(
           new THREE.PlaneGeometry(1.3, 0.95),
           new THREE.MeshLambertMaterial({ map: artTexture(1) }),
         );
-        mPic.position.set(MEET_POS.x - 4.6, 2.35, MEET_POS.z - 6.39);
+        mPic.position.set(MEET_POS.x - 3.6, 2.35, MEET_POS.z - 8.88);
         S.add(mPic);
         const pot2 = new THREE.Mesh(
           new THREE.CylinderGeometry(0.2, 0.15, 0.3, 12),
           new THREE.MeshLambertMaterial({ color: 0xa9704b }),
         );
-        pot2.position.set(MEET_POS.x + 6.4, 0.15, MEET_POS.z - 5.7);
+        pot2.position.set(MEET_POS.x + 5.0, 0.15, MEET_POS.z - 8.1);
         S.add(pot2);
         const bush2 = new THREE.Mesh(
           new THREE.SphereGeometry(0.32, 10, 8),
           new THREE.MeshLambertMaterial({ color: 0x748b6f }),
         );
-        bush2.position.set(MEET_POS.x + 6.4, 0.55, MEET_POS.z - 5.7);
+        bush2.position.set(MEET_POS.x + 5.0, 0.55, MEET_POS.z - 8.1);
         S.add(bush2);
-        addContactShadow(MEET_POS.x, 0.02, MEET_POS.z, 7.1, 2.4, 0.3);
+        addContactShadow(MEET_POS.x, 0.02, MEET_POS.z, 2.4, 7.1, 0.3);
       }
 
 
@@ -14500,10 +14505,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             if (dFire < 3.1 && (!best || dFire < best.dist)) best = { type: "fire", dist: dFire };
             Object.keys(ART3D.frames).forEach((fid) => {
               const fr = ART3D.frames[fid];
-              const d = Math.hypot(
-                29.6 - myPos.x,
-                fr.z - myPos.z,
-              ); /* ĐỢT B: khung tranh ở tường tây Phòng Tranh */
+              const d = Math.hypot(fr.x - myPos.x, fr.z - myPos.z); /* KHU PHỐ v3: khung ở tường BẮC Phòng Tranh, điểm đứng (x, 56.4) ghi trong fr.x/fr.z */
               if (d < 2.3 && (!best || d < best.dist))
                 best = { type: "frame", frameId: fid, dist: d };
             });
@@ -24053,7 +24055,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
    hệ sảnh chủ-trọng tài / voice / tương tác đồng thuận của đợt A.
    - (ĐÃ THAY) Cột phòng game phía tây đã GỠ — khu trò chơi nay là KHU RIÊNG
      phía nam do script GameZoneV2 dựng (thiết kế v2, xoay 180°, cổng ở z=120).
-   - Phòng karaoke riêng (đông), tòa họp riêng (đông), phòng tranh (đông).
+   - KHU PHỐ GIẢI TRÍ v3 (thay cụm 3 tòa cũ phía đông): phố đi bộ x[37,46]
+     z[17,77] + karaoke tây-bắc, tòa họp đông-bắc, phòng tranh tây-nam,
+     quán cà phê đông-nam quanh phố (buildDistrict trong build()).
    - Công viên phía nam: đài phun nước, xích đu, đu quay, tàu siêu tốc,
      vòng quay quan sát, cầu trượt trẻ em, quầy kẹo bông/bóng bay.
    - Ghế xích đu (W), ngựa đu quay (H), tàu (T) chạy bằng cách cập nhật
@@ -24076,15 +24080,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             { id: "K5", label: "Ghế khán giả karaoke 5", zone: "kara" },
             { id: "K6", label: "Ghế khán giả karaoke 6", zone: "kara" },
           );
+          /* KHU PHỐ v3: ghế khán giả karaoke K1–K6 tại (31|34, 28|31|34), nhìn về tây (sân khấu) */
           [
-            [32.5, 31.5],
-            [35.5, 31.5],
-            [38.5, 31.5],
-            [32.5, 34],
-            [35.5, 34],
-            [38.5, 34],
+            [31, 28],
+            [31, 31],
+            [31, 34],
+            [34, 28],
+            [34, 31],
+            [34, 34],
           ].forEach(function (p, i) {
-            SEAT_POS["K" + (i + 1)] = { x: p[0], z: p[1], y: 0.55, rotY: Math.PI };
+            SEAT_POS["K" + (i + 1)] = { x: p[0], z: p[1], y: 0.55, rotY: -Math.PI / 2 };
           });
           SEAT_DEFS.push(
             { id: "W1", label: "Xích đu 1", zone: "park" },
@@ -24144,12 +24149,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           var OB = function (a, b, c, d) {
             OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
           };
-          // Tòa họp: bàn dài + 2 chậu cây góc
-          OB(32.3, 38.7, 51.15, 52.85);
-          OB(28.85, 29.35, 46.15, 46.65);
-          OB(41.65, 42.15, 46.05, 46.55);
-          // Karaoke: sân khấu
-          OB(32.6, 38.4, 25.55, 27.45);
+          // KHU PHỐ v3 — Tòa họp: bàn dài dọc z + 2 chậu cây góc bắc
+          OB(51.15, 52.85, 27.8, 34.2);
+          OB(46.65, 47.15, 22.65, 23.15);
+          OB(56.75, 57.25, 22.65, 23.15);
+          // KHU PHỐ v3 — Karaoke: sân khấu dọc z ở tường tây
+          OB(25.2, 27.6, 27.4, 34.6);
           // Công viên: đài phun nước, đu quay (vòng rào), vòng quay quan sát, cầu trượt nhỏ, quầy
           OB(-3.1, 3.1, 80.9, 87.1);
           OB(-23.6, -16.4, 88.4, 95.6);
@@ -24176,19 +24181,25 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             [
               "🎤 Karaoke",
               function () {
-                vlTP(25.9, 30, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(40.2, 31, 0, -Math.PI / 2, Math.PI / 2);
               },
             ],
             [
               "🏢 Phòng họp",
               function () {
-                vlTP(25.9, 52, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(42.8, 31, 0, Math.PI / 2, -Math.PI / 2);
               },
             ],
             [
               "🎨 Phòng tranh",
               function () {
-                vlTP(25.9, 74, 0, Math.PI / 2, -Math.PI / 2);
+                vlTP(40.2, 63, 0, -Math.PI / 2, Math.PI / 2);
+              },
+            ],
+            [
+              "☕ Cà phê",
+              function () {
+                vlTP(42.8, 63, 0, Math.PI / 2, -Math.PI / 2);
               },
             ],
             [
@@ -24418,7 +24429,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           function path(x, z, w, d) {
             pl(w, d, 0xcfc0a4, x, 0.03, z);
           } // 0.03: nằm trên sàn gỗ hiên (0.015) — trước đây 0.004 bị sàn đè mất đoạn qua vườn
-          path(26.05, 50, 4.4, 62); // lối dọc đông: karaoke/họp/tranh (ĐÃ MỞ RỘNG 3.0 → 4.4)
+          /* Lối dọc đông cũ ĐÃ GỠ — thay bằng phố đi bộ của KHU PHỐ GIẢI TRÍ v3 (buildDistrict bên dưới) */
           path(0, 68.2, 55, 3.0); // lối ngang vào công viên
           path(0, 45, 3.0, 44); // trục giữa vườn → công viên
           path(0, 116.5, 3.4, 7); // lối ngắn từ công viên tới CỔNG NAM vào khu trò chơi mới
@@ -24427,180 +24438,314 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
 
           /* ===== CỘT PHÒNG GAME phía tây + trạm vẽ: ĐÃ GỠ — khu trò chơi nay là KHU RIÊNG phía nam (script GameZoneV2) ===== */
 
-          /* ===== PHÒNG KARAOKE riêng (đông) ===== */
-          (function () {
-            var cx = 35.5,
-              cz = 30,
-              H = 4.3;
-            pl(16, 14, 0x2a2138, cx, 0.006, cz);
-            bx(16, H, 0.25, 0x3a2c4a, cx, H / 2, 23.1);
-            bx(16, H, 0.25, 0x3a2c4a, cx, H / 2, 36.9);
-            bx(0.25, H, 14, 0x3a2c4a, 43.4, H / 2, cz);
-            var seg = 5.8;
-            bx(0.25, H, seg, 0x3a2c4a, 27.6, H / 2, 23.1 + seg / 2);
-            bx(0.25, H, seg, 0x3a2c4a, 27.6, H / 2, 36.9 - seg / 2);
-            roomRoof(bx(16.8, 0.2, 14.8, 0x241a30, cx, H + 0.12, cz), 27.5, 43.5, 23, 37);
-            bx(16.8, 0.1, 0.3, 0xe77fb0, cx, H - 0.25, 23.35);
-            bx(16.8, 0.1, 0.3, 0x7fd4ff, cx, H - 0.25, 36.65); // viền neon nóc phòng
-            // màn hình karaoke riêng trên tường bắc + rèm đỏ hai bên
-            bx(7.6, 3.1, 0.14, 0x0b0b10, cx, 2.45, 23.32);
-            var kcv = document.createElement("canvas");
-            kcv.width = 512;
-            kcv.height = 288;
-            var kg = kcv.getContext("2d");
-            kg.fillStyle = "#14102A";
-            kg.fillRect(0, 0, 512, 288);
-            kg.fillStyle = "#FFD98A";
-            kg.font = '800 54px "Baloo 2", sans-serif';
-            kg.textAlign = "center";
-            kg.fillText("🎤 KARAOKE", 256, 128);
-            kg.fillStyle = "#BFD9FF";
-            kg.font = '600 30px "Be Vietnam Pro", sans-serif';
-            kg.fillText("lên sân khấu hát cho cả phòng nghe", 256, 190);
-            var ktex = new th.CanvasTexture(kcv);
-            var kscr = new th.Mesh(
-              new th.PlaneGeometry(7.2, 2.8),
-              new th.MeshBasicMaterial({ map: ktex }),
-            );
-            kscr.position.set(cx, 2.45, 23.42);
-            G.add(kscr);
-            bx(0.7, 3.4, 0.2, 0x8a2f2b, cx - 4.15, 2.3, 23.34);
-            bx(0.7, 3.4, 0.2, 0x8a2f2b, cx + 4.15, 2.3, 23.34);
-            // đèn sân khấu màu + ghế khán giả
-            [
-              [0xff5d8f, 32.5],
-              [0x7fd4ff, 35.5],
-              [0xffd98a, 38.5],
-            ].forEach(function (p) {
-              glow(p[0], 2.6, 0.55, p[1], 3.6, 25.2);
-            });
-            [
-              [32.5, 31.5],
-              [35.5, 31.5],
-              [38.5, 31.5],
-              [32.5, 34],
-              [35.5, 34],
-              [38.5, 34],
-            ].forEach(function (p) {
-              bx(0.85, 0.45, 0.8, 0x5b4a9e, p[0], 0.24, p[1]);
-              bx(0.85, 0.6, 0.14, 0x4a3a7e, p[0], 0.62, p[1] + 0.36);
-            });
-            sign(
-              "🎤 PHÒNG KARAOKE",
-              5.2,
-              0.95,
-              "#3A2C4A",
-              "#FFD9F2",
-              27.42,
-              H - 0.4,
-              cz,
-              -Math.PI / 2,
-            );
-            var OB = function (a, b, c, d) {
+          /* ===== KHU PHỐ GIẢI TRÍ v3 (ghép từ thiết kế của Claude) — 4 nhà quanh phố đi bộ =====
+             Phố đi bộ x[37,46] chạy dọc z[17,77], 2 cổng vòm z=19/75, ngã tư
+             z[40,54] có đài phun nước (41.5, 47). Karaoke tây-bắc x[25,37]
+             z[22,40] cửa đông z=31 · Tòa họp đông-bắc x[46,58] z[22,40] cửa
+             tây z=31 · Phòng tranh tây-nam x[25,37] z[54,72] cửa đông z=63 ·
+             Quán cà phê đông-nam x[46,58] z[54,72] cửa tây z=63.
+             Mỏ neo đã nối: STAGE_POS (26.4,31) → overlay karaoke như cũ (màn
+             hình karaoke ở đây là canvas tĩnh, link chiếu lên TV chính);
+             ART_POS (31.5,63) + bảng/F1–F8 do buildWorld dựng; ghế K/M đăng
+             ký ở đầu script này + script chính; nội thất họp (bàn/ghế/màn
+             hình) do buildSecondFloor dựng tại MEET_POS (52,31); mỗi nhà 1
+             mái đăng ký __lmRoomRoofs đúng dấu chân. */
+          (function buildDistrict() {
+            function OB(a, b, c, d) {
               OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
-            };
-            OB(27.5, 43.5, 22.95, 23.25);
-            OB(27.5, 43.5, 36.75, 37.05);
-            OB(43.25, 43.55, 23, 37);
-            OB(27.45, 27.75, 23, 28.8);
-            OB(27.45, 27.75, 31.2, 37);
-          })();
-
-          /* ===== TÒA HỌP riêng (đông) — vỏ tòa, nội thất do buildSecondFloor đặt ở MEET_POS mới ===== */
-          (function () {
-            var cx = MEET_POS.x,
-              cz = MEET_POS.z,
-              H = 3.7;
-            pl(15, 13, 0xe9d9be, cx, 0.006, cz);
-            bx(15, H, 0.25, CREAM2, cx, H / 2, cz - 6.5);
-            bx(15, H, 0.25, CREAM2, cx, H / 2, cz + 6.5);
-            bx(0.25, H, 13, CREAM2, cx + 7.5, H / 2, cz);
-            var seg = 5.4;
-            bx(0.25, H, seg, CREAM2, cx - 7.5, H / 2, cz - 6.5 + seg / 2);
-            bx(0.25, H, seg, CREAM2, cx - 7.5, H / 2, cz + 6.5 - seg / 2);
-            roomRoof(bx(15.9, 0.2, 13.9, TERRA, cx, H + 0.12, cz), 28, 43, cz - 6.5, cz + 6.5); // mái chính đất nung
-            bx(8, 0.55, 6, WOOD, cx, H + 0.48, cz); // khối mái nâng (giếng trời)
-            bx(7.6, 0.08, 5.6, 0xbfd9e8, cx, H + 0.78, cz);
-            bx(0.3, 1.1, 1.8, WOOD, cx - 7.6, 3.1, cz - 3.4);
-            bx(0.3, 1.1, 1.8, WOOD, cx - 7.6, 3.1, cz + 3.4); // cửa kính hai bên cửa chính
-            sign(
-              "🏢 TÒA HỌP LÀNG MÈO",
-              5.4,
-              0.95,
-              "#8B4A2B",
-              "#FFE9C9",
-              cx - 7.68,
-              H - 0.35,
-              cz,
-              -Math.PI / 2,
-            );
-            flowers(cx - 6.6, cz - 7.3, 3.4);
-            flowers(cx - 6.6, cz + 7.3, 3.4);
-            var OB = function (a, b, c, d) {
-              OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
-            };
-            OB(28, 43, 45.35, 45.65);
-            OB(28, 43, 58.35, 58.65);
-            OB(42.85, 43.15, 45.5, 58.5);
-            OB(27.85, 28.15, 45.5, 50.8);
-            OB(27.85, 28.15, 53.2, 58.5);
-          })();
-
-          /* ===== PHÒNG TRANH fanart (đông) ===== */
-          (function () {
-            var cx = 35.5,
-              cz = 74,
-              H = 5.9;
-            pl(15, 12, 0xfdf6e3, cx, 0.006, cz);
-            bx(15, H, 0.25, WALL, cx, H / 2, cz - 6);
-            bx(15, H, 0.25, WALL, cx, H / 2, cz + 6);
-            bx(0.25, H, 12, WALL, cx + 7.5, H / 2, cz);
-            var seg = 4.8;
-            bx(0.25, H, seg, WALL, cx - 7.5, H / 2, cz - 6 + seg / 2);
-            bx(0.25, H, seg, WALL, cx - 7.5, H / 2, cz + 6 - seg / 2);
-            roomRoof(bx(15.9, 0.2, 12.9, WOOD, cx, H + 0.12, cz), 28, 43, cz - 6, cz + 6);
-            bx(9, 0.1, 2.2, 0xbfd9e8, cx, H + 0.26, cz); // giếng trời phòng tranh
-            bx(2.2, 0.45, 0.55, 0x748b6f, cx + 2.5, 0.24, cz + 2.5);
-            bx(2.2, 0.45, 0.55, 0xa9704b, cx - 3.5, 0.24, cz - 3);
-            sign(
-              "🎨 PHÒNG TRANH FANART",
-              5.6,
-              0.95,
-              "#8B4A2B",
-              "#FFE9C9",
-              cx - 7.68,
-              H - 0.5,
-              cz,
-              -Math.PI / 2,
-            );
-            var OB = function (a, b, c, d) {
-              OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
-            };
-            OB(28, 43, 67.85, 68.15);
-            OB(28, 43, 79.85, 80.15);
-            OB(42.85, 43.15, 68, 80);
-            OB(27.85, 28.15, 68, 72.8);
-            OB(27.85, 28.15, 75.2, 80);
-          })();
-
-          /* Biển "SẢNH LÀNG MÈO" + trụ biển chỉ đường giữa lối vào nhà ĐÃ GỠ (theo
-             yêu cầu chủ nhân): không còn biển chắn ngang đường đi; biển duy nhất
-             của vườn là "Khu vườn Làng Mèo" lơ lửng trên đài phun mới (0, 20). */
-
-          /* Mặt tiền dãy phòng game cũ (mái hiên/khung cửa sổ): ĐÃ GỠ cùng dãy phòng. */
-          // Warm, uncluttered character for the opposite-side public buildings.
-          [
-            [35.5, 30, 7.6, 0xe77fb0],
-            [MEET_POS.x, MEET_POS.z, 7.2, 0xd9a46f],
-            [35.5, 74, 7.0, 0x79b4a2],
-          ].forEach(function (q) {
-            var left = 27.27;
-            for (var wi = 0; wi < 3; wi++) {
-              var zz = q[1] - q[2] / 2 + (wi * q[2]) / 2;
-              bx(0.1, 0.85, 0.75, 0xbfd9e8, left, 2.3, zz);
-              bx(0.13, 0.08, 0.83, q[3], left - 0.02, 2.77, zz);
             }
-          });
+            function Glass(w, h, d, x, y, z) {
+              var m = new th.Mesh(
+                new th.BoxGeometry(w, h, d),
+                new th.MeshLambertMaterial({ color: 0xbfe3f2, transparent: true, opacity: 0.4 }),
+              );
+              m.position.set(x, y, z);
+              G.add(m);
+              return m;
+            }
+            function chairD(x, z, rotY, c, w) {
+              var g = new th.Group();
+              g.position.set(x, 0, z);
+              g.rotation.y = rotY;
+              G.add(g);
+              bx(w, 0.45, 0.8, c, 0, 0.24, 0, g);
+              bx(w, 0.6, 0.14, c, 0, 0.7, -0.36, g);
+            }
+            function plantD(x, z, k) {
+              k = k || 1;
+              cy(0.28, 0.22, 0.45, 0xa9704b, x, 0.22, z);
+              sp(0.42 * k, 0x4f7a45, x, 0.85 * k, z);
+              sp(0.3 * k, 0x6a9a58, x + 0.15, 1.2 * k, z);
+            }
+            function treeD(x, z) {
+              bx(1.1, 0.5, 1.1, 0x6e4423, x, 0.25, z);
+              cy(0.13, 0.17, 2.0, 0x6b4a2b, x, 1.5, z, G, 8);
+              sp(1.0, 0x4f7a45, x, 3.0, z);
+              sp(0.7, 0x6a9a58, x + 0.5, 3.5, z + 0.2);
+            }
+            /* ---- nền: dải cỏ đông (lấp phần đất ngoài cỏ chính x>45) + phố đi bộ + ngã tư + đài phun ---- */
+            pl(28, 68, 0x51683f, 46, -0.042, 47);
+            pl(9, 62, 0xb9a48a, 41.5, 0.034, 47);
+            for (var zz = 17.5; zz < 77; zz += 2) pl(8.6, 0.1, 0xa89377, 41.5, 0.038, zz);
+            pl(33.5, 14, 0xc9b99d, 41.5, 0.036, 47);
+            cy(2.4, 2.4, 0.6, 0xcfc0a4, 41.5, 0.3, 47, G, 28);
+            cy(2.1, 2.1, 0.05, 0x6ec6e6, 41.5, 0.62, 47, G, 28);
+            cy(0.3, 0.4, 1.6, 0xcfc0a4, 41.5, 1.2, 47, G, 12);
+            cy(0.9, 0.4, 0.2, 0xcfc0a4, 41.5, 2.0, 47, G, 16);
+            glow(0x9fe0ff, 3.2, 0.5, 41.5, 2.3, 47);
+            OB(39.1, 43.9, 44.6, 49.4);
+            [
+              [36.2, 47, 1],
+              [46.8, 47, -1],
+            ].forEach(function (p) {
+              bx(0.5, 0.1, 2.2, 0x8b4a2b, p[0], 0.45, p[1]);
+              bx(0.1, 0.5, 2.2, 0x8b4a2b, p[0] - p[2] * 0.3, 0.8, p[1]);
+            });
+            [
+              [41.5, 42.2, 1],
+              [41.5, 51.8, -1],
+            ].forEach(function (p) {
+              bx(2.2, 0.1, 0.5, 0x8b4a2b, p[0], 0.45, p[1]);
+              bx(2.2, 0.5, 0.1, 0x8b4a2b, p[0], 0.8, p[1] - p[2] * 0.3);
+            });
+            [
+              [28.5, 47],
+              [54.5, 47],
+            ].forEach(function (p) {
+              bx(3.4, 0.4, 1.0, 0x6e4423, p[0], 0.2, p[1]);
+              [0xe77fb0, 0xf2b705, 0xe0393e, 0xfdf6e3].forEach(function (c, i) {
+                sp(0.2, c, p[0] - 1.2 + i * 0.8, 0.55, p[1]);
+              });
+            });
+            /* cây + đèn cột + dây đèn căng ngang phố */
+            [24, 38, 56, 70].forEach(function (z) {
+              treeD(37.9, z);
+              treeD(45.1, z);
+            });
+            [26, 36, 58, 68].forEach(function (z) {
+              [38.2, 44.8].forEach(function (x) {
+                cy(0.05, 0.06, 4.8, 0x2f2420, x, 2.4, z, G, 8);
+                sp(0.17, 0xffe3a0, x, 4.9, z);
+                glow(0xffd98a, 2.6, 0.5, x, 4.9, z);
+              });
+              var w = new th.Mesh(new th.CylinderGeometry(0.015, 0.015, 6.6, 4), M(0x2f2420));
+              w.rotation.z = Math.PI / 2;
+              w.position.set(41.5, 4.7, z);
+              G.add(w);
+              for (var i = 0; i < 7; i++) sp(0.07, 0xffe3a0, 38.5 + i * 1.0, 4.6, z);
+              glow(0xffd98a, 2.0, 0.35, 41.5, 4.6, z);
+            });
+            /* cổng vòm 2 đầu phố */
+            [19, 75].forEach(function (z) {
+              [37.2, 45.8].forEach(function (x) {
+                cy(0.25, 0.3, 5.6, 0x8b4a2b, x, 2.8, z, G, 10);
+              });
+              bx(9.4, 0.5, 0.5, 0x8b4a2b, 41.5, 5.7, z);
+              sign("🐱 PHỐ GIẢI TRÍ LÀNG MÈO", 5.2, 1.3, "#6e4423", "#ffe9c9", 41.5, 6.6, z, 0);
+              glow(0xffd98a, 3, 0.4, 41.5, 5.4, z);
+            });
+            /* ---- vỏ nhà: tường, cửa 3m, kính mặt tiền, mái hiên sọc, biển trên mái ---- */
+            function shell(o) {
+              var cx = (o.x0 + o.x1) / 2,
+                cz = (o.z0 + o.z1) / 2,
+                w = o.x1 - o.x0,
+                d = o.z1 - o.z0,
+                H = o.H,
+                t = 0.25,
+                dw = 3,
+                E = o.door === "E",
+                s = E ? 1 : -1;
+              pl(w, d, o.floor, cx, 0.006, cz);
+              bx(w, H, t, o.wall, cx, H / 2, o.z0 + t / 2);
+              bx(w, H, t, o.wall, cx, H / 2, o.z1 - t / 2);
+              OB(o.x0, o.x1, o.z0, o.z0 + t);
+              OB(o.x0, o.x1, o.z1 - t, o.z1);
+              bx(t, H, d, o.wall, E ? o.x0 + t / 2 : o.x1 - t / 2, H / 2, cz);
+              if (E) OB(o.x0, o.x0 + t, o.z0, o.z1);
+              else OB(o.x1 - t, o.x1, o.z0, o.z1);
+              var fx = E ? o.x1 - t / 2 : o.x0 + t / 2,
+                a = o.dz - dw / 2,
+                b = o.dz + dw / 2,
+                lA = a - o.z0,
+                lB = o.z1 - b;
+              bx(t, H, lA, o.wall, fx, H / 2, o.z0 + lA / 2);
+              bx(t, H, lB, o.wall, fx, H / 2, o.z1 - lB / 2);
+              bx(t, H - 2.7, dw, o.wall, fx, 2.7 + (H - 2.7) / 2, o.dz);
+              OB(fx - t / 2, fx + t / 2, o.z0, a);
+              OB(fx - t / 2, fx + t / 2, b, o.z1);
+              Glass(0.06, 1.7, lA - 1.4, fx + s * 0.16, 1.9, o.z0 + lA / 2);
+              Glass(0.06, 1.7, lB - 1.4, fx + s * 0.16, 1.9, o.z1 - lB / 2);
+              roomRoof(bx(w + 0.9, 0.2, d + 0.9, o.roofC, cx, H + 0.12, cz), o.x0, o.x1, o.z0, o.z1);
+              for (var i = 0; i < 6; i++) {
+                var st = bx(2.2, 0.1, 0.9, i % 2 ? o.awnA : o.awnB, fx + s * 1.1, 2.85, o.dz - 1.8 + i * 0.9);
+                st.rotation.z = -s * 0.2;
+              }
+              [-2.6, 2.6].forEach(function (dz) {
+                cy(0.06, 0.06, 2.7, 0x5a3a24, fx + s * 2.1, 1.35, o.dz + dz, G, 8);
+              });
+              sign(o.name, 4.8, 1.2, o.signBg, "#ffe9c9", fx + s * 0.3, H + 0.82, o.dz, s * Math.PI / 2);
+              glow(0xffc37a, 2.2, 0.5, fx + s * 1.0, 2.6, o.dz);
+            }
+            /* ===== 🎤 KARAOKE — Tây-Bắc: x 25–37, z 22–40, cửa Đông z=31, màn hình tường Tây (25.3, 2.7, 31) 8.8×3.3 canvas tĩnh ===== */
+            shell({
+              x0: 25, x1: 37, z0: 22, z1: 40, H: 4.3, door: "E", dz: 31,
+              wall: 0x3a2c4a, roofC: 0x241a30, floor: 0x2a2138,
+              awnA: 0xe77fb0, awnB: 0x3a2c4a, name: "🎤 PHÒNG KARAOKE", signBg: "#3A2C4A",
+            });
+            pl(7.2, 9, 0x4b2f6e, 32.2, 0.012, 31);
+            /* sân khấu + viền: do buildWorld dựng tại STAGE_POS (26.4, 31), vật cản đã đăng ký ở đầu script */
+            bx(0.14, 3.7, 9.4, 0x0b0b10, 25.2, 2.7, 31);
+            (function () {
+              var cv = document.createElement("canvas");
+              cv.width = 576;
+              cv.height = 216;
+              var g = cv.getContext("2d");
+              g.fillStyle = "#14102A";
+              g.fillRect(0, 0, 576, 216);
+              g.fillStyle = "#FFD98A";
+              g.font = '800 60px "Baloo 2", sans-serif';
+              g.textAlign = "center";
+              g.fillText("🎤 KARAOKE", 288, 100);
+              g.fillStyle = "#BFD9FF";
+              g.font = '600 28px "Be Vietnam Pro", sans-serif';
+              g.fillText("lên sân khấu hát cho cả phòng nghe", 288, 160);
+              var m = new th.Mesh(
+                new th.PlaneGeometry(8.8, 3.3),
+                new th.MeshBasicMaterial({ map: new th.CanvasTexture(cv) }),
+              );
+              m.position.set(25.3, 2.7, 31);
+              m.rotation.y = Math.PI / 2;
+              G.add(m);
+            })();
+            [26.1, 35.9].forEach(function (z) {
+              bx(0.7, 3.8, 0.7, 0x8a2f2b, 25.3, 2.4, z);
+              bx(0.8, 1.9, 0.8, 0x17131f, 26.2, 0.95, z < 31 ? 23.4 : 38.6);
+            });
+            [
+              [0xff5d8f, 28],
+              [0x7fd4ff, 31],
+              [0xffd98a, 34],
+            ].forEach(function (p) {
+              glow(p[0], 2.8, 0.55, 28, 3.7, p[1]);
+            });
+            cy(0.03, 0.03, 1.5, 0x999999, 27.0, 0.85, 31, G, 6);
+            sp(0.08, 0x222222, 27.0, 1.62, 31);
+            sp(0.45, 0xdde4ff, 32, 3.5, 31);
+            cy(0.01, 0.01, 0.9, 0x888888, 32, 4.0, 31, G, 4);
+            glow(0xffffff, 3.6, 0.35, 32, 3.5, 31);
+            [29.5, 33.5].forEach(function (x, i) {
+              chairD(x, 23.2, 0, i ? 0x7b3f8c : 0x5b4a9e, 3.2);
+              chairD(x, 38.8, Math.PI, i ? 0x5b4a9e : 0x7b3f8c, 3.2);
+            });
+            for (var k = 1; k <= 6; k++)
+              chairD(SEAT_POS["K" + k].x, SEAT_POS["K" + k].z, SEAT_POS["K" + k].rotY, 0x5b4a9e, 0.85);
+            bx(0.8, 1.1, 4.6, 0x6e4423, 36.2, 0.55, 36.3);
+            bx(1.0, 0.08, 4.8, 0x2f2420, 36.2, 1.12, 36.3);
+            OB(35.7, 36.7, 33.9, 38.7);
+            [0, 1, 2, 3].forEach(function (i) {
+              cy(0.3, 0.3, 0.05, 0x8a2f2b, 35.0, 0.72, 34.6 + i * 1.1, G, 10);
+              cy(0.04, 0.04, 0.7, 0x888888, 35.0, 0.36, 34.6 + i * 1.1, G, 6);
+            });
+            glow(0xff9bd1, 2.6, 0.4, 36.2, 1.8, 36.3);
+            for (var i2 = 0; i2 < 6; i2++) {
+              bx(1.4, 2.0, 0.1, i2 % 2 ? 0x5b3d7a : 0x7b3f8c, 27.6 + i2 * 1.9, 2.6, 22.3);
+              bx(1.4, 2.0, 0.1, i2 % 2 ? 0x5b3d7a : 0x7b3f8c, 27.6 + i2 * 1.9, 2.6, 39.7);
+            }
+            bx(12, 0.1, 0.3, 0xe77fb0, 31, 4.05, 22.3);
+            bx(12, 0.1, 0.3, 0x7fd4ff, 31, 4.05, 39.7);
+            bx(0.3, 0.1, 18, 0xffd98a, 36.7, 4.05, 31);
+            plantD(36.2, 22.9, 1.3);
+            plantD(25.9, 39.1, 1.2);
+            /* ===== 🏢 TÒA HỌP — Đông-Bắc: x 46–58, z 22–40, cửa Tây z=31.
+               Nội thất chính (thảm, bàn dọc z, ghế M1–M6, màn hình tường đông
+               (57.74, 2.35, 31) 4.6×2.3 slide tĩnh, đèn thả, tranh, chậu cây)
+               do buildSecondFloor dựng tại MEET_POS — ở đây chỉ thêm phần
+               trang trí còn lại của thiết kế: dầm trần, bảng trắng, kệ sách,
+               bàn làm việc góc. ===== */
+            shell({
+              x0: 46, x1: 58, z0: 22, z1: 40, H: 3.7, door: "W", dz: 31,
+              wall: 0xe9d9be, roofC: 0xa9704b, floor: 0xc9a273,
+              awnA: 0xa9704b, awnB: 0xf2e7d8, name: "🏢 TÒA HỌP LÀNG MÈO", signBg: "#8B4A2B",
+            });
+            [24.5, 28, 34, 37.5].forEach(function (z) {
+              bx(12, 0.22, 0.24, 0x8b4a2b, 52, 3.55, z);
+            });
+            bx(3.8, 1.8, 0.1, 0x5a3a24, 52, 2.1, 22.3);
+            bx(3.6, 1.6, 0.1, 0xfdfdfd, 52, 2.1, 22.36);
+            bx(6.4, 2.4, 0.4, 0x8b4a2b, 52, 1.2, 39.7);
+            [0xe0393e, 0x2470c7, 0xf2b705, 0x2ea44f, 0xa9704b].forEach(function (c, i) {
+              for (var j = 0; j < 6; j++)
+                bx(0.18, 0.5, 0.25, c, 49.4 + j * 1.0 + i * 0.05, 0.65 + (i % 3) * 0.7, 39.4);
+            });
+            bx(2.6, 1.0, 0.7, 0x6e4423, 56.4, 0.5, 23.2);
+            cy(0.09, 0.08, 0.16, 0xfdf6e3, 55.8, 1.08, 23.2, G, 10);
+            cy(0.09, 0.08, 0.16, 0xfdf6e3, 56.4, 1.08, 23.2, G, 10);
+            bx(0.4, 0.3, 0.3, 0x222222, 57.0, 1.15, 23.2);
+            plantD(46.9, 39.0, 1.2);
+            plantD(57.0, 39.0, 1.2);
+            /* ===== 🎨 PHÒNG TRANH — Tây-Nam: x 25–37, z 54–72, cửa Đông z=63.
+               Bảng lớn tường tây (25.3, 3.4, 63) 9.5×3.45, khung F1–F8 tường
+               bắc + giá vẽ tại ART_POS do buildWorld dựng — ở đây: vỏ nhà,
+               giếng trời, thảm giá vẽ, tượng, ghế dài, cây. ===== */
+            shell({
+              x0: 25, x1: 37, z0: 54, z1: 72, H: 5.9, door: "E", dz: 63,
+              wall: 0xf2e7d8, roofC: 0x8b4a2b, floor: 0xd9bf94,
+              awnA: 0x2ea44f, awnB: 0xfdf6e3, name: "🎨 PHÒNG TRANH FANART", signBg: "#8B4A2B",
+            });
+            bx(9, 0.1, 2.2, 0xbfd9e8, 31, 6.2, 63);
+            pl(4.4, 4.4, 0xf0d9d0, ART_POS.x, 0.014, ART_POS.z);
+            [0xe0393e, 0xf2b705, 0x2470c7, 0x2ea44f].forEach(function (c, i) {
+              cy(0.2, 0.2, 0.012, c, ART_POS.x - 1.2 + i * 0.8, 0.02, ART_POS.z + 1.3, G, 12);
+            });
+            [
+              [35.6, 57.5],
+              [35.6, 69.5],
+            ].forEach(function (p, i) {
+              bx(1.1, 1.0, 1.1, 0xfdf6e3, p[0], 0.5, p[1]);
+              sp(0.34, i ? 0xe9a46b : 0x8a8f9c, p[0], 1.35, p[1]);
+              sp(0.22, i ? 0xe9a46b : 0x8a8f9c, p[0], 1.8, p[1]);
+              glow(0xfff2c8, 2.6, 0.35, p[0], 2.6, p[1]);
+            });
+            bx(0.55, 0.45, 2.2, 0x748b6f, 34.3, 0.24, 66.5);
+            bx(0.55, 0.45, 2.2, 0xa9704b, 28.5, 0.24, 59.5);
+            plantD(26.2, 70.8, 1.5);
+            plantD(36.0, 70.8, 1.4);
+            plantD(26.2, 55.2, 1.4);
+            /* ===== ☕ QUÁN CÀ PHÊ — Đông-Nam: x 46–58, z 54–72, cửa Tây z=63 (nhà mới, chưa có tương tác game) ===== */
+            shell({
+              x0: 46, x1: 58, z0: 54, z1: 72, H: 4.0, door: "W", dz: 63,
+              wall: 0xf5e6c8, roofC: 0x6e4423, floor: 0xe9d9be,
+              awnA: 0xe0393e, awnB: 0xfdf6e3, name: "☕ QUÁN CÀ PHÊ MÈO", signBg: "#6E4423",
+            });
+            for (var cx2 = 0; cx2 < 6; cx2++)
+              for (var cz2 = 0; cz2 < 8; cz2++)
+                if ((cx2 + cz2) % 2) pl(2, 2, 0xd8c3a0, 47 + cx2 * 2, 0.01, 55 + cz2 * 2);
+            bx(1.0, 1.1, 7, 0x6e4423, 56.8, 0.55, 63);
+            bx(1.2, 0.08, 7.2, 0xf4e9d8, 56.8, 1.14, 63);
+            OB(56.2, 57.4, 59.4, 66.6);
+            bx(0.5, 0.45, 0.6, 0x555555, 56.8, 1.4, 64.5);
+            Glass(0.8, 0.6, 3, 56.6, 1.5, 60.5);
+            bx(0.4, 1.6, 7.6, 0x8b4a2b, 57.7, 2.2, 63);
+            sign("☕ MENU HÔM NAY", 3.6, 0.9, "#3b2a20", "#ffe9c9", 57.4, 3.1, 63, -Math.PI / 2);
+            [
+              [49.5, 58],
+              [49.5, 63],
+              [49.5, 68],
+              [53, 58],
+              [53, 68],
+            ].forEach(function (p) {
+              cy(0.5, 0.5, 0.06, 0xfdf6e3, p[0], 0.75, p[1], G, 18);
+              cy(0.06, 0.06, 0.72, 0x5a3a24, p[0], 0.37, p[1], G, 8);
+              [-0.85, 0.85].forEach(function (o) {
+                cy(0.22, 0.22, 0.45, 0xb56a3a, p[0], 0.23, p[1] + o, G, 10);
+              });
+              glow(0xffc37a, 2.0, 0.4, p[0], 2.9, p[1]);
+              cy(0.02, 0.02, 1.0, 0x2f2420, p[0], 3.5, p[1], G, 6);
+            });
+            plantD(47.0, 54.9, 1.3);
+            plantD(47.0, 71.1, 1.3);
+            plantD(57.0, 54.9, 1.2);
+          })();
 
           /* ===== Trang trí ngoài trời: cây, đèn đường, bồn hoa, ghế nghỉ dọc lối ===== */
           [
@@ -24617,8 +24762,6 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             tree(p[0], p[1], 0.9 + Math.random() * 0.35);
           });
           [
-            [28.3, 40],
-            [28.3, 63],
             [28.3, 86],
             [-4, 69.8],
             [4, 69.8],
