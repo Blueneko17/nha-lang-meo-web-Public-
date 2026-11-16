@@ -7429,18 +7429,9 @@
         SEAT_POS["M" + (i + 1)] = { x: mx, z: 50.95, y: 0.55, rotY: 0 };
         SEAT_POS["M" + (i + 4)] = { x: mx, z: 53.05, y: 0.55, rotY: Math.PI };
       });
-      /* ĐỢT B: mỗi game một phòng riêng trong khu phức hợp phía tây (cột x -35.5,
-   các phòng xếp dọc trục z, cửa mở về lối đi phía đông) — xem ComplexB. */
-      const POOL_POS = { x: -35.5, z: 25 };
-      const LUDO_POS = { x: -35.5, z: 34.5 };
-      const AUD_POS = { x: -35.5, z: 44 };
-      const UNO_POS = { x: -35.5, z: 53.5 };
-      const CLAW_POS = { x: -35.5, z: 63 };
-      const CARD_POS = { x: -35.5, z: 72.5 };
-      const ROUL_POS = { x: -35.5, z: 82 };
-      const BAUCUA_POS = { x: -35.5, z: 91.5 };
-      const WOLF_POS = { x: -35.5, z: 110.5 };
-      const DRAW_POS = { x: -35.5, z: 101 }; // phòng vẽ đoán chữ (trạm do ComplexB dựng)
+      /* KHU TRÒ CHƠI MỚI (v2): các game đã chuyển về KHU RIÊNG phía nam
+   (script GameZoneV2; vị trí trạm world nằm ở window.GAME_SPOTS, các điểm
+   tương tác trong file dùng thẳng tọa độ world mới). */
       /* ĐỢT B: sân khấu karaoke chuyển vào PHÒNG KARAOKE riêng phía đông */
       const STAGE_POS = { x: 35.5, z: 26.5 };
       /* ĐỢT B: giá vẽ fanart chuyển vào PHÒNG TRANH riêng phía đông */
@@ -7505,22 +7496,23 @@
      WebSocket và relay cho cả nhà (xem khối Transport).
    ===================================================================== */
       const WORLD = {
-        minX: -45,
-        maxX: 45,
+        minX: -58,
+        maxX: 58,
         minZ: -30,
-        maxZ: 120,
-      }; /* ĐỢT B: khung đất khớp máy chủ x[-45,45] z[-30,120] */
+        maxZ: 248,
+      }; /* Khung đất khớp máy chủ x[-58,58] z[-30,248] (đã gồm khu trò chơi mới phía nam) */
       const OBSTACLES = [
         { minX: -5.3, maxX: 5.3, minZ: -16.9, maxZ: -15.9 }, // tủ TV
-        { minX: -37.7, maxX: -33.3, minZ: 23.6, maxZ: 26.4 }, // ĐỢT B: bàn bi-a trong phòng Bi-a (-35.5, 25)
-        { minX: -36.8, maxX: -34.2, minZ: 43.1, maxZ: 44.9 }, // ĐỢT B: máy nhảy Audition (-35.5, 44)
-        { minX: -36.9, maxX: -34.1, minZ: 52.2, maxZ: 54.8 }, // ĐỢT B: bàn UNO (-35.5, 53.5)
-        { minX: -36.7, maxX: -34.3, minZ: 62.1, maxZ: 63.9 }, // ĐỢT B: máy gắp gấu (-35.5, 63)
-        { minX: -36.8, maxX: -34.2, minZ: 33.2, maxZ: 35.8 }, // ĐỢT B: bàn cờ cá ngựa (-35.5, 34.5)
-        { minX: -36.8, maxX: -34.2, minZ: 71.2, maxZ: 73.8 }, // ĐỢT B: bàn bài cào (-35.5, 72.5)
-        { minX: -36.8, maxX: -34.2, minZ: 80.7, maxZ: 83.3 }, // ĐỢT B: bàn cò quay cá khô (-35.5, 82)
-        { minX: -37.1, maxX: -33.9, minZ: 90.0, maxZ: 93.0 }, // ĐỢT B: bàn bầu cua cá khô (-35.5, 91.5)
-        { minX: -37.3, maxX: -33.7, minZ: 108.7, maxZ: 112.3 }, // ĐỢT B: bàn làng ma sói (-35.5, 110.5)
+        { minX: 26.7, maxX: 29.3, minZ: 226.0, maxZ: 230.0 }, // KHU MỚI: bàn bi-a engine trong phòng Bi-a (28, 228)
+        { minX: 29.7, maxX: 30.9, minZ: 186.8, maxZ: 189.2 }, // KHU MỚI: máy nhảy Audition (28, 188)
+        { minX: 26.3, maxX: 29.7, minZ: 166.6, maxZ: 169.4 }, // KHU MỚI: bàn UNO (28, 168)
+        { minX: 27.0, maxX: 29.0, minZ: 146.6, maxZ: 149.4 }, // KHU MỚI: máy gắp gấu (28, 148)
+        { minX: 26.4, maxX: 29.6, minZ: 206.4, maxZ: 209.6 }, // KHU MỚI: bàn cờ cá ngựa (28, 208)
+        { minX: -29.9, maxX: -26.1, minZ: 226.1, maxZ: 229.9 }, // KHU MỚI: bàn bài cào (-28, 228)
+        { minX: -29.7, maxX: -26.3, minZ: 206.3, maxZ: 209.7 }, // KHU MỚI: bàn cò quay cá khô (-28, 208)
+        { minX: -29.9, maxX: -26.1, minZ: 186.1, maxZ: 189.9 }, // KHU MỚI: bàn bầu cua cá khô (-28, 188)
+        { minX: -30.2, maxX: -25.8, minZ: 145.8, maxZ: 150.2 }, // KHU MỚI: bàn làng ma sói (-28, 148)
+        { minX: -31.0, maxX: -29.9, minZ: 166.0, maxZ: 170.0 }, // KHU MỚI: giá vẽ đoán chữ (-28, 168)
         { minX: 34.8, maxX: 36.2, minZ: 73.3, maxZ: 74.7 }, // ĐỢT B: giá vẽ fanart trong Phòng Tranh (35.5, 74)
         { minX: -23.2, maxX: -21.8, minZ: -16.2, maxZ: -14.8 }, // cây cào móng
         { minX: 21.5, maxX: 23.5, minZ: -16.3, maxZ: -14.7 }, // bể cá
@@ -8510,12 +8502,12 @@
         return 0;
       }
       function inWorld2(x, z) {
-        /* ĐỢT B — khu phức hợp: toàn bộ mặt đất trong khung x[-45,45] z[-30,120]
-     đều là đất đi được (sân lát/đường đi/cỏ đã lát kín ở lớp ComplexB);
-     tường nhà và tường các khu được chặn bằng OBSTACLES như cũ, hàng rào
-     bao quanh ở đúng mép khung nên không còn dải "ngoài tường" nào lọt ra
-     vùng trống. Thu vào 0.4 trong mép để nhân vật không lẹm ra ngoài rào. */
+        /* Khung đất HỢP: làng cũ x[-45,45] z[-30,120] + KHU TRÒ CHƠI MỚI phía
+     nam x[-58,58] z[118,248] (khu riêng v2; cổng ở hàng rào z=120, x∈[−6,6] —
+     rào nam có vật cản riêng nên chỉ qua được đúng cổng). Thu vào 0.4 trong
+     mép như cũ để nhân vật không lẹm ra ngoài rào. */
         if (x >= -44.6 && x <= 44.6 && z >= -29.6 && z <= 119.6) return true;
+        if (x >= -57.6 && x <= 57.6 && z >= 118 && z <= 247.6) return true;
         if (inRect2(x, z, V.RRAMP) || inRect2(x, z, V.RLAND)) return true;
         return false;
       }
@@ -8562,9 +8554,9 @@
       }
       function collide(p) {
         if (inWorld2(p.x, p.z)) return;
-        /* Kẹp về đúng khung đất đợt B x[-45,45] z[-30,120] (thu vào 0.4 như inWorld2) */
-        p.x = Math.max(-44.6, Math.min(44.6, p.x));
-        p.z = Math.max(-29.6, Math.min(119.6, p.z));
+        /* Kẹp về hộp bao của cả hai khung đất (làng + khu mới), thu vào 0.4 như inWorld2 */
+        p.x = Math.max(-57.6, Math.min(57.6, p.x));
+        p.z = Math.max(-29.6, Math.min(247.6, p.z));
       }
       function resetSpawn() {
         myPos.x = Math.random() * 2.4 - 1.2;
@@ -9551,332 +9543,10 @@
           S.add(bush);
         });
         stationSign("🛋️ SẢNH NGHỈ · CỬA RA SÂN SAU", "#8B4A2B", 0, 3.15, 16.82);
-        // ===== KHU TRÒ CHƠI (phía sau) =====
-        // Bàn bi-a
-        const pool = new THREE.Group();
-        pool.position.set(POOL_POS.x, 0, POOL_POS.z);
-        S.add(pool);
-        const pFrame = new THREE.Mesh(
-          new THREE.BoxGeometry(3.7, 0.26, 2.2),
-          new THREE.MeshLambertMaterial({ color: 0x8b4a2b }),
-        );
-        pFrame.position.y = 0.8;
-        pool.add(pFrame);
-        const pFelt = new THREE.Mesh(
-          new THREE.BoxGeometry(3.32, 0.1, 1.82),
-          new THREE.MeshLambertMaterial({ color: 0x527a52 }),
-        );
-        pFelt.position.y = 0.95;
-        pool.add(pFelt);
-        [
-          [-1.7, -1.0],
-          [1.7, -1.0],
-          [-1.7, 1.0],
-          [1.7, 1.0],
-        ].forEach((p) => {
-          const leg = new THREE.Mesh(
-            new THREE.BoxGeometry(0.18, 0.8, 0.18),
-            new THREE.MeshLambertMaterial({ color: 0x4a2d15 }),
-          );
-          leg.position.set(p[0], 0.4, p[1]);
-          pool.add(leg);
-        });
-        [
-          [-1.62, -0.88],
-          [0, -0.95],
-          [1.62, -0.88],
-          [-1.62, 0.88],
-          [0, 0.95],
-          [1.62, 0.88],
-        ].forEach((p) => {
-          const pk = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.13, 0.13, 0.05, 14),
-            new THREE.MeshBasicMaterial({ color: 0x0d0d0d }),
-          );
-          pk.position.set(p[0], 1.0, p[1]);
-          pool.add(pk);
-        });
-        // 16 bi của bàn Bida 8 Bi trong phòng — gương theo trạng thái ván trong
-        // sảnh (cập nhật sau mỗi cú đánh qua window.__poolWorld.setState) để
-        // người đứng xem trong phòng thấy bàn thay đổi theo ván đấu.
-        const WB_COLS = [
-          0xf8f5ee, 0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e, 0x111111,
-          0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e,
-        ];
-        const wbMeshes = [];
-        for (let wbi = 0; wbi < 16; wbi++) {
-          const wball = new THREE.Mesh(
-            new THREE.SphereGeometry(0.09, 14, 12),
-            new THREE.MeshLambertMaterial({ color: WB_COLS[wbi] }),
-          );
-          wball.position.set(-0.83, 1.06, 0);
-          wball.visible = false;
-          pool.add(wball);
-          wbMeshes.push(wball);
-        }
-        window.__poolWorld = {
-          setState: function (snap) {
-            if (!snap || !snap.balls) return;
-            snap.balls.forEach((sb) => {
-              const m = wbMeshes[sb.id];
-              if (!m) return;
-              if (sb.out) {
-                m.visible = false;
-                return;
-              }
-              m.visible = true;
-              m.position.set(sb.x * 0.1307, 1.06, sb.z * 0.1433);
-            });
-          },
-        };
-        (function wbRack() {
-          const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 6, 13, 14, 7, 15];
-          const st = [{ id: 0, x: -6.35, z: 0, out: false }];
-          let idx = 0;
-          for (let r = 0; r < 5; r++)
-            for (let c = 0; c <= r; c++)
-              st.push({ id: order[idx++], x: 6.35 + r * 0.501, z: (c - r / 2) * 0.576, out: false });
-          window.__poolWorld.setState({ balls: st });
-        })();
-        stationSign("🎱 BIDA 8 BI", "#8B4A2B", POOL_POS.x, 2.5, POOL_POS.z - 1.2);
-        // Máy nhảy Audition + thảm nhảy
-        const aud = new THREE.Group();
-        aud.position.set(AUD_POS.x, 0, AUD_POS.z);
-        S.add(aud);
-        const aBody = new THREE.Mesh(
-          new THREE.BoxGeometry(1.7, 2.1, 0.7),
-          new THREE.MeshLambertMaterial({ color: 0x3a2e28 }),
-        );
-        aBody.position.y = 1.05;
-        aud.add(aBody);
-        const aScr = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.35, 1.0),
-          new THREE.MeshBasicMaterial({ map: danceTexture() }),
-        );
-        aScr.position.set(0, 1.5, 0.36);
-        aScr.rotation.x = -0.13;
-        aud.add(aScr);
-        [-0.95, 0.95].forEach((sx) => {
-          const sp2 = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.16, 0.16, 0.5, 12),
-            new THREE.MeshLambertMaterial({ color: 0x17171f }),
-          );
-          sp2.position.set(sx, 1.5, 0.2);
-          aud.add(sp2);
-        });
-        const pad = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.9, 1.3),
-          new THREE.MeshLambertMaterial({ color: 0x4a3a2e }),
-        );
-        pad.rotation.x = -Math.PI / 2;
-        pad.position.set(AUD_POS.x, 0.015, AUD_POS.z + 1.45);
-        S.add(pad);
-        [
-          [-0.45, -0.3, "⬅"],
-          [0.45, -0.3, "➡"],
-          [-0.45, 0.3, "⬇"],
-          [0.45, 0.3, "⬆"],
-        ].forEach((q) => {
-          const cell = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.7, 0.45),
-            new THREE.MeshBasicMaterial({ map: labelTexture(q[2], "#23232f", "#ffd98a") }),
-          );
-          cell.rotation.x = -Math.PI / 2;
-          cell.position.set(AUD_POS.x + q[0], 0.025, AUD_POS.z + 1.45 + q[1]);
-          S.add(cell);
-        });
-        stationSign("🕺 AUDITION", "#B56A3A", AUD_POS.x, 2.55, AUD_POS.z - 0.6);
-        // Bàn UNO
-        const uno = new THREE.Group();
-        uno.position.set(UNO_POS.x, 0, UNO_POS.z);
-        S.add(uno);
-        const uTop = new THREE.Mesh(
-          new THREE.BoxGeometry(2.3, 0.09, 1.7),
-          new THREE.MeshLambertMaterial({ color: 0x7a4526 }),
-        );
-        uTop.position.y = 0.78;
-        uno.add(uTop);
-        const uSurf = new THREE.Mesh(
-          new THREE.PlaneGeometry(2.1, 1.5),
-          new THREE.MeshBasicMaterial({ map: unoTexture() }),
-        );
-        uSurf.rotation.x = -Math.PI / 2;
-        uSurf.position.y = 0.83;
-        uno.add(uSurf);
-        [
-          [-1.0, -0.7],
-          [1.0, -0.7],
-          [-1.0, 0.7],
-          [1.0, 0.7],
-        ].forEach((p) => {
-          const leg = new THREE.Mesh(
-            new THREE.BoxGeometry(0.14, 0.78, 0.14),
-            new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-          );
-          leg.position.set(p[0], 0.39, p[1]);
-          uno.add(leg);
-        });
-        stationSign("🎴 UNO", "#A9704B", UNO_POS.x, 2.3, UNO_POS.z - 1.1);
-        // Máy gắp gấu bông
-        const clawM = new THREE.Group();
-        clawM.position.set(CLAW_POS.x, 0, CLAW_POS.z);
-        S.add(clawM);
-        const cFrame = new THREE.Mesh(
-          new THREE.BoxGeometry(2.0, 2.3, 1.1),
-          new THREE.MeshLambertMaterial({ color: 0xd6699a }),
-        );
-        cFrame.position.y = 1.15;
-        clawM.add(cFrame);
-        const cGlass = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.7, 1.5),
-          new THREE.MeshLambertMaterial({ color: 0xbfe8f5, transparent: true, opacity: 0.35 }),
-        );
-        cGlass.position.set(0, 1.25, -0.56);
-        cGlass.rotation.y = Math.PI;
-        clawM.add(cGlass);
-        [
-          [-0.6, 0xf07f13],
-          [-0.2, 0xe77fb0],
-          [0.25, 0x8d8d94],
-          [0.62, 0xf2b705],
-          [0.05, 0x5f7a5e],
-        ].forEach((p, i) => {
-          const pl = new THREE.Mesh(
-            new THREE.SphereGeometry(0.17, 12, 10),
-            new THREE.MeshLambertMaterial({ color: p[1] }),
-          );
-          pl.position.set(p[0], 0.55, -0.2 + (i % 2) * 0.3);
-          pl.scale.y = 0.9;
-          clawM.add(pl);
-        });
-        const cRail = new THREE.Mesh(
-          new THREE.BoxGeometry(1.7, 0.08, 0.08),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        cRail.position.set(0, 2.0, -0.2);
-        clawM.add(cRail);
-        const cClaw = new THREE.Group();
-        cClaw.position.set(-0.4, 1.95, -0.2);
-        clawM.add(cClaw);
-        const cHub = new THREE.Mesh(
-          new THREE.BoxGeometry(0.16, 0.12, 0.16),
-          new THREE.MeshLambertMaterial({ color: 0x4a3a2e }),
-        );
-        cClaw.add(cHub);
-        [-0.09, 0, 0.09].forEach((px) => {
-          const prong = new THREE.Mesh(
-            new THREE.ConeGeometry(0.035, 0.22, 6),
-            new THREE.MeshLambertMaterial({ color: 0x4a3a2e }),
-          );
-          prong.position.set(px, -0.15, 0);
-          prong.rotation.z = px * 2.2;
-          prong.rotation.x = Math.PI;
-          cClaw.add(prong);
-        });
-        three.clawArm = cClaw;
-        stationSign("🧸 GẮP GẤU", "#a34d7c", CLAW_POS.x, 2.62, CLAW_POS.z - 0.4);
-        // Bàn cờ cá ngựa
-        const ludo = new THREE.Group();
-        ludo.position.set(LUDO_POS.x, 0, LUDO_POS.z);
-        S.add(ludo);
-        const lTop = new THREE.Mesh(
-          new THREE.BoxGeometry(1.85, 0.09, 1.85),
-          new THREE.MeshLambertMaterial({ color: 0x7a4526 }),
-        );
-        lTop.position.y = 0.78;
-        ludo.add(lTop);
-        const lBoard = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.7, 1.7),
-          new THREE.MeshLambertMaterial({ map: ludoTexture() }),
-        );
-        lBoard.rotation.x = -Math.PI / 2;
-        lBoard.position.y = 0.83;
-        ludo.add(lBoard);
-        const lLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.09, 0.13, 0.78, 12),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        lLeg.position.y = 0.39;
-        ludo.add(lLeg);
-        stationSign("🐴 CÁ NGỰA", "#748B6F", LUDO_POS.x, 2.3, LUDO_POS.z - 1.2);
-        // Bàn bài cào
-        const cardT = new THREE.Group();
-        cardT.position.set(CARD_POS.x, 0, CARD_POS.z);
-        S.add(cardT);
-        const ctTop = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.15, 1.15, 0.09, 22),
-          new THREE.MeshLambertMaterial({ color: 0x1d6e46 }),
-        );
-        ctTop.position.y = 0.78;
-        cardT.add(ctTop);
-        const ctLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.1, 0.16, 0.78, 12),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        ctLeg.position.y = 0.39;
-        cardT.add(ctLeg);
-        [
-          [-0.4, 0.2, 0.4],
-          [0.35, -0.25, -0.5],
-          [0.05, 0.45, 1.1],
-        ].forEach((p) => {
-          const cd = new THREE.Mesh(
-            new THREE.BoxGeometry(0.3, 0.03, 0.44),
-            new THREE.MeshLambertMaterial({ color: 0xfdf6e3 }),
-          );
-          cd.position.set(p[0], 0.85, p[1]);
-          cd.rotation.y = p[2];
-          cardT.add(cd);
-        });
-        stationSign("🃏 BÀI CÀO", "#5F7A5E", CARD_POS.x, 2.3, CARD_POS.z - 1.3);
-        // Bàn cò quay cá khô + súng đồ chơi
-        const roul = new THREE.Group();
-        roul.position.set(ROUL_POS.x, 0, ROUL_POS.z);
-        S.add(roul);
-        const rTop = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.95, 0.95, 0.09, 22),
-          new THREE.MeshLambertMaterial({ color: 0xb56a3a }),
-        );
-        rTop.position.y = 0.78;
-        roul.add(rTop);
-        const rLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.09, 0.15, 0.78, 12),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        rLeg.position.y = 0.39;
-        roul.add(rLeg);
-        const gun = new THREE.Group();
-        gun.position.set(0, 0.86, 0);
-        gun.rotation.y = 0.6;
-        roul.add(gun);
-        const gBody = new THREE.Mesh(
-          new THREE.BoxGeometry(0.52, 0.15, 0.18),
-          new THREE.MeshLambertMaterial({ color: 0xf07f13 }),
-        );
-        gun.add(gBody);
-        const gBarrel = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.05, 0.05, 0.3, 10),
-          new THREE.MeshLambertMaterial({ color: 0x4a3a2e }),
-        );
-        gBarrel.rotation.z = Math.PI / 2;
-        gBarrel.position.set(0.38, 0.03, 0);
-        gun.add(gBarrel);
-        const gGrip = new THREE.Mesh(
-          new THREE.BoxGeometry(0.12, 0.24, 0.14),
-          new THREE.MeshLambertMaterial({ color: 0xb85c08 }),
-        );
-        gGrip.position.set(-0.16, -0.16, 0);
-        gGrip.rotation.z = 0.3;
-        gun.add(gGrip);
-        const gCyl = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.11, 0.11, 0.14, 12),
-          new THREE.MeshLambertMaterial({ color: 0xd8c6ac }),
-        );
-        gCyl.rotation.x = Math.PI / 2;
-        gCyl.position.set(0.05, 0.02, 0);
-        gun.add(gCyl);
-        three.toyGun = gun;
-        stationSign("🐟 CÒ QUAY CÁ KHÔ", "#B56A3A", ROUL_POS.x, 2.3, ROUL_POS.z - 1.2);
+        // ===== KHU TRÒ CHƠI: đã chuyển về KHU RIÊNG phía nam (script GameZoneV2) =====
+        /* Các trạm game cũ dựng tại đây (bi-a, Audition, UNO, gắp gấu, cá ngựa,
+           bài cào, cò quay) đã GỠ. Bàn bi-a ENGINE (window.__poolWorld) được
+           dựng lại tại phòng Bi-a của khu mới trong script GameZoneV2. */
         // Cửa gỗ trên tường sau (phía khu game)
         box(1.9, 3.4, 0.1, 0x8b4a2b, -6, 1.7, 16.94);
         const knob = new THREE.Mesh(
@@ -10110,54 +9780,6 @@
           2.6,
           STAGE_POS.z - 1.2,
         ); /* ĐỢT B: biển ở phòng karaoke riêng */
-        // Bàn bầu cua cá khô
-        const bau = new THREE.Group();
-        bau.position.set(BAUCUA_POS.x, 0, BAUCUA_POS.z);
-        S.add(bau);
-        const bTop = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.3, 1.3, 0.09, 22),
-          new THREE.MeshLambertMaterial({ color: 0xa9704b }),
-        );
-        bTop.position.y = 0.78;
-        bau.add(bTop);
-        const bLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.1, 0.16, 0.78, 12),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        bLeg.position.y = 0.39;
-        bau.add(bLeg);
-        const bMat = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.05, 1.05, 0.03, 22),
-          new THREE.MeshBasicMaterial({
-            map: labelTexture("🍈 🦀 🐟 🐓 🦐 🦌", "#fdf6e3", "#8B4A2B"),
-          }),
-        );
-        bMat.position.y = 0.84;
-        bau.add(bMat);
-        stationSign("🎲 BẦU CUA CÁ KHÔ", "#A9704B", BAUCUA_POS.x, 2.3, BAUCUA_POS.z - 1.4);
-        // Bàn làng ma sói (bàn tròn lớn giữa khu game)
-        const wolfT = new THREE.Group();
-        wolfT.position.set(WOLF_POS.x, 0, WOLF_POS.z);
-        S.add(wolfT);
-        const wTop = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.5, 1.5, 0.1, 24),
-          new THREE.MeshLambertMaterial({ color: 0x4a3a2e }),
-        );
-        wTop.position.y = 0.76;
-        wolfT.add(wTop);
-        const wLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.12, 0.2, 0.76, 12),
-          new THREE.MeshLambertMaterial({ color: 0x23232f }),
-        );
-        wLeg.position.y = 0.38;
-        wolfT.add(wLeg);
-        const moon = new THREE.Mesh(
-          new THREE.SphereGeometry(0.22, 12, 10),
-          new THREE.MeshBasicMaterial({ color: 0xf7e7b0 }),
-        );
-        moon.position.set(0, 1.05, 0);
-        wolfT.add(moon);
-        stationSign("🐺 MA SÓI", "#4A3A2E", WOLF_POS.x, 2.4, WOLF_POS.z - 1.7);
         // ===== PHÒNG TRANH FANART (ĐỢT B: khu riêng phía đông, tường tây của phòng) =====
         box(0.18, 3.9, 12, 0x8b4a2b, 28.12, 3.6, 74);
         const boardCv = document.createElement("canvas");
@@ -10579,9 +10201,6 @@
           addContactShadow(SEAT_POS["F" + i].x, 0.024, SEAT_POS["F" + i].z, 3.4, 2.2, 0.34);
           addContactShadow(SEAT_POS["B" + i].x, 0.024, SEAT_POS["B" + i].z, 4.4, 2.2, 0.34);
         }
-        addContactShadow(POOL_POS.x, 0.02, POOL_POS.z, 4.4, 2.9, 0.3);
-        addContactShadow(WOLF_POS.x, 0.02, WOLF_POS.z, 3.5, 3.5, 0.3);
-        addContactShadow(BAUCUA_POS.x, 0.02, BAUCUA_POS.z, 3.1, 3.1, 0.28);
         addContactShadow(-19.5, 0.014, -16.1, 1.35, 1.35, 0.3);
         addContactShadow(-12.5, 0.014, -16.05, 1.25, 1.25, 0.3);
         addContactShadow(-17.8, 0.014, -16.05, 1.1, 1.1, 0.3);
@@ -13557,13 +13176,13 @@
         camSmooth.x += (px - camSmooth.x) * k;
         camSmooth.y += (py - camSmooth.y) * k;
         camSmooth.z += (pz - camSmooth.z) * k;
-        /* Kẹp camera theo ĐÚNG khung đất đợt B (x ±45, z −30..120). Trước đây vẫn
+          /* Kẹp camera theo ĐÚNG khung đất hiện tại (x ±58, z −30..248). Trước đây vẫn
      kẹp theo biên biệt thự cũ (x ±31, z −22..72): qua công viên (z > 72)
      camera bị ghì lại ở sau lưng, có lúc bị ép sang PHÍA TRƯỚC nhân vật trong
      khi hướng di chuyển vẫn tính theo camYaw → nhìn bị "khóa", tiến thành lùi,
      phải thành trái. Nay nới đúng biên thế giới nên camera luôn ở sau lưng. */
         cam.position.set(
-          Math.max(-46.5, Math.min(46.5, camSmooth.x)),
+            Math.max(-59.5, Math.min(59.5, camSmooth.x)),
           Math.max(
             0.5,
             Math.min(
@@ -13571,7 +13190,7 @@
               camSmooth.y,
             ),
           ),
-          Math.max(-31, Math.min(121.5, camSmooth.z)),
+            Math.max(-31, Math.min(249.5, camSmooth.z)),
         );
         cam.lookAt(tx, ty, tz);
       }
@@ -15048,22 +14667,24 @@
               if (dist < reach && (!best || dist < best.dist))
                 best = { type: "sit", seatId: d.id, dist, label: d.label };
             });
-            const dp = Math.hypot(POOL_POS.x - myPos.x, POOL_POS.z - myPos.z);
+            /* Trạm game ở KHU TRÒ CHƠI MỚI phía nam (world): bi-a (28,228), cá ngựa (28,208) */
+            const dp = Math.hypot(28 - myPos.x, 228 - myPos.z);
             if (dp < 2.7 && (!best || dp < best.dist)) best = { type: "pool", dist: dp };
-            const dl = Math.hypot(LUDO_POS.x - myPos.x, LUDO_POS.z - myPos.z);
+            const dl = Math.hypot(28 - myPos.x, 208 - myPos.z);
             if (dl < 2.3 && (!best || dl < best.dist)) best = { type: "ludo", dist: dl };
             const dtv = Math.hypot(TV_POS.x - myPos.x, TV_POS.z - myPos.z);
             if (dtv < 2.9 && (!best || dtv < best.dist)) best = { type: "tv", dist: dtv };
             const denv = Math.hypot(ENV_POS.x - myPos.x, ENV_POS.z - myPos.z);
             if (denv < 2.4 && (!best || denv < best.dist)) best = { type: "env", dist: denv };
+            /* Vị trí trạm ở KHU TRÒ CHƠI MỚI (world — xem window.GAME_SPOTS ở script GameZoneV2) */
             const gameSpots = [
-              { type: "audition", pos: { x: AUD_POS.x, z: AUD_POS.z + 1.45 }, r: 2.4 },
-              { type: "uno", pos: UNO_POS, r: 2.6 },
-              { type: "claw", pos: CLAW_POS, r: 2.6 },
-              { type: "cards", pos: CARD_POS, r: 2.6 },
-              { type: "roulette", pos: ROUL_POS, r: 2.6 },
-              { type: "baucua", pos: BAUCUA_POS, r: 2.6 },
-              { type: "wolf", pos: WOLF_POS, r: 2.8 },
+              { type: "audition", pos: { x: 27.3, z: 188 }, r: 2.4 },
+              { type: "uno", pos: { x: 28, z: 168 }, r: 2.6 },
+              { type: "claw", pos: { x: 28, z: 148 }, r: 2.6 },
+              { type: "cards", pos: { x: -28, z: 228 }, r: 2.6 },
+              { type: "roulette", pos: { x: -28, z: 208 }, r: 2.6 },
+              { type: "baucua", pos: { x: -28, z: 188 }, r: 2.6 },
+              { type: "wolf", pos: { x: -28, z: 148 }, r: 2.8 },
             ];
             const dStage = Math.hypot(STAGE_POS.x - myPos.x, STAGE_POS.z - myPos.z);
             if (dStage < 2.7 && (!best || dStage - 0.4 < best.dist))
@@ -24427,8 +24048,8 @@
    ĐỢT B — KHU PHỨC HỢP ĐA CHỨC NĂNG (ComplexB)
    Lớp xây thêm trên nền đợt A, KHÔNG sửa giao thức máy chủ / kênh vl- /
    hệ sảnh chủ-trọng tài / voice / tương tác đồng thuận của đợt A.
-   - Cột phòng game riêng phía tây (mỗi game 1 phòng, trạm giữ nguyên vị trí
-     POOL_POS…WOLF_POS đã dời vào phòng; phòng vẽ đoán chữ có trạm riêng).
+   - (ĐÃ THAY) Cột phòng game phía tây đã GỠ — khu trò chơi nay là KHU RIÊNG
+     phía nam do script GameZoneV2 dựng (thiết kế v2, xoay 180°, cổng ở z=120).
    - Phòng karaoke riêng (đông), tòa họp riêng (đông), phòng tranh (đông).
    - Công viên phía nam: đài phun nước, xích đu, đu quay, tàu siêu tốc,
      vòng quay quan sát, cầu trượt trẻ em, quầy kẹo bông/bóng bay.
@@ -24546,7 +24167,7 @@
             [
               "🎮 Khu game",
               function () {
-                vlTP(-26.2, 47, 0, -Math.PI / 2, Math.PI / 2);
+                vlTP(0, 124, 0, 0, Math.PI);
               },
             ],
             [
@@ -24794,102 +24415,14 @@
           function path(x, z, w, d) {
             pl(w, d, 0xcfc0a4, x, 0.03, z);
           } // 0.03: nằm trên sàn gỗ hiên (0.015) — trước đây 0.004 bị sàn đè mất đoạn qua vườn
-          path(-26.05, 67.5, 4.4, 95); // lối dọc tây: nhà → các phòng game → công viên (ĐÃ MỞ RỘNG 3.0 → 4.4, khớp mặt rào mới ±24.0 và tường phòng −27.9)
           path(26.05, 50, 4.4, 62); // lối dọc đông: karaoke/họp/tranh (ĐÃ MỞ RỘNG 3.0 → 4.4)
           path(0, 68.2, 55, 3.0); // lối ngang vào công viên
           path(0, 45, 3.0, 44); // trục giữa vườn → công viên
+          path(0, 116.5, 3.4, 7); // lối ngắn từ công viên tới CỔNG NAM vào khu trò chơi mới
           path(-13, 84, 24, 2.4);
           path(13, 99, 22, 2.4);
-          // lối rẽ vào từng cửa phòng game
-          [25, 34.5, 44, 53.5, 63, 72.5, 82, 91.5, 101, 110.5].forEach(function (cz) {
-            path(-27.55, cz, 2.5, 2.2);
-          });
 
-          /* ===== CỘT PHÒNG GAME phía tây: mỗi game 1 phòng riêng ===== */
-          var rooms = [
-            { z: POOL_POS.z, name: "🎱 PHÒNG BI-A", roof: 0x8b4a2b, floor: 0x2e6b4f, d: 9.5 },
-            { z: LUDO_POS.z, name: "🐴 PHÒNG CÁ NGỰA", roof: 0x748b6f, floor: 0xe9d9be, d: 9.5 },
-            { z: AUD_POS.z, name: "🕺 PHÒNG AUDITION", roof: 0xb56a3a, floor: 0x3a3350, d: 9.5 },
-            { z: UNO_POS.z, name: "🎴 PHÒNG UNO", roof: 0xa9704b, floor: 0xe9d9be, d: 9.5 },
-            { z: CLAW_POS.z, name: "🧸 PHÒNG GẮP GẤU", roof: 0xa34d7c, floor: 0xf3d9e4, d: 9.5 },
-            { z: CARD_POS.z, name: "🃏 PHÒNG BÀI CÀO", roof: 0x5f7a5e, floor: 0xe9d9be, d: 9.5 },
-            { z: ROUL_POS.z, name: "🐟 PHÒNG CÒ QUAY", roof: 0xb56a3a, floor: 0xfde9b8, d: 9.5 },
-            { z: BAUCUA_POS.z, name: "🎲 PHÒNG BẦU CUA", roof: 0xa9704b, floor: 0xe9d9be, d: 9.5 },
-            { z: DRAW_POS.z, name: "🎨 PHÒNG VẼ ĐOÁN CHỮ", roof: 0x8b4a2b, floor: 0xfdf6e3, d: 9 },
-            { z: WOLF_POS.z, name: "🐺 PHÒNG MA SÓI", roof: 0x4a3a2e, floor: 0xd9c7a8, d: 10 },
-          ];
-          rooms.forEach(function (r, i) {
-            var H = 3.3 + (i % 3) * 0.45,
-              z0 = r.z - r.d / 2,
-              z1 = r.z + r.d / 2;
-            pl(15, r.d, r.floor, -35.5, 0.006, r.z);
-            bx(0.25, H, r.d, WALL, -43.1, H / 2, r.z); // tường tây
-            bx(15, H, 0.25, WALL, -35.5, H / 2, z0);
-            bx(15, H, 0.25, WALL, -35.5, H / 2, z1); // tường bắc/nam
-            var seg = r.d / 2 - 1.2;
-            bx(0.25, H, seg, WALL, -27.9, H / 2, z0 + seg / 2);
-            bx(0.25, H, seg, WALL, -27.9, H / 2, z1 - seg / 2); // tường đông chừa cửa 2.4
-            var roofMain = bx(15.9, 0.18, r.d + 0.9, r.roof, -35.5, H + 0.12, r.z);
-            var roofTop = bx(6.5, 0.5, 4.2, r.roof, -38.5, H + 0.42, r.z);
-            roomRoof(roofMain, -43.1, -27.9, z0, z1);
-            roomRoof(roofTop, -43.1, -27.9, z0, z1); // khối mái lệch tầng
-            bx(2.8, 0.1, 1.3, 0x7c4f27, -27.9, 0.05, r.z); // thềm cửa
-            sign(r.name, 4.6, 0.85, "#8B4A2B", "#FFE9C9", -27.72, H - 0.35, r.z, Math.PI / 2);
-            glow(0xffb36b, 1.6, 0.5, -27.6, 2.4, r.z - 1.5);
-            glow(0xffb36b, 1.6, 0.5, -27.6, 2.4, r.z + 1.5);
-            var OB = function (a, b, c, d) {
-              OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
-            };
-            OB(-43.25, -42.95, z0, z1);
-            OB(-43, -28, z0 - 0.15, z0 + 0.15);
-            OB(-43, -28, z1 - 0.15, z1 + 0.15);
-            OB(-28.05, -27.75, z0, r.z - 1.2);
-            OB(-28.05, -27.75, r.z + 1.2, z1);
-            // Bespoke decorative interior: wall panels, sconces, storage, lounge seating.
-            // Keep the middle of each room clear for the existing interactive game station.
-            var accent = [0xd9a46f, 0x79b4a2, 0xc48ab5, 0xe7b75d, 0xdfa3c5][i % 5];
-            for (var wi = 0; wi < 3; wi++) {
-              bx(0.075, 1.65, 1.35, accent, -42.88, 1.72, r.z - 2.8 + wi * 2.8);
-              bx(0.09, 1.48, 1.17, 0xf9f0df, -42.82, 1.72, r.z - 2.8 + wi * 2.8);
-              bx(0.12, 0.12, 1.25, WOOD, -42.75, 2.48, r.z - 2.8 + wi * 2.8);
-            }
-            [-1, 1].forEach(function (side) {
-              var zz = r.z + side * (r.d / 2 - 0.75);
-              bx(2.4, 0.75, 0.65, WOOD, -39.7, 0.375, zz);
-              bx(2.2, 0.12, 0.58, CREAM2, -39.7, 0.81, zz);
-              sp(0.18, accent, -40.5, 1.05, zz);
-            });
-            cy(0.6, 0.6, 0.08, 0xead8bd, -34.8, 0.045, r.z - 2.9, G, 16);
-            cy(0.16, 0.2, 0.48, 0x7b9b76, -34.8, 0.3, r.z - 2.9, G, 10);
-            sp(0.33, 0x5a8a64, -34.8, 0.77, r.z - 2.9);
-            bx(2.6, 0.05, 1.6, accent, -32.5, 0.035, r.z + 2.7);
-            glow(0xffe2a6, 1.2, 0.28, -41.9, 2.7, r.z);
-          });
-          // Trạm vẽ đoán chữ trong phòng riêng (giá vẽ + bảng đoán chữ)
-          (function () {
-            var g = new th.Group();
-            g.position.set(DRAW_POS.x, 0, DRAW_POS.z);
-            G.add(g);
-            var board = new th.Mesh(new th.BoxGeometry(3.4, 2.0, 0.08), M(0xfdf6e3));
-            board.position.set(0, 1.5, -0.9);
-            board.rotation.x = -0.1;
-            g.add(board);
-            var frame = new th.Mesh(new th.BoxGeometry(3.6, 2.2, 0.05), M(WOOD));
-            frame.position.set(0, 1.5, -0.96);
-            frame.rotation.x = -0.1;
-            g.add(frame);
-            [-1.2, 1.2].forEach(function (lx) {
-              var leg = new th.Mesh(new th.BoxGeometry(0.09, 1.6, 0.09), M(WOOD));
-              leg.position.set(lx, 0.75, -0.75);
-              leg.rotation.x = 0.14;
-              g.add(leg);
-            });
-            [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7].forEach(function (c, i) {
-              cy(0.07, 0.06, 0.14, c, -0.6 + i * 0.4, 0.62, -0.35, g, 8);
-            });
-            bx(3.2, 0.07, 0.3, WOOD, 0, 0.55, -0.35, g);
-            OBSTACLES.push({ minX: -37.2, maxX: -33.8, minZ: 99.9, maxZ: 101.2 });
-          })();
+          /* ===== CỘT PHÒNG GAME phía tây + trạm vẽ: ĐÃ GỠ — khu trò chơi nay là KHU RIÊNG phía nam (script GameZoneV2) ===== */
 
           /* ===== PHÒNG KARAOKE riêng (đông) ===== */
           (function () {
@@ -25051,7 +24584,7 @@
           (function () {
             sign("🏠 SẢNH LÀNG MÈO", 5.6, 0.95, "#8B4A2B", "#FFE9C9", 0, 3.4, 17.6, Math.PI);
             cy(0.09, 0.11, 2.9, WOOD, 3.4, 1.45, 19.6);
-            sign("← KHU GAME", 2.5, 0.6, "#5F7A5E", "#FFF6E0", 3.4, 2.75, 19.5, Math.PI / 2.6);
+            sign("KHU GAME ↓", 2.5, 0.6, "#5F7A5E", "#FFF6E0", 3.4, 2.75, 19.5, Math.PI / 2.6);
             sign(
               "KARAOKE · HỌP · TRANH →",
               3.4,
@@ -25077,19 +24610,7 @@
             OBSTACLES.push({ minX: 3.2, maxX: 3.6, minZ: 19.4, maxZ: 19.8 });
           })();
 
-          /* ===== Mặt tiền kiểu phố đi bộ: mái hiên, khung cửa, ô cửa sổ; không bít lối vào ===== */
-          rooms.forEach(function (r, idx) {
-            var hh = 3.3 + (idx % 3) * 0.45;
-            var k = [0xd9a46f, 0x79b4a2, 0xc48ab5, 0xe7b75d, 0xdfa3c5][idx % 5];
-            bx(2.2, 0.16, 0.9, k, -27.7, hh - 1.26, r.z); // mái hiên cửa chính (đã thu gọn về phía tường, không chìa ra lối đi)
-            [-1.14, 1.14].forEach(function (s) {
-              bx(0.1, 2.2, 0.12, WOOD, -27.53, 1.15, r.z + s);
-              bx(0.08, 1.15, 1.45, 0xa6d8e5, -27.65, 1.8, r.z + s * 2.55);
-              bx(0.09, 0.09, 1.55, WOOD, -27.59, 2.4, r.z + s * 2.55);
-            });
-            bx(0.4, 0.08, 1.6, k, -27.4, 0.34, r.z - 3.35);
-            bx(0.4, 0.08, 1.6, k, -27.4, 0.34, r.z + 3.35);
-          });
+          /* Mặt tiền dãy phòng game cũ (mái hiên/khung cửa sổ): ĐÃ GỠ cùng dãy phòng. */
           // Warm, uncluttered character for the opposite-side public buildings.
           [
             [35.5, 30, 7.6, 0xe77fb0],
@@ -25106,32 +24627,21 @@
 
           /* ===== Trang trí ngoài trời: cây, đèn đường, bồn hoa, ghế nghỉ dọc lối ===== */
           [
-            [-22.8, 24],
-            [-22.8, 44],
-            [-22.8, 64],
             [22.8, 24],
             [22.8, 62],
-            [-23.9, 84],
             [27.0, 84],
-            [-23.9, 104],
             [8, 66.4],
             [-8, 66.4],
             [16, 88],
             [-16, 76],
             [30, 96],
-            [-30, 60],
             [38, 116],
-            [-38, 118],
             [10, 116],
             [-8, 118],
           ].forEach(function (p) {
             tree(p[0], p[1], 0.9 + Math.random() * 0.35);
           });
           [
-            [-28.3, 30],
-            [-28.3, 52],
-            [-28.3, 74],
-            [-28.3, 96],
             [28.3, 40],
             [28.3, 63],
             [28.3, 86],
@@ -25144,9 +24654,7 @@
           ].forEach(function (p) {
             lamp(p[0], p[1]);
           });
-          flowers(-22.9, 31, 3);
           flowers(22.9, 44, 3);
-          flowers(-23.0, 86, 3);
           flowers(27.2, 100, 3);
           flowers(5.4, 66.2, 3);
           flowers(-5.4, 70.2, 3);
@@ -25170,14 +24678,18 @@
           (function () {
             var fc = 0x6e5136;
             bx(90.6, 1.0, 0.35, fc, 0, 0.5, -29.8);
-            bx(90.6, 1.0, 0.35, fc, 0, 0.5, 119.8);
+            bx(50, 1.0, 0.35, fc, -31, 0.5, 119.8); // rào nam đoạn tây: nới tới x −56, CHỪA CỔNG x∈[−6,6] vào khu trò chơi mới
+            bx(50, 1.0, 0.35, fc, 31, 0.5, 119.8); // rào nam đoạn đông: nới tới x +56
             bx(0.35, 1.0, 150, fc, -44.8, 0.5, 45);
             bx(0.35, 1.0, 150, fc, 44.8, 0.5, 45);
             for (var fx = -44; fx <= 44; fx += 4) {
               bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -29.8);
-              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 119.8);
+              if (Math.abs(fx) > 6) bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 119.8); // cọc rào nam (chừa cổng)
             }
           })();
+          // Vật cản hàng rào NAM theo hai đoạn mới (chừa cổng x∈[−6,6] vào khu trò chơi mới)
+          OBSTACLES.push({ minX: -56, maxX: -6, minZ: 119.6, maxZ: 120.05 });
+          OBSTACLES.push({ minX: 6, maxX: 56, minZ: 119.6, maxZ: 120.05 });
 
           buildPark(th, { bx: bx, cy: cy, sp: sp, pl: pl, sign: sign, glow: glow, M: M, G: G });
           buildNeonBar(th, { bx: bx, glow: glow, sign: sign, M: M, G: G });
@@ -25896,7 +25408,7 @@
                       typeof RoomState !== "undefined" &&
                       RoomState.inRoom &&
                       !RoomState.me.seat &&
-                      Math.hypot(DRAW_POS.x - myPos.x, DRAW_POS.z - myPos.z) < 2.7 &&
+            Math.hypot(-28 - myPos.x, 168 - myPos.z) < 2.7 && // trạm vẽ ở khu mới (-28, 168)
                       !document.querySelector(".overlay.open");
                   } catch (e) {}
                   db.style.display = near ? "block" : "none";
@@ -25905,6 +25417,507 @@
             } catch (e) {}
           }
           requestAnimationFrame(loop);
+        }
+      })();
+    </script>
+    <script>
+      /* =====================================================================
+   KHU TRÒ CHƠI MỚI — KHU RIÊNG PHÍA NAM (bản thiết kế v2, ghép có đóng gói)
+   - Mã dựng khu chép từ file Khu_Tro_Choi_Lang_Meo_v2.html (toạ độ LOCAL riêng:
+     gốc = quảng trường đài phun nước (0,0), cổng ở local z=68, đu quay (0,-48)).
+   - Đặt khu bằng MỘT group: rotation.y = π, position (0,0,188)
+     → world = (−localX, 188 − localZ). Cổng local (0,68) → world (0,120) khớp
+     hàng rào nam của làng (đã mở cổng x∈[−6,6]); điểm vào local (0,64) → (0,124);
+     quảng trường (0,0) → (0,188); đu quay (0,−48) → (0,236).
+   - Toàn bộ hàm dựng của khu (bx/cy/sp/pl/M/glow/signBoard...) nằm trong closure
+     này, KHÔNG ghi đè hàm của làng. Vật cản của khu thu vào ZONE_OBS (local) rồi
+     biến đổi sang world và đẩy vào OBSTACLES của làng.
+   - Mái phòng: HIỆN mặc định + đăng ký vào window.__lmRoomRoofs (toạ độ world)
+     để hệ mờ mái của làng xử lý như các phòng khác.
+   - Bàn bi-a tĩnh trong phòng Bi-a của khu ĐÃ BỎ — thay bằng bàn ENGINE
+     Bida 8 Bi 3D (window.__poolWorld) tại trạm mới world (28, 228), xoay π/2.
+   ===================================================================== */
+      (function GameZoneV2() {
+        "use strict";
+        var built = false;
+        var startedAt = Date.now();
+        var iv = setInterval(function () {
+          if (built) return;
+          var ready =
+            typeof THREE !== "undefined" &&
+            typeof three !== "undefined" &&
+            three &&
+            three.scene &&
+            three.scene.children.length > 12;
+          /* Chờ ComplexB dựng xong để window.__lmRoomRoofs đã được khởi tạo
+             (mảng đó được gán trong build() của ComplexB); quá 20 giây thì dựng luôn. */
+          if (ready && (three.bcomplex || Date.now() - startedAt > 20000)) {
+            built = true;
+            clearInterval(iv);
+            try {
+              buildZone();
+            } catch (e) {
+              if (window.console) console.warn("GameZoneV2 build", e);
+            }
+          }
+        }, 400);
+        setTimeout(function () {
+          clearInterval(iv);
+        }, 90000);
+
+        function buildZone() {
+          var th = THREE;
+          var ZG = new th.Group();
+          ZG.name = "LM_GameZoneV2";
+          ZG.rotation.y = Math.PI;
+          ZG.position.set(0, 0, 188);
+          three.scene.add(ZG);
+          var scene = ZG; // mã khu v2 dùng `scene` làm gốc dựng — trỏ về group khu
+          var ZONE_OBS = []; // vật cản LOCAL của khu (biến đổi sang world ở cuối)
+          window.__lmRoomRoofs = window.__lmRoomRoofs || [];
+          function registerZoneRoof(mesh, r) {
+            mesh.material = mesh.material.clone();
+            mesh.material.transparent = true;
+            var cx = r.side * 27;
+            window.__lmRoomRoofs.push({
+              mesh: mesh,
+              minX: -(cx + 8),
+              maxX: -(cx - 8),
+              minZ: 188 - (r.z + 7),
+              maxZ: 188 - (r.z - 7),
+            });
+          }
+/* ───────── hàm dựng dùng chung ───────── */
+const mats = {}, geos = {};
+const M = c => mats[c] || (mats[c] = new th.MeshLambertMaterial({ color: c }));
+const geo = (k, f) => geos[k] || (geos[k] = f());
+function put(m, x, y, z, p) { m.position.set(x, y, z); (p || scene).add(m); return m; }
+const bx = (w, h, d, c, x, y, z, p) => put(new th.Mesh(geo("b" + w + "|" + h + "|" + d, () => new th.BoxGeometry(w, h, d)), M(c)), x, y, z, p);
+const cy = (rt, rb, h, c, x, y, z, p, s) => { s = s || 16; return put(new th.Mesh(geo("c" + rt + "|" + rb + "|" + h + "|" + s, () => new th.CylinderGeometry(rt, rb, h, s)), M(c)), x, y, z, p); };
+const sp = (r, c, x, y, z, p) => put(new th.Mesh(geo("s" + r, () => new th.SphereGeometry(r, 14, 10)), M(c)), x, y, z, p);
+const cone = (r, h, c, x, y, z, p) => put(new th.Mesh(geo("n" + r + "|" + h, () => new th.ConeGeometry(r, h, 10)), M(c)), x, y, z, p);
+const pl = (w, d, c, x, y, z, p) => { const m = put(new th.Mesh(geo("p" + w + "|" + d, () => new th.PlaneGeometry(w, d)), M(c)), x, y, z, p); m.rotation.x = -Math.PI / 2; return m; };
+const glass = (w, h, d, x, y, z, p) => put(new th.Mesh(new th.BoxGeometry(w, h, d), new th.MeshLambertMaterial({ color: 0xbfe8f5, transparent: true, opacity: 0.3 })), x, y, z, p);
+
+const GT = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const gr = g.createRadialGradient(64, 64, 2, 64, 64, 64); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.35, "rgba(255,255,255,.45)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new th.CanvasTexture(c); })();
+const pulses = [];
+function glow(c, sc, op, x, y, z, p) {
+  const s = new th.Sprite(new th.SpriteMaterial({ map: GT, color: c, transparent: true, opacity: op, blending: th.AdditiveBlending, depthWrite: false }));
+  s.scale.set(sc, sc, 1); put(s, x, y, z, p); pulses.push({ s, b: op, ph: Math.random() * 6 }); return s;
+}
+/* canvas texture, vẽ lại khi font tải xong */
+function mk(w, h, fn) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); fn(g, w, h);
+  const t = new th.CanvasTexture(c);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fn(g, w, h); t.needsUpdate = true; });
+  return t;
+}
+const FONT = '"Baloo 2", sans-serif';
+function textTex(text, bg, fg, w, h) {
+  return mk(512, Math.round(512 * h / w), (g, W, H) => {
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(255,233,201,.7)"; g.lineWidth = 8; g.strokeRect(8, 8, W - 16, H - 16);
+    g.fillStyle = fg; g.font = "800 " + Math.round(H * 0.5) + "px " + FONT; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(text, W / 2, H / 2 + 3, W - 40);
+  });
+}
+function pn(w, h, tex, x, y, z, ry, rx, p) {
+  const m = put(new th.Mesh(new th.PlaneGeometry(w, h), new th.MeshBasicMaterial({ map: tex })), x, y, z, p);
+  m.rotation.y = ry || 0; m.rotation.x = rx || 0; return m;
+}
+function signBoard(text, w, h, bg, fg, x, y, z, ry, p) {
+  const g = new th.Group(); const t = textTex(text, bg, fg, w, h);
+  g.add(new th.Mesh(new th.BoxGeometry(w + 0.12, h + 0.12, 0.08), M(0x5a3a24)));
+  pn(w, h, t, 0, 0, 0.05, 0, 0, g); pn(w, h, t, 0, 0, -0.05, Math.PI, 0, g);
+  g.position.set(x, y, z); g.rotation.y = ry || 0; (p || scene).add(g); return g;
+}
+const OB = (a, b, c, d) => ZONE_OBS.push({ minX: Math.min(a, b), maxX: Math.max(a, b), minZ: Math.min(c, d), maxZ: Math.max(c, d) });
+
+/* ───────── textures trò chơi ───────── */
+const ludoTex = () => mk(256, 256, (g) => {
+  g.fillStyle = "#fdf6e3"; g.fillRect(0, 0, 256, 256);
+  [["#e0393e", 0, 0], ["#2ea44f", 154, 0], ["#f2b705", 154, 154], ["#2470c7", 0, 154]].forEach(q => { g.fillStyle = q[0]; g.fillRect(q[1], q[2], 102, 102); });
+  g.strokeStyle = "rgba(120,85,40,.5)"; g.lineWidth = 2;
+  for (let i = 0; i <= 15; i++) { g.beginPath(); g.moveTo(i * 256 / 15, 0); g.lineTo(i * 256 / 15, 256); g.stroke(); g.beginPath(); g.moveTo(0, i * 256 / 15); g.lineTo(256, i * 256 / 15); g.stroke(); }
+});
+const danceTex = () => mk(256, 192, (g) => {
+  g.fillStyle = "#141422"; g.fillRect(0, 0, 256, 192); g.font = "56px sans-serif"; g.textAlign = "center";
+  ["⬅️", "⬇️", "⬆️", "➡️"].forEach((t, i) => g.fillText(t, 36 + i * 62, 84));
+  g.font = "800 28px " + FONT; g.fillStyle = "#ffd98a"; g.fillText("AUDITION", 128, 152);
+});
+const unoTex = () => mk(256, 192, (g) => {
+  g.fillStyle = "#A9704B"; g.fillRect(0, 0, 256, 192);
+  ["#e0393e", "#f2b705", "#2ea44f", "#2470c7"].forEach((c, i) => { g.fillStyle = c; g.beginPath(); g.ellipse(52 + (i % 2) * 152, 48 + Math.floor(i / 2) * 96, 40, 30, 0.5, 0, 7); g.fill(); });
+  g.font = "800 46px " + FONT; g.textAlign = "center"; g.fillStyle = "#fff"; g.fillText("UNO", 128, 108);
+});
+const wheelTex = () => mk(256, 256, (g) => {
+  const cols = ["#e0393e", "#f2b705", "#2ea44f", "#2470c7", "#e77fb0", "#f07f13"];
+  for (let i = 0; i < 12; i++) { g.fillStyle = cols[i % 6]; g.beginPath(); g.moveTo(128, 128); g.arc(128, 128, 124, i * Math.PI / 6, (i + 1) * Math.PI / 6); g.fill(); }
+  g.font = "34px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  for (let i = 0; i < 12; i++) { const a = (i + 0.5) * Math.PI / 6; g.fillText("🐟", 128 + Math.cos(a) * 82, 128 + Math.sin(a) * 82); }
+  g.fillStyle = "#fdf6e3"; g.beginPath(); g.arc(128, 128, 22, 0, 7); g.fill();
+});
+const matTex = () => mk(512, 512, (g) => {
+  g.fillStyle = "#fdf6e3"; g.fillRect(0, 0, 512, 512); g.font = "110px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  ["🍈", "🦀", "🐟", "🐓", "🦐", "🦌"].forEach((e, i) => g.fillText(e, 90 + (i % 3) * 166 + 0, 150 + Math.floor(i / 3) * 210));
+  g.strokeStyle = "#8b4a2b"; g.lineWidth = 6; g.strokeRect(6, 6, 500, 500);
+});
+const doodleTex = () => mk(512, 256, (g) => {
+  g.fillStyle = "#fffaf0"; g.fillRect(0, 0, 512, 256); g.lineWidth = 10; g.lineCap = "round";
+  ["#e0393e", "#2470c7", "#2ea44f", "#f2b705"].forEach((c, i) => { g.strokeStyle = c; g.beginPath(); g.moveTo(30, 60 + i * 45); g.bezierCurveTo(130, 10 + i * 50, 200, 130 + i * 20, 300, 70 + i * 40); g.bezierCurveTo(360, 40 + i * 30, 430, 140, 480, 90 + i * 20); g.stroke(); });
+  g.font = "800 90px " + FONT; g.fillStyle = "#8b4a2b"; g.textAlign = "center"; g.fillText("?", 256, 150);
+});
+
+/* ───────── trạm game (toạ độ cục bộ; mặt trước hướng +x, tâm trạm ở s) ───────── */
+const stool = (s, x, z, c) => { cy(0.3, 0.3, 0.1, c, x, 0.55, z, s, 14); cy(0.06, 0.09, 0.55, 0x5a3a24, x, 0.27, z, s, 8); };
+const ringOf = (s, n, r, c, off) => { for (let i = 0; i < n; i++) { const a = (i + (off || 0)) / n * Math.PI * 2; stool(s, Math.cos(a) * r, Math.sin(a) * r, c); } };
+const roundTable = (s, r, top, y) => { cy(r, r, 0.1, top, 0, y || 0.8, 0, s, 28); cy(0.12, 0.2, y || 0.8, 0x5a3a24, 0, (y || 0.8) / 2, 0, s, 12); };
+
+const STATIONS = {
+  pool(s) {
+    /* Bàn tĩnh của bản thiết kế ĐÃ BỎ ở bản ghép: bàn ENGINE Bida 8 Bi 3D
+       (window.__poolWorld) được dựng phủ tại đúng trạm này — xem
+       buildPoolEngineTable ở cuối closure. Chỉ giữ thanh đèn trần +
+       quầng sáng của trạm. */
+    bx(0.4, 0.2, 3.4, 0x2b2b34, 0, 3.1, 0, s); glow(0xffe2a6, 4, 0.35, 0, 2.9, 0, s);
+  },
+  ludo(s) {
+    bx(2.5, 0.1, 2.5, 0x7a4526, 0, 0.8, 0, s); pn(2.3, 2.3, ludoTex(), 0, 0.86, 0, 0, -Math.PI / 2, s);
+    cy(0.1, 0.15, 0.8, 0x5a3a24, 0, 0.4, 0, s, 12);
+    [[-0.7, -0.7, 0xe0393e], [0.7, -0.7, 0x2ea44f], [0.7, 0.7, 0xf2b705], [-0.7, 0.7, 0x2470c7]].forEach(p => cone(0.11, 0.3, p[2], p[0], 1.03, p[1], s));
+    ringOf(s, 4, 2.0, 0x748b6f, 0.5);
+  },
+  aud(s) {
+    bx(0.9, 2.4, 2.2, 0x3a2e28, -2.3, 1.2, 0, s); pn(2.0, 1.4, danceTex(), -1.83, 1.65, 0, Math.PI / 2, 0, s);
+    [-1.3, 1.3].forEach(z => { cy(0.22, 0.22, 0.7, 0x17171f, -2.0, 1.2, z, s, 12); });
+    bx(3.0, 0.03, 2.4, 0x2d2842, 0.7, 0.02, 0, s);
+    [[0.0, -0.6, "⬅"], [0.0, 0.6, "➡"], [1.0, -0.6, "⬇"], [1.0, 0.6, "⬆"]].forEach(q => pn(0.8, 0.8, textTex(q[2], "#23232f", "#ffd98a", 0.8, 0.8), 0.15 + q[0] * 1.2, 0.045, q[1] * 0.9, 0, -Math.PI / 2, s));
+    glow(0xff5fd0, 5, 0.35, -1.6, 2.6, 0, s); glow(0x5fd0ff, 4, 0.3, 1.5, 0.3, 0, s);
+  },
+  uno(s) {
+    bx(2.8, 0.1, 2.0, 0x7a4526, 0, 0.8, 0, s); pn(2.6, 1.8, unoTex(), 0, 0.86, 0, 0, -Math.PI / 2, s);
+    [[-1.2, -0.85], [1.2, -0.85], [-1.2, 0.85], [1.2, 0.85]].forEach(p => bx(0.16, 0.8, 0.16, 0x5a3a24, p[0], 0.4, p[1], s));
+    [-1.8, 1.8].forEach(x => stool(s, x, 0, 0xa9704b)); [-0.7, 0.7].forEach(z => stool(s, 0, z * 1.6, 0xa9704b));
+  },
+  claw(s) {
+    [-0.6, 0.6].forEach(x => [-1.05, 1.05].forEach(z => bx(0.12, 2.5, 0.12, 0xd6699a, x, 1.25, z, s)));
+    bx(1.4, 0.8, 2.3, 0xd6699a, 0, 0.4, 0, s); bx(1.4, 0.3, 2.3, 0xd6699a, 0, 2.55, 0, s); glass(1.2, 1.7, 2.1, 0, 1.55, 0, s);
+    bx(0.5, 0.3, 0.7, 0x4a3a2e, 0.72, 0.9, 0, s);
+    [[-0.3, -0.7, 0xf07f13], [0.1, -0.2, 0xe77fb0], [-0.2, 0.3, 0x8d8d94], [0.2, 0.7, 0xf2b705], [0.0, 0.0, 0x5f7a5e], [-0.3, 0.8, 0xe0393e]].forEach(p => sp(0.2, p[2], p[0], 0.95, p[1], s));
+    bx(1.0, 0.06, 0.06, 0x5a3a24, 0, 2.3, 0, s); cy(0.02, 0.02, 0.5, 0x4a3a2e, 0, 2.05, 0.1, s, 6); cone(0.1, 0.25, 0x4a3a2e, 0, 1.7, 0.1, s).rotation.x = Math.PI;
+    glow(0xff7ac0, 4.5, 0.35, 0, 2.8, 0, s);
+  },
+  card(s) {
+    cy(1.7, 1.7, 0.1, 0x1d6e46, 0, 0.8, 0, s, 30); cy(1.8, 1.8, 0.14, 0x5a3a24, 0, 0.78, 0, s, 30); cy(0.12, 0.2, 0.8, 0x5a3a24, 0, 0.4, 0, s, 12);
+    [[-0.6, 0.3, 0.4], [0.5, -0.5, -0.5], [0.1, 0.8, 1.1], [-0.2, -0.6, 2]].forEach(p => bx(0.32, 0.03, 0.46, 0xfdf6e3, p[0], 0.87, p[1], s).rotation.y = p[2]);
+    [0xe0393e, 0x2470c7, 0xf2b705].forEach((c, i) => cy(0.12, 0.12, 0.08 + i * 0.04, c, 0.9 - i * 0.2, 0.9, 0.5 + i * 0.15, s, 12));
+    ringOf(s, 5, 2.4, 0x5f7a5e);
+  },
+  roul(s) {
+    roundTable(s, 1.5, 0xb56a3a);
+    const w = new th.Mesh(new th.CylinderGeometry(1.0, 1.0, 0.08, 28), [M(0x5a3a24), new th.MeshBasicMaterial({ map: wheelTex() }), M(0x5a3a24)]); put(w, 0, 0.9, 0, s);
+    cone(0.1, 0.3, 0xe0393e, 0, 1.05, -1.1, s).rotation.x = Math.PI;
+    const gun = new th.Group(); gun.position.set(1.8, 1.4, 0); s.add(gun);
+    bx(0.52, 0.15, 0.18, 0xf07f13, 0, 0, 0, gun); cy(0.05, 0.05, 0.3, 0x4a3a2e, 0.38, 0.03, 0, gun, 10).rotation.z = Math.PI / 2; bx(0.12, 0.24, 0.14, 0xb85c08, -0.16, -0.16, 0, gun);
+    ringOf(s, 4, 2.4, 0xb56a3a, 0.5);
+  },
+  baucua(s) {
+    roundTable(s, 1.7, 0xa9704b);
+    pn(2.6, 2.6, matTex(), 0, 0.86, 0, 0, -Math.PI / 2, s);
+    const bowl = sp(0.45, 0xd4a373, 0.8, 0.98, 0.4, s); bowl.scale.y = 0.6;
+    [[0.0, 0.1], [0.25, -0.15], [-0.2, -0.2]].forEach(p => bx(0.14, 0.14, 0.14, 0xfdf6e3, p[0] - 0.4, 0.95, p[1], s));
+    ringOf(s, 5, 2.5, 0xa9704b, 0.3);
+  },
+  draw(s) {
+    bx(0.12, 2.4, 3.8, 0x8b4a2b, -2.5, 1.7, 0, s); bx(0.14, 2.2, 3.6, 0xfdf6e3, -2.43, 1.7, 0, s);
+    pn(3.3, 1.65, doodleTex(), -2.34, 1.8, 0, Math.PI / 2, 0, s);
+    [-1.4, 1.4].forEach(z => { bx(0.1, 1.7, 0.1, 0x8b4a2b, -2.3, 0.85, z, s).rotation.z = 0.12; });
+    bx(0.4, 0.07, 3.4, 0x8b4a2b, -2.2, 0.65, 0, s);
+    [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0].forEach((c, i) => cy(0.1, 0.09, 0.2, c, -2.2, 0.78, -1.2 + i * 0.6, s, 8));
+    [-1.2, 0, 1.2].forEach(z => stool(s, 0.5, z, 0xfde9b8));
+    bx(1.2, 0.8, 0.9, 0x8b4a2b, 1.8, 0.4, 2.0, s);
+  },
+  wolf(s) {
+    roundTable(s, 2.1, 0x4a3a2e, 0.78);
+    ringOf(s, 8, 3.0, 0x23232f);
+    sp(0.3, 0xf7e7b0, 0, 1.4, 0, s); glow(0xf7e7b0, 3.5, 0.5, 0, 1.4, 0, s);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; cy(0.05, 0.05, 0.22, 0xfdf6e3, Math.cos(a) * 1.4, 0.95, Math.sin(a) * 1.4, s, 8); glow(0xffb36b, 0.9, 0.7, Math.cos(a) * 1.4, 1.12, Math.sin(a) * 1.4, s); }
+  }
+};
+
+/* ───────── phòng game ───────── */
+const roofs = [];
+const ROOMS = [
+  { n: "🎱 PHÒNG BI-A", st: "pool", side: -1, z: -40, wall: 0xf4e9da, roof: 0x8b4a2b, floor: 0x2e6b4f, acc: 0xd9a46f },
+  { n: "🐴 PHÒNG CÁ NGỰA", st: "ludo", side: -1, z: -20, wall: 0xeef3e6, roof: 0x748b6f, floor: 0xe9d9be, acc: 0x79b4a2 },
+  { n: "🕺 PHÒNG AUDITION", st: "aud", side: -1, z: 0, wall: 0xe9e2f2, roof: 0xb56a3a, floor: 0x3a3350, acc: 0xc48ab5 },
+  { n: "🎴 PHÒNG UNO", st: "uno", side: -1, z: 20, wall: 0xf6ead6, roof: 0xa9704b, floor: 0xe9d9be, acc: 0xe7b75d },
+  { n: "🧸 PHÒNG GẮP GẤU", st: "claw", side: -1, z: 40, wall: 0xf9e6ee, roof: 0xa34d7c, floor: 0xf3d9e4, acc: 0xdfa3c5 },
+  { n: "🃏 PHÒNG BÀI CÀO", st: "card", side: 1, z: -40, wall: 0xe8f1e6, roof: 0x5f7a5e, floor: 0xe9d9be, acc: 0x79b4a2 },
+  { n: "🐟 PHÒNG CÒ QUAY", st: "roul", side: 1, z: -20, wall: 0xfdf0d2, roof: 0xb56a3a, floor: 0xfde9b8, acc: 0xe7b75d },
+  { n: "🎲 PHÒNG BẦU CUA", st: "baucua", side: 1, z: 0, wall: 0xf4e9da, roof: 0xa9704b, floor: 0xe9d9be, acc: 0xd9a46f },
+  { n: "🎨 PHÒNG VẼ ĐOÁN CHỮ", st: "draw", side: 1, z: 20, wall: 0xfdf6e3, roof: 0x8b4a2b, floor: 0xfdf6e3, acc: 0xc48ab5 },
+  { n: "🐺 PHÒNG MA SÓI", st: "wolf", side: 1, z: 40, wall: 0xe4dccf, roof: 0x4a3a2e, floor: 0xd9c7a8, acc: 0xe7b75d }
+];
+const GAME_SPOTS = {};
+const CX = 27, W = 16, D = 14, H = 4.3, WOOD = 0x8b4a2b;
+
+function buildRoom(r) {
+  const g = new th.Group(); g.position.set(r.side * CX, 0, r.z); g.rotation.y = r.side === 1 ? Math.PI : 0; scene.add(g);
+  const hw = W / 2, hd = D / 2;
+  pl(W - 0.4, D - 0.4, r.floor, 0, 0.02, 0, g);
+  // tường: sau (-x), bắc/nam (±z), trước (+x) chừa cửa 3.6
+  bx(0.3, H, D, r.wall, -hw, H / 2, 0, g); bx(W, H, 0.3, r.wall, 0, H / 2, -hd, g); bx(W, H, 0.3, r.wall, 0, H / 2, hd, g);
+  const seg = (D - 3.6) / 2;
+  bx(0.3, H, seg, r.wall, hw, H / 2, -hd + seg / 2, g); bx(0.3, H, seg, r.wall, hw, H / 2, hd - seg / 2, g);
+  bx(0.3, 0.9, 3.6, r.wall, hw, H - 0.45, 0, g);
+  // chân tường + gờ trên màu nhấn
+  bx(0.4, 0.45, D + 0.1, r.acc, -hw, 0.22, 0, g); bx(W + 0.1, 0.45, 0.4, r.acc, 0, 0.22, -hd, g); bx(W + 0.1, 0.45, 0.4, r.acc, 0, 0.22, hd, g);
+  bx(0.4, 0.3, D + 0.1, r.acc, hw, H, 0, g);
+  // cửa sổ bắc/nam
+  [-4, 4].forEach(x => [-1, 1].forEach(sd => { bx(2.8, 1.6, 0.36, 0x9fd6e6, x, 2.3, sd * hd, g); bx(3.0, 0.12, 0.42, WOOD, x, 3.14, sd * hd, g); bx(3.0, 0.12, 0.42, WOOD, x, 1.46, sd * hd, g); bx(0.1, 1.6, 0.42, WOOD, x, 2.3, sd * hd, g); }));
+  // mặt tiền: khung cửa, mái hiên, thềm, biển
+  [-1.9, 1.9].forEach(z => bx(0.25, 3.4, 0.2, WOOD, hw + 0.05, 1.7, z, g));
+  bx(1.6, 0.18, 4.6, r.acc, hw + 0.7, 3.55, 0, g); bx(0.6, 0.1, 4.2, 0xcdbfa4, hw + 0.45, 0.06, 0, g);
+  signBoard(r.n, 5.2, 0.95, "#8B4A2B", "#FFE9C9", hw + 0.2, H - 0.45 + 0.9, 0, Math.PI / 2, g);
+  [-3, 3].forEach(z => { glow(0xffb36b, 2.2, 0.55, hw + 0.5, 3.0, z, g); sp(0.14, 0xffd9a8, hw + 0.5, 3.0, z, g); });
+  // nội thất chung
+  pl(8, 6, r.acc, -1, 0.04, 0, g);
+  [-1, 1].forEach(sd => { bx(2.8, 0.75, 0.7, WOOD, 3.6, 0.38, sd * (hd - 0.8), g); bx(2.6, 0.14, 0.62, 0xe9d9be, 3.6, 0.82, sd * (hd - 0.8), g); sp(0.2, r.acc, 2.8, 1.05, sd * (hd - 0.8), g); });
+  [-1, 1].forEach(sd => { cy(0.4, 0.3, 0.5, 0xb56a3a, -hw + 0.8, 0.25, sd * (hd - 0.8), g, 10); sp(0.55, 0x5a8a64, -hw + 0.8, 0.95, sd * (hd - 0.8), g); sp(0.38, 0x748b6f, -hw + 0.6, 1.4, sd * (hd - 0.8), g); });
+  for (let i = -3; i <= 3; i++) glow(0xffe2a6, 0.9, 0.55, 2.5, 3.9 + (i % 2) * 0.1, i * 1.8, g);
+  signBoard(r.n.replace(/^\S+\s/, ""), 5, 0.9, "#8B4A2B", "#FFE9C9", -hw + 0.25, 3.3, 0, Math.PI / 2, g);
+  // trạm game
+  const st = new th.Group(); st.position.set(-1, 0, 0); g.add(st); STATIONS[r.st](st);
+  GAME_SPOTS[r.st] = { x: r.side * CX + (r.side === 1 ? 1 : -1), z: r.z, door: { x: r.side * (CX - hw), z: r.z }, name: r.n };
+  // mái: HIỆN mặc định trong làng + đăng ký vào hệ mờ mái (registerZoneRoof)
+  const roof = bx(W + 1.0, 0.25, D + 1.0, r.roof, 0, H + 0.3, 0, g); const top = bx(7, 0.6, 4.5, r.roof, -3, H + 0.75, 0, g); registerZoneRoof(roof, r); registerZoneRoof(top, r); roofs.push(roof, top);
+  // lối đá từ cửa ra đại lộ
+  const dx = r.side * (CX - hw - 6.5 / 2 - 0.2); pl(6.5, 3.6, 0xdccfb2, dx, 0.03, r.z);
+  // vật cản (toạ độ thế giới)
+  const wx = lx => r.side * CX + (r.side === 1 ? -lx : lx), wz = lz => r.z + (r.side === 1 ? -lz : lz);
+  OB(wx(-hw - 0.15), wx(-hw + 0.15), wz(-hd), wz(hd)); OB(wx(-hw), wx(hw), wz(-hd - 0.15), wz(-hd + 0.15)); OB(wx(-hw), wx(hw), wz(hd - 0.15), wz(hd + 0.15));
+  OB(wx(hw - 0.15), wx(hw + 0.15), wz(-hd), wz(-1.8)); OB(wx(hw - 0.15), wx(hw + 0.15), wz(1.8), wz(hd));
+}
+
+/* ───────── cảnh ngoài trời ───────── */
+const rnd = (() => { let a = 12345; return () => (a = (a * 1664525 + 1013904223) % 4294967296) / 4294967296; })();
+function tree(x, z, s) {
+  s = s || 1; cy(0.18 * s, 0.26 * s, 1.8 * s, 0x8b4a2b, x, 0.9 * s, z, null, 8);
+  sp(1.5 * s, 0x5f7a5e, x, 2.6 * s, z); sp(1.1 * s, 0x748b6f, x + 0.8 * s, 2.1 * s, z + 0.4 * s); sp(1.0 * s, 0x4f6b47, x - 0.8 * s, 2.2 * s, z - 0.3 * s);
+  OB(x - 0.3, x + 0.3, z - 0.3, z + 0.3);
+}
+function lamp(x, z) { cy(0.06, 0.09, 3, 0x4a3a2e, x, 1.5, z, null, 8); sp(0.2, 0xffd98a, x, 3.1, z); glow(0xffc37a, 2.6, 0.45, x, 3.1, z); OB(x - 0.2, x + 0.2, z - 0.2, z + 0.2); }
+function flowers(x, z, w, d) {
+  bx(w, 0.3, d, 0x6e4423, x, 0.15, z); bx(w - 0.3, 0.12, d - 0.3, 0x4f6b47, x, 0.34, z);
+  const cols = [0xe77fb0, 0xf2b705, 0xe0393e, 0xfdf6e3, 0xb56a3a, 0xc48ab5];
+  for (let i = 0; i < w * 2; i++) for (let j = 0; j < 2; j++) sp(0.12, cols[(i + j) % 6], x - w / 2 + 0.4 + i * 0.5, 0.5, z - d / 4 + j * d / 2);
+}
+function bench(x, z, ry) { const g = new th.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g); bx(2.2, 0.12, 0.6, 0x8b4a2b, 0, 0.55, 0, g); bx(2.2, 0.6, 0.1, 0x8b4a2b, 0, 0.95, -0.28, g); [-0.9, 0.9].forEach(px => bx(0.1, 0.55, 0.5, 0x4a2d15, px, 0.27, 0, g)); }
+
+function buildGround() {
+  // (bản ghép: bỏ mặt đất 700×700 của bản độc lập — làng đã có mặt đất riêng)
+  pl(116, 128, 0x6a8a4f, 0, -0.04, 6);                      // cỏ toàn khu
+  pl(12.6, 124, 0xcdbf9f, 0, 0.012, 6); pl(12, 124, 0xe6d9bc, 0, 0.02, 6);   // đại lộ
+  for (let z = -54; z < 66; z += 4) pl(0.12, 4, 0xcdbf9f, 0, 0.03, z);
+  cy(12.5, 12.5, 0.05, 0xcdbf9f, 0, 0.025, 0, null, 56); cy(11.5, 11.5, 0.06, 0xe9dcc0, 0, 0.04, 0, null, 56);
+  cy(8.5, 8.5, 0.07, 0xd9a46f, 0, 0.05, 0, null, 56); cy(8.1, 8.1, 0.08, 0xf2e7d4, 0, 0.055, 0, null, 56);
+  // đài phun nước
+  cy(4.4, 4.6, 0.9, 0xd9cdb4, 0, 0.45, 0, null, 36); cy(3.9, 3.9, 0.1, 0x7fd0e8, 0, 0.85, 0, null, 36);
+  cy(0.35, 0.5, 2.4, 0xd9cdb4, 0, 1.4, 0, null, 14); cy(1.5, 1.2, 0.3, 0xd9cdb4, 0, 2.5, 0, null, 24); cy(1.2, 1.2, 0.06, 0x7fd0e8, 0, 2.68, 0, null, 24);
+  sp(0.4, 0xe9f6ff, 0, 3.1, 0); glow(0xaee6ff, 6, 0.4, 0, 3, 0);
+  OB(-4.6, 4.6, -4.6, 4.6);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.5; bench(Math.cos(a) * 10, Math.sin(a) * 10, -a + Math.PI / 2); }
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; flowers(Math.cos(a) * 6.6, Math.sin(a) * 6.6, 0.1, 0.1); }
+}
+function buildAvenueDecor() {
+  for (let z = -52; z <= 64; z += 14) { lamp(-7, z); lamp(7, z); }
+  [-30, -10, 10, 30, 50].forEach(z => { [-1, 1].forEach(s => { flowers(s * 10.5, z, 5, 1.2); tree(s * 13.5, z + 10, 1.0); bench(s * 8.5, z - 4, s * Math.PI / 2); }); });
+  for (let z = -52; z <= 62; z += 8) [-1, 1].forEach(s => { bx(0.7, 0.9, 0.7, 0x4f6b47, s * 6.8, 0.45, z + 3.5); });
+}
+function buildOuter() {
+  // vườn cây hai bên
+  for (let i = 0; i < 90; i++) { const sd = i % 2 ? 1 : -1; tree(sd * (40 + rnd() * 13), -50 + rnd() * 112, 0.9 + rnd() * 0.6); }
+  [-1, 1].forEach(s => { cy(5, 5, 0.1, 0x7fd0e8, s * 46, 0.03, 8, null, 28); cy(5.4, 5.4, 0.06, 0xd9cdb4, s * 46, 0.0, 8, null, 28); });
+  // đệm cây giữa các phòng
+  ROOMS.forEach(r => { tree(r.side * 27, r.z + 10, 0.9); });
+}
+function buildFerris() {
+  const g = new th.Group(); g.position.set(0, 0, -48); scene.add(g);
+  [-1, 1].forEach(s => { [-1, 1].forEach(t => { const leg = bx(0.35, 11.8, 0.35, 0xd9cdb4, s * 2.2, 5.5, t * 2.6, g); leg.rotation.x = -t * 0.0; leg.rotation.z = -s * 0.22; }); });
+  bx(5.5, 0.3, 6.2, 0xb56a3a, 0, 0.15, 0, g); bx(9, 0.3, 2, 0x8b4a2b, 0, 0.12, 6, g);
+  const wheel = new th.Group(); wheel.position.set(0, 10.8, 0); g.add(wheel);
+  const R = 8; const ring = new th.Mesh(new th.TorusGeometry(R, 0.18, 8, 48), M(0xe0393e)); wheel.add(ring);
+  const ring2 = new th.Mesh(new th.TorusGeometry(R * 0.5, 0.12, 8, 32), M(0xf2b705)); wheel.add(ring2);
+  const gond = [];
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2; const sp1 = bx(R * 2, 0.1, 0.1, 0xf5eddc, 0, 0, 0, wheel); sp1.rotation.z = a;
+    const pivot = new th.Group(); pivot.position.set(Math.cos(a) * R, Math.sin(a) * R, 0); wheel.add(pivot);
+    const col = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xf07f13][i % 6];
+    bx(1.3, 0.9, 1.3, col, 0, -1.2, 0, pivot); bx(1.5, 0.15, 1.5, 0xfdf6e3, 0, -0.7, 0, pivot); cy(0.03, 0.03, 0.8, 0x4a3a2e, 0, -0.45, 0, pivot, 6); gond.push(pivot);
+    sp(0.18, 0xffe2a6, Math.cos(a) * R, Math.sin(a) * R, 0.0, wheel);
+  }
+  sp(0.7, 0xf2b705, 0, 0, 0, wheel); glow(0xffd98a, 8, 0.3, 0, 10.8, 1, g);
+  signBoard("🎡 VÒNG QUAY", 5, 0.9, "#A34D7C", "#FFE9C9", 0, 2.8, 5.8, 0, g);
+  OB(-3, 3, -51.5, -44.5);
+  ferris = { wheel, gond };
+}
+let ferris = null;
+function buildGate() {
+  const z = 68;
+  [-1, 1].forEach(s => { bx(1.0, 6.5, 1.0, 0x8b4a2b, s * 6.2, 3.25, z); cone(0.7, 1.4, 0x8b4a2b, s * 6.2, 7.2, z); bx(1.4, 0.4, 1.4, 0xd9cdb4, s * 6.2, 0.2, z); glow(0xffb36b, 3, 0.5, s * 6.2, 6.0, z + 0.8); OB(s * 6.2 - 0.6, s * 6.2 + 0.6, z - 0.6, z + 0.6); });
+  bx(13.4, 0.9, 1.1, 0xa9704b, 0, 6.4, z);
+  signBoard("🎮 KHU TRÒ CHƠI LÀNG MÈO", 9.6, 1.6, "#8B4A2B", "#FFE9C9", 0, 7.6, z, 0);
+  [-1, 1].forEach(s => sp(0.16, 0xffd9a8, s * 3, 5.8, z));
+  for (let i = -5; i <= 5; i++) glow(0xffd98a, 1.1, 0.6, i * 1.1, 5.9 - Math.abs(i) * 0.02, z + 0.7);
+  // điểm dịch chuyển / spawn
+  cy(2.4, 2.4, 0.06, 0x7fd0e8, 0, 0.06, 64, null, 32); cy(1.8, 1.8, 0.08, 0xf2e7d4, 0, 0.07, 64, null, 32); glow(0x9fe0ff, 6, 0.4, 0, 0.4, 64);
+  // hàng rào quanh khu
+  const fc = 0x6e5136;
+  bx(112, 1.0, 0.35, fc, 0, 0.5, -56); bx(0.35, 1.0, 124, fc, -56, 0.5, 6); bx(0.35, 1.0, 124, fc, 56, 0.5, 6);
+  // rào nam của khu (local z=68) KHÔNG dựng ở bản ghép: hàng rào nam của làng tại world z=120 đã nới tới ±56 và chừa cổng — tránh hai mặt rào trùng khít
+  for (let x = -56; x <= 56; x += 4) { bx(0.2, 1.4, 0.2, WOOD, x, 0.7, -56); } // cọc chỉ còn ở rào bắc (local z=-56 → world z=244)
+  for (let zz = -56; zz <= 68; zz += 4) { bx(0.2, 1.4, 0.2, WOOD, -56, 0.7, zz); bx(0.2, 1.4, 0.2, WOOD, 56, 0.7, zz); }
+  // mây của bản độc lập: không ghép (làng có bầu trời riêng)
+}
+const clouds = [];
+
+buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); buildFerris(); buildGate();
+
+          /* ── GHÉP: biến đổi dữ liệu khu sang WORLD và công bố ── */
+          var worldSpots = {};
+          Object.keys(GAME_SPOTS).forEach(function (k) {
+            var s = GAME_SPOTS[k];
+            worldSpots[k] = {
+              x: -s.x,
+              z: 188 - s.z,
+              door: { x: -s.door.x, z: 188 - s.door.z },
+              name: s.name,
+            };
+          });
+          window.GAME_SPOTS = worldSpots;
+          var zoneObsCount = 0;
+          ZONE_OBS.forEach(function (o) {
+            OBSTACLES.push({ minX: -o.maxX, maxX: -o.minX, minZ: 188 - o.maxZ, maxZ: 188 - o.minZ });
+            zoneObsCount++;
+          });
+          /* Hàng rào bao khu (hình đã dựng trong group) — bổ sung vật cản theo world:
+             hai bên x=±56 (z 120..244) và mép xa z=244. Mép z=120 dùng vật cản
+             hàng rào nam của làng (hai đoạn chừa cổng). */
+          OBSTACLES.push({ minX: 55.8, maxX: 56.2, minZ: 120, maxZ: 244 });
+          OBSTACLES.push({ minX: -56.2, maxX: -55.8, minZ: 120, maxZ: 244 });
+          OBSTACLES.push({ minX: -56, maxX: 56, minZ: 243.8, maxZ: 244.2 });
+          buildPoolEngineTable(worldSpots.pool);
+          window.__zoneV2 = { group: ZG, spots: worldSpots, localObstacles: zoneObsCount };
+          /* Vòng hoạt ảnh riêng của khu: quầng sáng nhấp nháy + đu quay quay chậm
+             (mã khung/animate của bản độc lập không ghép — dùng vòng lặp này). */
+          var zt0 = performance.now();
+          (function zoneAnim() {
+            requestAnimationFrame(zoneAnim);
+            var t = (performance.now() - zt0) / 1000;
+            for (var i = 0; i < pulses.length; i++) {
+              var gp = pulses[i];
+              gp.s.material.opacity = gp.b * (0.72 + 0.28 * Math.sin(t * 2 + gp.ph));
+            }
+            if (ferris) {
+              ferris.wheel.rotation.z = t * 0.12;
+              ferris.gond.forEach(function (p) {
+                p.rotation.z = -ferris.wheel.rotation.z;
+              });
+            }
+          })();
+        }
+
+        /* Bàn bi-a ENGINE (Bida 8 Bi 3D) — mã trích nguyên trạng từ phòng Bi-a cũ
+           trong buildHouse, chỉ đổi điểm đặt sang trạm Bi-a mới của khu v2. */
+        function buildPoolEngineTable(spot) {
+          var th = THREE;
+        const pool = new th.Group();
+        pool.position.set(spot.x, 0, spot.z);
+          pool.rotation.y = Math.PI / 2; // trục dài của bàn (local x) quay khớp trục z của phòng Bi-a mới
+        three.scene.add(pool);
+        const pFrame = new th.Mesh(
+          new th.BoxGeometry(3.7, 0.26, 2.2),
+          new th.MeshLambertMaterial({ color: 0x8b4a2b }),
+        );
+        pFrame.position.y = 0.8;
+        pool.add(pFrame);
+        const pFelt = new th.Mesh(
+          new th.BoxGeometry(3.32, 0.1, 1.82),
+          new th.MeshLambertMaterial({ color: 0x527a52 }),
+        );
+        pFelt.position.y = 0.95;
+        pool.add(pFelt);
+        [
+          [-1.7, -1.0],
+          [1.7, -1.0],
+          [-1.7, 1.0],
+          [1.7, 1.0],
+        ].forEach((p) => {
+          const leg = new th.Mesh(
+            new th.BoxGeometry(0.18, 0.8, 0.18),
+            new th.MeshLambertMaterial({ color: 0x4a2d15 }),
+          );
+          leg.position.set(p[0], 0.4, p[1]);
+          pool.add(leg);
+        });
+        [
+          [-1.62, -0.88],
+          [0, -0.95],
+          [1.62, -0.88],
+          [-1.62, 0.88],
+          [0, 0.95],
+          [1.62, 0.88],
+        ].forEach((p) => {
+          const pk = new th.Mesh(
+            new th.CylinderGeometry(0.13, 0.13, 0.05, 14),
+            new th.MeshBasicMaterial({ color: 0x0d0d0d }),
+          );
+          pk.position.set(p[0], 1.0, p[1]);
+          pool.add(pk);
+        });
+        // 16 bi của bàn Bida 8 Bi trong phòng — gương theo trạng thái ván trong
+        // sảnh (cập nhật sau mỗi cú đánh qua window.__poolWorld.setState) để
+        // người đứng xem trong phòng thấy bàn thay đổi theo ván đấu.
+        const WB_COLS = [
+          0xf8f5ee, 0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e, 0x111111,
+          0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e,
+        ];
+        const wbMeshes = [];
+        for (let wbi = 0; wbi < 16; wbi++) {
+          const wball = new th.Mesh(
+            new th.SphereGeometry(0.09, 14, 12),
+            new th.MeshLambertMaterial({ color: WB_COLS[wbi] }),
+          );
+          wball.position.set(-0.83, 1.06, 0);
+          wball.visible = false;
+          pool.add(wball);
+          wbMeshes.push(wball);
+        }
+        window.__poolWorld = {
+          setState: function (snap) {
+            if (!snap || !snap.balls) return;
+            snap.balls.forEach((sb) => {
+              const m = wbMeshes[sb.id];
+              if (!m) return;
+              if (sb.out) {
+                m.visible = false;
+                return;
+              }
+              m.visible = true;
+              m.position.set(sb.x * 0.1307, 1.06, sb.z * 0.1433);
+            });
+          },
+        };
+        (function wbRack() {
+          const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 6, 13, 14, 7, 15];
+          const st = [{ id: 0, x: -6.35, z: 0, out: false }];
+          let idx = 0;
+          for (let r = 0; r < 5; r++)
+            for (let c = 0; c <= r; c++)
+              st.push({ id: order[idx++], x: 6.35 + r * 0.501, z: (c - r / 2) * 0.576, out: false });
+          window.__poolWorld.setState({ balls: st });
+        })();
         }
       })();
     </script>
@@ -26315,19 +26328,6 @@
           );
           pathStrip(
             [
-              [0, 68],
-              [-12, 68],
-              [-26.2, 68],
-              [-26.2, 92],
-              [-26.2, 111],
-            ],
-            3.4,
-            0xdcc9aa,
-            0xb89a73,
-            3,
-          );
-          pathStrip(
-            [
               [0, 50],
               [12, 50],
               [26.2, 50],
@@ -26395,7 +26395,6 @@
             [-23.7, 48.2],
             [23.7, 48.2],
             [24.2, 72.2],
-            [-24.0, 103.5],
           ].forEach(function (p) {
             shrub(p[0], p[1], 0.95);
           });
@@ -26458,10 +26457,6 @@
             shrub(p[0] + (i % 2 ? -1.2 : 1.3), p[1] - 1.1, 1.0);
           });
           [
-            [-30, 25],
-            [-34, 44],
-            [-33, 63],
-            [-34, 84],
             [33, 25],
             [34, 45],
             [33, 66],
