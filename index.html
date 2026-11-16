@@ -7899,19 +7899,127 @@
         TOWER2: { minX: 5.0, maxX: 8.4, minZ: 8.4, maxZ: 11.6 }, /* tháp cầu tụt 2 (đông-bắc sân) */
         TOWER2_Y: 7.3,
         RAMP2: { minX: 8.4, maxX: 22.4, minZ: 8.4, maxZ: 11.6 }, /* dốc lên tháp 2: cao dần về phía tây (x 22.4 → 8.4) */
-        WING: { minX: -19, maxX: 19, minZ: 50, maxZ: 60 },
-        RRAMP: { minX: 19, maxX: 22.4, minZ: 49.4, maxZ: 59.4 },
-        RLAND: { minX: 19, maxX: 22.4, minZ: 59.4, maxZ: 60.4 },
-        DJ: { x: -17, z: 32.2 },
-        SCR: { x: -20.13, y: 2.9, z: 36, w: 6.4, h: 3.6 },
-        SCRCTL: { x: -17.4, z: 36 },
-        BARZONE: { minX: -21.2, maxX: -6.8, minZ: 30.2, maxZ: 41.8 },
-        RY: 4.0,
+        /* KHU BAR LỤC GIÁC (ghép từ file thiết kế Sky Bar v5 Hexagon): tâm
+           (-24, 54) — phía tây–tây nam vườn, đối diện cụm karaoke phía đông.
+           Số đo đã quét va chạm: đỉnh tây x=-58 (đúng biên thế giới), mép
+           đông-bắc cách tâm đài phun (0,20) 8.35 m (vành đai r7.3 thông
+           thoáng), mép nam cách đài phun công viên 2.1 m / đu quay vòng rào
+           5.0 m, hồ bơi + 2 tháp + hồ koi đều ngoài dấu chân. */
+        HEX: { cx: -24, cz: 54, R: 34, A: 29.445, Y: 4.0 },
+        DJ: { x: -24, z: 78.6 },
+        SCR: { x: -24, y: 10.1, z: 82.72, w: 19.2, h: 10.8 },
+        SCRCTL: { x: -24, z: 74.2 },
         bar: null,
         slideCurve: null, /* GHÉP SÂN VƯỜN V2: gardenV2 gán curve thật khi dựng máng */
         slideCurve2: null,
       };
       let villaRide = null;
+      /* ── KHU BAR LỤC GIÁC: hình học chiều cao ──────────────────────────
+         hexMetric: 1.0 = đúng mép sàn lục giác (đỉnh trên trục x, cạnh
+         phẳng bắc/nam như thiết kế). HEXSTAIRS: 10 thang theo đúng spec
+         của file thiết kế (5 cạnh × 2 thang; cạnh bắc không thang như bản
+         gốc) — riêng cạnh tây-nam (k=2) và tây-bắc (k=3) nắn offset thang
+         phía đỉnh tây vào giữa cạnh, vì giữ offset ±8.5 thì chân thang
+         phía tây chạm x≈-60.4, vượt biên thế giới -58. */
+      function hexMetric(x, z) {
+        const dx = Math.abs(x - V.HEX.cx),
+          dz = Math.abs(z - V.HEX.cz);
+        return Math.max(dz / V.HEX.A, (dx + 0.57735 * dz) / V.HEX.R);
+      }
+      V.HEXSTAIRS = [];
+      (function () {
+        const spec = {
+          0: [[8.5, 7.5], [-8.5, 7.5]],
+          1: [[13.8, 5.2], [-13.8, 5.2]],
+          2: [[0, 7.5], [-8.5, 7.5]],
+          3: [[8.5, 7.5], [0, 7.5]],
+          5: [[8.5, 7.5], [-8.5, 7.5]],
+        };
+        Object.keys(spec).forEach((k) => {
+          const al = ((30 + 60 * (+k)) * Math.PI) / 180,
+            nx = Math.cos(al),
+            nz = Math.sin(al),
+            tx = -Math.sin(al),
+            tz = Math.cos(al);
+          spec[k].forEach((s) => {
+            V.HEXSTAIRS.push({
+              k: +k,
+              ox: V.HEX.cx + V.HEX.A * nx + s[0] * tx,
+              oz: V.HEX.cz + V.HEX.A * nz + s[0] * tz,
+              nx, nz, tx, tz, w: s[1],
+            });
+          });
+        });
+      })();
+      /* Cao độ trong khu lục giác; undefined = không thuộc khu.
+         Tầng mặt đất dưới sàn (curY<1) luôn là 0: sàn nâng trên cột, đi
+         xuyên dưới sàn được. Trên sàn: bể cá là vùng cấm vào ở cao độ sàn
+         (chỉ lên đỉnh bể bằng thang xoắn + cầu nối), hồ bơi trên sàn cho
+         lội ở 4.5 (mặt nước 4.61), sân khấu DJ là bệ 4.6. */
+      function hexHeight(x, z, curY) {
+        // 10 thang quanh sân: bậc 0.7 sâu, cao 1/3 mỗi bậc, đỉnh khớp sàn 4.0
+        for (const st of V.HEXSTAIRS) {
+          const px = x - st.ox,
+            pz = z - st.oz;
+          const v = px * st.nx + pz * st.nz,
+            u = px * st.tx + pz * st.tz;
+          if (v >= -0.3 && v <= 7.7 && Math.abs(u) <= st.w / 2 + 0.1) {
+            const y = v <= 0 ? 4.0 : 4.0 - (Math.floor(v / 0.7) + 1) / 3;
+            return Math.abs(y - curY) < 1.3 ? y : curY < 1.0 ? 0 : -9;
+          }
+        }
+        const dx = x - V.HEX.cx,
+          dz = z - V.HEX.cz,
+          r = Math.hypot(dx, dz);
+        // đỉnh bể cá (vành y=10) + cầu nối từ thang xoắn + thang xoắn
+        if (r < 10.4 && curY > 3.2) {
+          if (curY > 8.6 && dx >= 5.2 && dx <= 9.8 && Math.abs(dz) <= 1.25) return 10.0;
+          if (curY > 8.6 && r <= 6.1) return 10.0; // vành đỉnh bể + kính nóc bể
+          if (r >= 6.8 && r <= 9.6) {
+            let rel = Math.atan2(dz, dx) + Math.PI / 2;
+            rel = ((rel % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            const DTH = (Math.PI * 2 * 1.25) / 34;
+            /* Thang xoắn 1.25 vòng: cùng một góc có 2 bậc ở 2 vòng khác
+               nhau (chênh ~4.6 m) — chọn bậc gần cao độ hiện tại nhất. */
+            let bestY = null;
+            [rel, rel + Math.PI * 2].forEach((rr) => {
+              if (rr < Math.PI * 2 * 1.25 - 0.02) {
+                const y = 4.0 + (Math.floor(rr / DTH) + 1) * (6 / 35);
+                if (Math.abs(y - curY) < 1.3 && (bestY === null || Math.abs(y - curY) < Math.abs(bestY - curY))) bestY = y;
+              }
+            });
+            if (bestY !== null) return bestY;
+            if (curY <= 4.6) return 4.0; // đang ở sàn, bước ngang dưới bậc xoắn
+            return -9;
+          }
+          if (r < 6.5 && curY < 8.6) return -9; // thân bể cá: không leo xuyên kính
+        }
+        if (hexMetric(x, z) <= 1) {
+          if (curY < 1.0) return 0;
+          if (curY < 3.2) return -9;
+          // hồ bơi nổi phía đông sàn: lội ở 4.5
+          if (dx >= 24.6 && dx <= 33.0 && Math.abs(dz) <= 3.0) return 4.5;
+          // sân khấu DJ phía nam: bệ 4.6; bàn DJ + lưng màn hình không xuyên
+          if (Math.abs(dx) <= 12.5 && dz >= 22.4 && dz <= 28.4) {
+            if (Math.abs(dx) <= 2.6 && dz >= 23.7 && dz <= 25.5) return -9;
+            return 4.6;
+          }
+          if (dz >= 28.55 && dz <= 29.3 && Math.abs(dx) <= 10.2) return -9; // lưng màn hình lớn
+          // quầy bar phía bắc sàn + kệ rượu sau quầy
+          if (Math.abs(dx) <= 9.8 && dz >= -25.3 && dz <= -22.3) return -9;
+          if (Math.abs(dx) <= 10.0 && dz >= -28.4 && dz <= -27.6) return -9;
+          // lò lửa VIP phía tây
+          if (Math.hypot(dx + 29, dz) < 1.5) return -9;
+          // cột cờ ở 6 đỉnh lục giác
+          for (let k = 0; k < 6; k++) {
+            const vx = V.HEX.R * Math.cos((k * Math.PI) / 3),
+              vz = V.HEX.R * Math.sin((k * Math.PI) / 3);
+            if (Math.hypot(dx - vx, dz - vz) < 0.55) return -9;
+          }
+          return 4.0;
+        }
+        return undefined;
+      }
       function startSlide(curve, kappa) {
         /* GHÉP SÂN VƯỜN V2: trạng thái trượt của LÀNG cho cả 2 cầu (xem three.villaTick) */
         return { curve, kappa, y0: curve.getPointAt(0).y, s: 0, v: 1, phase: "slide", pos: new THREE.Vector3(), vel: new THREE.Vector3() };
@@ -7928,46 +8036,19 @@
         if (inRect2(x, z, V.POOL)) return curY < 1.0 ? -0.72 : -9;
         const ramp = (r, y) => (Math.abs(y - curY) < 1.3 ? y : curY < 1.0 ? 0 : -9);
         if (inRect2(x, z, V.TRAMP)) return ramp(0, ((11.6 - z) / 14) * 4.0);
-        if (inRect2(x, z, V.RRAMP)) return ramp(0, ((z - 49.4) / 10) * 4.0);
-        if (inRect2(x, z, V.TOWER) || inRect2(x, z, V.RLAND) || inRect2(x, z, V.WING))
-          return curY > 2.6 ? V.RY : curY < 1.0 ? 0 : -9;
+        if (inRect2(x, z, V.TOWER)) return curY > 2.6 ? 4.0 : curY < 1.0 ? 0 : -9;
+        const hx = hexHeight(x, z, curY);
+        if (hx !== undefined) return hx;
         return undefined;
       }
-      const VILLA_UPPER = []; /* Sky Bar cũ đã gỡ khỏi sân thượng: tầng thượng không còn quầy/DJ/màn/sofa nên không còn vật cản nào ở đây */
-      (function addVillaObstacles() {
-        const W = (a, b, c, d) => OBSTACLES.push({ minX: a, maxX: b, minZ: c, maxZ: d });
-        [
-          [-19, -15.45],
-          [-13.05, -5.95],
-          [-3.55, 3.55],
-          [5.95, 13.05],
-          [15.45, 19],
-        ].forEach((s) => W(s[0], s[1], 49.85, 50.15)); // tường trước dãy phòng (chừa 4 cửa)
-        W(-19, 19, 59.85, 60.15);
-        [-19, -9.5, 0, 9.5, 19].forEach((x) => W(x - 0.15, x + 0.15, 50, 60));
-        /* GHÉP SÂN VƯỜN V2: 2 thanh tháp + vùng groundOnly dưới dốc tháp 1 do buildSlides của gardenV2 nạp (số đo y hệt) */
-        OBSTACLES.push({ minX: 19, maxX: 22.4, minZ: 53.4, maxZ: 57.4, groundOnly: true });
-        W(-16.4, -14.2, 55.0, 57.9);
-        W(-13.6, -13.0, 57.0, 57.6);
-        W(-19, -18.1, 52, 54.5); // phòng ngủ
-        W(-6.85, -2.65, 55.8, 57.9);
-        W(-6.7, -2.8, 50.8, 51.9);
-        W(-7.7, -6.3, 53.6, 54.4); // karaoke
-        W(3.35, 6.15, 54.4, 55.6);
-        W(1.85, 7.65, 57.3, 58.1);
-        W(7.45, 8.15, 56.9, 58.2); // bếp
-        W(12.95, 15.55, 53.2, 55.8);
-        W(16.3, 17.7, 56.0, 58.0);
-        W(10.9, 11.6, 50.5, 52.7); // spa
-        /* GHÉP SÂN VƯỜN V2: 4 ghế tắm nắng + trụ dù hồ do buildPool của gardenV2 nạp (số đo y hệt) */
-        // Hàng rào cây vườn: chặn các đoạn rào, chừa 3 cổng (hông tây/đông z 42–46, cổng nam x −2..2 xuống công viên)
-        // ĐÃ LÙI RÀO VÀO PHÍA VƯỜN (x ±25.4 → ±24.0): trước đây rào nằm ngay trên
-        // lối dọc hai bên (tâm lối ±26.3, mặt rào tới ±25.0/±25.8) khiến lối đi
-        // dọc dãy phòng game/phòng đông bị ép còn ~1 m và điểm dịch chuyển
-        // "Khu game" (−25.3, 47) rơi ĐÚNG VÀO đoạn rào z 46–65.4 → kẹt cứng.
-        // Nay mặt rào cách tường phòng (∓27.45…27.9) tối thiểu ~3.0–3.3 m thông thủy.
-        /* GHÉP SÂN VƯỜN V2: 6 đoạn rào vườn do buildFence của gardenV2 nạp (số đo y hệt) */
-      })();
+      const VILLA_UPPER = []; /* Vật cản RIÊNG trên sàn lục giác (bàn DJ, lưng
+         màn hình, quầy bar, kệ rượu, lò VIP) — do buildHex nạp. Thân bể cá
+         không nằm ở đây vì đỉnh bể (y=10) phải đi lại được: bể chặn bằng
+         logic chiều cao trong hexHeight. */
+      /* Dãy 4 phòng chức năng + Sky Bar cũ trên sân thượng ĐÃ XÓA HẲN cùng
+         mọi vật cản tường/nội thất của dãy (khu đất nay là sân cỏ dưới sàn
+         lục giác + gầm sàn đi xuyên được). Vật cản cột đỡ sàn lục giác do
+         buildHex nạp dạng groundOnly. */
 
       function vLabel(text, w, h, bg, fg, fs) {
         const cv = document.createElement("canvas");
@@ -8122,7 +8203,7 @@
           [-2.4, 2.4].forEach((x) => { bx(0.05, 2.3, 1.2, 0xf6efe2, pc[0] + x, 1.6, pc[1] - 1.5); bx(0.05, 2.3, 1.2, 0xf6efe2, pc[0] + x, 1.6, pc[1] + 1.5); });
           bx(2.6, 0.45, 1.8, 0xb56a3a, pc[0], 0.25, pc[1]); bx(2.4, 0.18, 1.6, 0xf2e7d8, pc[0], 0.55, pc[1]); [-0.8, 0.8].forEach((x) => sp(0.28, 0xe77fb0, pc[0] + x, 0.8, pc[1] - 0.5));
           glow(0xffd9a8, 4, 0.4, pc[0], 2.6, pc[1]); OB(pc[0] - 1.4, pc[0] + 1.4, pc[1] - 1, pc[1] + 1);
-          [[-24, 14], [-24, 22], [8.5, -2], [12, 14.5], [4, 47.5]].forEach((p) => palm(p[0], p[1], 1.0));
+          [[-24, 12.5], [-24, 22], [8.5, -2], [12, 14.5]].forEach((p) => palm(p[0], p[1], 1.0)); /* cọ (4, 47.5) gỡ: nằm trong dấu chân sàn lục giác, tán cọ đâm xuyên sàn; cọ (-24, 14) nắn lên (-24, 12.5) cho tán lá khỏi mép sàn */
         }
         /* ───────── VƯỜN: hồ cá, đài phun, hoa, cây, đèn (v2 buildGarden)
            GHÉP: bỏ 3 vật trang trí của v2 rơi ĐÚNG vào khối dãy 4 phòng của làng
@@ -8193,8 +8274,8 @@
           for (let z = 30; z < 48; z += 2.2) { [-3.4, 3.4].forEach((x) => { const s = sp(0.55, 0x4f6b47, x, 0.5, z); s.scale.y = 0.85; }); }
           [-4.4, 4.4].forEach((x) => { cy(0.3, 0.3, 0.6, TERRA, x, 0.3, -9.6, null, 12); cone(0.5, 1.6, 0x3f6b46, x, 1.3, -9.6, null, 10); });
           // cây (mọi gốc cây đều ngoài hành lang; (10,-9) đông-bắc, (9,36) đông-nam, (17,48.5) trước dãy phòng)
-          [[-23, 62], [10, -9], [17, 48.5], [-22, 22], [13, 31], [-23, 52], [20, 62], [-11, -14], [6, 63], [9, 36]].forEach((p, i) => tree(p[0], p[1], 0.9 + rnd() * 0.4));
-          [[-25, -9], [25, -9], [-25, 65], [25, 65], [-25, 44], [25, 44]].forEach((p) => tree(p[0], p[1], 1.0, "cypress"));
+          [[10, -9], [17, 48.5], [-22, 22], [13, 31], [20, 62], [-11, -14], [6, 63], [9, 36]].forEach((p, i) => tree(p[0], p[1], 0.9 + rnd() * 0.4)); /* cây (-23, 62) + (-23, 52) gỡ: nằm trong dấu chân sàn lục giác, tán cây đâm xuyên sàn y=4 */
+          [[-25, -9], [25, -9], [25, 65], [25, 44]].forEach((p) => tree(p[0], p[1], 1.0, "cypress")); /* tùng (-25, 65) + (-25, 44) gỡ: trong dấu chân sàn lục giác */
           // đèn + ghế (đèn có hộp cản nhỏ — đã kiểm ngoài hành lang)
           for (let z = -8; z < 48; z += 5) { if ((z > 2 && z < 13) || (z > 11 && z < 28)) continue; bollard(-2.9, z); bollard(2.9, z); } // chừa đoạn đài phun (0,20): vành đai + đường rẽ phải thông thoáng
           [[3, 30], [18, 36], [-22.8, 40], [10, 22], [-6, 63]].forEach((p) => lamp(p[0], p[1]));
@@ -8423,233 +8504,561 @@
         deckTex.repeat.set(8, 5);
         gardenV2().buildMain();
 
-        /* ---- Dãy 4 phòng ---- */
-        const WALL = lm(CREAM),
-          TRIM = lm(DARK);
-        const wall = (x0, z0, x1, z1, h) => {
-          const len = Math.hypot(x1 - x0, z1 - z0);
-          const m = new THREE.Mesh(
-            new THREE.BoxGeometry(
-              Math.abs(x1 - x0) < 0.01 ? 0.3 : len,
-              h,
-              Math.abs(z1 - z0) < 0.01 ? 0.3 : len,
-            ),
-            WALL,
-          );
-          m.position.set((x0 + x1) / 2, h / 2, (z0 + z1) / 2);
-          G.add(m);
-          if (three.occluders) three.occluders.push(m);
+        /* ═══ KHU BAR LỤC GIÁC (GHÉP 2026-11-16 từ file thiết kế Sky Bar
+           v5 Hexagon của chủ nhân): sàn lục giác R34 nâng y=4 tại tâm
+           (-24, 54), bể cá giữa + thang xoắn lên đỉnh bể, sàn nhảy LED,
+           sân khấu DJ + màn hình 19.2×10.8 phía nam sàn, quầy bar phía
+           bắc sàn, hồ bơi nổi phía đông sàn, VIP phía tây sàn, 10 thang
+           rộng quanh sân. Chỉ lấy THIẾT KẾ KHU LỤC GIÁC (hình học/tỉ lệ/
+           vật liệu) đặt lại tọa độ vào làng; nhà chính/2 cánh/dãy phòng
+           của file thiết kế KHÔNG ghép. Dãy 4 phòng cũ + Sky Bar cũ trên
+           sân thượng + khu bar nhỏ trong vườn đều đã xóa — hệ video/
+           YouTube/bridge của bar dùng chính V.screenMesh / V.corners /
+           V.bar như trước, điểm điều khiển V.SCRCTL đặt trên sàn nhảy
+           trước sân khấu, DJ + vùng âm thanh theo khu bám V.HEX. ═══ */
+        const HG = roofG; // group khu lục giác: ẩn khi người chơi đi dưới sàn (như mái dãy phòng cũ)
+        const CX = V.HEX.cx,
+          CZ = V.HEX.cz;
+        const bbH = (w, h, d, c, x, y, z, p) => {
+          const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ color: c }));
+          m.position.set(x, y, z);
+          (p || HG).add(m);
+          return m;
         };
-        [
-          [-19, -15.45],
-          [-13.05, -5.95],
-          [-3.55, 3.55],
-          [5.95, 13.05],
-          [15.45, 19],
-        ].forEach((s) => wall(s[0], 50, s[1], 50, 4.0));
-        wall(-19, 60, 19, 60, 4.0);
-        [-19, -9.5, 0, 9.5, 19].forEach((x) => wall(x, 50, x, 60, 4.0));
-        [-14.25, -4.75, 4.75, 14.25].forEach((cx) => {
-          bx(2.4, 0.9, 0.34, DARK, cx, 3.55, 50);
-          bx(0.14, 3.1, 0.38, DARK, cx - 1.17, 1.55, 50);
-          bx(0.14, 3.1, 0.38, DARK, cx + 1.17, 1.55, 50);
-        });
-        const names = ["🛏️ PHÒNG NGỦ", "🎤 KARAOKE", "🍳 BẾP & ĂN", "♨️ SPA"];
-        /* Biển hạ xuống y 2.9 + nhô ra trước mặt tường: trước đây biển ở y 3.55 bị
-     mép tấm mái sân thượng (y 3.7–4.0) + thanh lintel nuốt mất phần trên,
-     đứng dưới sân nhìn lên chỉ thấy nửa chữ. */
-        [-14.25, -4.75, 4.75, 14.25].forEach((cx, i) => {
-          const sg = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.4, 0.68),
+        const spH = (r, c, x, y, z, p) => {
+          const m = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), lm(c));
+          m.position.set(x, y, z);
+          (p || HG).add(m);
+          return m;
+        };
+        const coneH = (r, h, c, x, y, z, p, s) => {
+          const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, s || 8), lm(c));
+          m.position.set(x, y, z);
+          (p || HG).add(m);
+          return m;
+        };
+        const _ux = new THREE.Vector3(1, 0, 0);
+        function segH(a, b, t, c, basic, parent) {
+          const p = new THREE.Vector3(a[0], a[1], a[2]),
+            q = new THREE.Vector3(b[0], b[1], b[2]),
+            d = q.clone().sub(p),
+            L = d.length();
+          const m = new THREE.Mesh(
+            new THREE.BoxGeometry(L, t, t),
+            basic ? new THREE.MeshBasicMaterial({ color: c }) : lm(c),
+          );
+          m.position.copy(p).add(q).multiplyScalar(0.5);
+          m.quaternion.setFromUnitVectors(_ux, d.normalize());
+          (parent || HG).add(m);
+          return m;
+        }
+        const glowH = (c, sc, op, rx, ry, rz) => pulse(glow(c, sc, op, CX + rx, ry, CZ + rz, HG), op);
+        function sofaH(color, wx, wz, rotY, w, yBase) {
+          const g = new THREE.Group();
+          g.position.set(wx, yBase, wz);
+          g.rotation.y = rotY;
+          HG.add(g);
+          const lt = new THREE.Color(color).multiplyScalar(1.2).getHex();
+          bx(w, 0.5, 1.15, color, 0, 0.3, 0, g);
+          bx(w, 1.05, 0.26, color, 0, 0.85, 0.48, g);
+          [-1, 1].forEach((s) => bx(0.32, 0.78, 1.15, color, s * (w / 2 - 0.16), 0.56, 0, g));
+          bx(w - 0.7, 0.17, 0.95, lt, 0, 0.6, -0.04, g);
+          bx(w - 0.7, 0.62, 0.15, lt, 0, 0.98, 0.33, g);
+          [-1, 1].forEach((s) => {
+            const e = coneH(0.17, 0.36, color, s * (w / 2 - 0.4), 1.55, 0.48, g, 4);
+            e.rotation.z = -s * 0.22;
+          });
+          return g;
+        }
+        function stoolH(wx, wz, h, color, y0) {
+          cyl(0.24, 0.24, 0.08, color, wx, y0 + h, wz, HG, 12);
+          cyl(0.04, 0.04, h, ESP, wx, y0 + h / 2, wz, HG, 6);
+        }
+        function plantH(wx, wz, y, s) {
+          const g = new THREE.Group();
+          g.position.set(wx, y, wz);
+          g.scale.setScalar(s);
+          HG.add(g);
+          cyl(0.4, 0.3, 0.55, TERRA, 0, 0.28, 0, g, 14);
+          for (let i = 0; i < 7; i++) {
+            const a = (i / 7) * Math.PI * 2,
+              l = coneH(0.18, 1.3, i % 2 ? 0x5f7a5e : 0x3f9e4d, Math.cos(a) * 0.22, 1.1, Math.sin(a) * 0.22, g, 6);
+            l.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+          }
+        }
+        function signH(text, w, h, tw, th2, bg, fg, fs, wx, wy, wz, ry) {
+          const m = new THREE.Mesh(
+            new THREE.PlaneGeometry(w, h),
+            new THREE.MeshBasicMaterial({ map: vLabel(text, tw, th2, bg, fg, fs) }),
+          );
+          m.position.set(wx, wy, wz);
+          m.rotation.y = ry || 0;
+          HG.add(m);
+          return m;
+        }
+        function discoH(wx, wy, wz, r, topY) {
+          const g = new THREE.Group();
+          g.position.set(wx, wy, wz);
+          HG.add(g);
+          cyl(0.01, 0.01, topY - wy, ESP, 0, (topY - wy) / 2, 0, g, 4);
+          const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), new THREE.MeshBasicMaterial({ color: 0xdfe8ff }));
+          g.add(m);
+          const gl = glow(0xffffff, r * 5, 0.4, 0, 0, 0, g);
+          pulse(gl, 0.4);
+          [0xff4fd8, 0x00e5ff, 0xffd24a].forEach((c, i) => {
+            const a = (i / 3) * Math.PI * 2;
+            pulse(glow(c, 1.4, 0.5, Math.cos(a) * r * 1.1, 0, Math.sin(a) * r * 1.1, g), 0.5);
+          });
+          return g;
+        }
+        function beamH(wx, wy, wz, color, ph, L) {
+          L = L || 6;
+          const g = new THREE.Group();
+          g.position.set(wx, wy, wz);
+          HG.add(g);
+          coneH(0.22, 0.5, 0x333333, 0, 0, 0, g, 8).rotation.x = Math.PI;
+          const b = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, L / 4, L, 16, 1, true),
             new THREE.MeshBasicMaterial({
-              map: vLabel(names[i], 352, 100, "#2F2420", "#FFD9A8", 46),
+              color, transparent: true, opacity: 0.13,
+              blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
             }),
           );
-          sg.position.set(cx, 2.9, 49.68);
-          sg.rotation.y = Math.PI;
-          G.add(sg);
-        });
-        const fl = deckTex.clone();
-        fl.needsUpdate = true;
-        fl.repeat.set(9, 3);
-        plane(38, 10, new THREE.MeshLambertMaterial({ map: fl }), 0, 0.01, 55);
-        const rugs = [
-          [-14.25, SAGE],
-          [-4.75, 0xe9c9a6],
-          [4.75, 0xd8c3a5],
-          [14.25, SAGE],
-        ];
-        rugs.forEach((r) => plane(6, 6, lm(r[1]), r[0], 0.02, 55));
-        // phòng 1: ngủ
-        bx(2.4, 0.4, 2.8, DARK, -15.1, 0.2, 56.5);
-        bx(2.2, 0.3, 2.6, 0xf2e7d8, -15.1, 0.55, 56.5);
-        bx(2.25, 0.12, 1.4, CARA, -15.1, 0.74, 56.0);
-        bx(2.5, 1.3, 0.14, DARK, -15.1, 0.95, 57.9);
-        [-15.8, -14.4].forEach((x) => bx(0.7, 0.22, 0.4, 0xfff3e0, x, 0.8, 57.35));
-        bx(0.5, 0.5, 0.5, MID, -13.3, 0.25, 57.4);
-        bx(1.0, 2.4, 0.8, DARK, -18.5, 1.2, 53.2);
-        const bl = new THREE.Mesh(
-          new THREE.SphereGeometry(0.15, 10, 8),
-          new THREE.MeshBasicMaterial({ color: 0xffd9a8 }),
-        );
-        bl.position.set(-13.3, 0.75, 57.4);
-        G.add(bl);
-        pulse(glow(0xffb36b, 2.2, 0.5, -13.3, 0.78, 57.4), 0.5);
-        // phòng 2: karaoke
-        bx(4.2, 0.28, 2.2, DARK, -4.75, 0.14, 56.8);
-        bx(3.6, 0.06, 0.12, CARA, -4.75, 0.3, 55.7);
-        const mic = cyl(0.025, 0.025, 1.5, ESP, -4.75, 0.9, 56.4, G, 6);
-        const disco = new THREE.Mesh(
-          new THREE.SphereGeometry(0.42, 14, 10),
-          new THREE.MeshBasicMaterial({ color: 0xe9d8c0 }),
-        );
-        disco.position.set(-4.75, 3.3, 55);
-        G.add(disco);
-        V.disco = disco;
-        pulse(glow(0xffb36b, 3, 0.5, -4.75, 3.3, 55), 0.5);
-        cyl(0.01, 0.01, 0.7, ESP, -4.75, 3.65, 55, G, 4);
-        bx(3.6, 0.5, 0.9, OLIVE, -4.75, 0.3, 51.6);
-        bx(3.6, 0.6, 0.2, OLIVE, -4.75, 0.75, 51.2);
-        bx(1.4, 0.35, 0.8, MID, -7, 0.18, 54.5);
-        // phòng 3: bếp & ăn
-        bx(2.8, 0.95, 1.2, DARK, 4.75, 0.48, 55.0);
-        bx(3.0, 0.07, 1.4, 0xf2e7d8, 4.75, 0.98, 55.0);
-        [3.75, 4.75, 5.75].forEach((x) => {
-          cyl(0.22, 0.22, 0.05, CARA, x, 0.78, 53.9, G, 12);
-          cyl(0.04, 0.04, 0.75, ESP, x, 0.4, 53.9, G, 6);
-        });
-        bx(5.8, 0.95, 0.7, DARK, 4.75, 0.48, 57.65);
-        bx(5.8, 0.06, 0.8, 0xe9d8c0, 4.75, 0.98, 57.65);
-        bx(0.8, 2.0, 0.7, 0xd8d0c4, 7.8, 1.0, 57.5);
-        bx(1.6, 0.05, 1.0, MID, 6.2, 0.8, 52.6);
-        [5.6, 6.8].forEach((x) =>
-          [52.0, 53.2].forEach((z) => bx(0.35, 0.45, 0.35, TERRA, x, 0.22, z)),
-        );
-        // phòng 4: spa
-        cyl(1.3, 1.3, 0.7, DARK, 14.25, 0.35, 54.5, G, 20);
-        cyl(1.1, 1.1, 0.06, 0x7cc7c0, 14.25, 0.7, 54.5, G, 20);
-        pulse(glow(0x8fe9f0, 3.4, 0.3, 14.25, 0.8, 54.5), 0.3);
-        bx(1.4, 2.4, 1.9, MID, 17, 1.2, 57.0);
-        bx(0.06, 1.8, 0.8, CARA, 16.28, 1.0, 57.0);
-        pulse(glow(0xffb36b, 2.4, 0.35, 16.2, 1.6, 57), 0.35);
-        bx(0.7, 0.4, 2.2, MID, 11.25, 0.2, 51.6);
-        [-14.25, -4.75, 4.75, 14.25].forEach((x) => {
-          const c = new THREE.Mesh(
-            new THREE.BoxGeometry(0.5, 0.06, 0.5),
-            new THREE.MeshBasicMaterial({ color: 0xffe7c2 }),
-          );
-          c.position.set(x, 3.9, 55);
-          G.add(c);
-        });
-        // đèn trong phòng
-        [
-          [-9.5, 3.0, 55.0],
-          [9.5, 3.0, 55.0],
-        ].forEach((p) => {
-          const l = new THREE.PointLight(0xffc37a, 1.5, 13);
-          l.position.set(p[0], p[1], p[2]);
-          S.add(l);
-        });
-
-        /* ---- Sân thượng: sàn, lan can kính, bar, DJ, màn hình ---- */
-        const wingRoofSlab = bx(38.4, 0.3, 10.4, DARK, 0, 3.85, 55, roofG);
-        if (three.occluders) three.occluders.push(wingRoofSlab);
-        const rf = deckTex.clone();
-        rf.needsUpdate = true;
-        rf.repeat.set(9, 3);
-        plane(
-          38,
-          10,
-          new THREE.MeshLambertMaterial({ map: rf, color: 0xf0dfc6 }),
-          0,
-          4.005,
-          55,
-          roofG,
-        );
-        bx(3.4, 0.3, 1.1, DARK, 20.7, 3.85, 59.9, roofG).scale.set(1, 1, 1);
-        plane(2.4, 1.0, lm(MID), 20.7, 4.005, 59.9, roofG);
-        /* ---- CẦU THANG LÊN SKY BAR (mới): trước đây chỉ có mặt dốc VÔ HÌNH theo
-     villaGH nên người chơi tưởng "chưa có cầu thang". Nay có 12 bậc gỗ đặc,
-     tay vịn hai bên, trụ đèn và biển chỉ dẫn ngay chân cầu thang (x 19–22.4,
-     z 49.4–59.4 — đúng vùng RRAMP, cao độ khớp từng bậc). ---- */
-        for (let si = 0; si < 12; si++) {
-          const topY = ((si + 1) / 12) * 4.0,
-            szc = 49.4 + (si + 0.5) * (10 / 12);
-          bx(3.3, topY, 0.88, si % 2 ? MID : 0xc99a68, 20.7, topY / 2, szc, roofG);
+          b.position.y = -L / 2;
+          g.add(b);
+          (V.hexBeams = V.hexBeams || []).push({ g, ph });
+          return g;
         }
-        [19.08, 22.32].forEach((rx) => {
-          for (let pk = 0; pk <= 6; pk++) {
-            const pz = 49.9 + pk * 1.58,
-              py = ((pz - 49.4) / 10) * 4.0;
-            bx(0.09, 0.95, 0.09, DARK, rx, py + 0.47, pz, roofG);
-          }
-          const hr = bx(0.08, 0.08, 10.9, CARA, rx, 3.0, 54.4, roofG);
-          hr.rotation.x = -Math.atan2(4, 10);
-        });
-        /* Biển chỉ đường "LÊN SKY BAR" đã gỡ cùng Sky Bar cũ — không còn biển cắm giữa lối đi. */
-        [19.2, 22.2].forEach((px) => {
-          cyl(0.06, 0.08, 1.6, DARK, px, 0.8, 49.0, G, 8);
-          const lb2 = new THREE.Mesh(
-            new THREE.SphereGeometry(0.13, 10, 8),
-            new THREE.MeshBasicMaterial({ color: 0xffd9a8 }),
+
+        /* thảm cỏ lót dưới dấu chân lục giác + bệ chân thang (vùng tây
+           x<-25.5 trước đây ngoài thảm cỏ sân vườn v2) */
+        plane(74, 88, lm(0x5f9a4b), -21, -0.03, 50, G);
+
+        /* ── sàn lục giác + mặt gỗ + viền neon ── */
+        const hslab = cyl(V.HEX.R, V.HEX.R, 0.3, DARK, CX, 3.85, CZ, HG, 6);
+        hslab.rotation.y = Math.PI / 2;
+        const hexShape = new THREE.Shape();
+        for (let k = 0; k < 6; k++) {
+          const a = (k * Math.PI) / 3,
+            sx = CX + V.HEX.R * Math.cos(a),
+            sy = -(CZ + V.HEX.R * Math.sin(a));
+          if (k) hexShape.lineTo(sx, sy);
+          else hexShape.moveTo(sx, sy);
+        }
+        hexShape.closePath();
+        const fl2 = deckTex.clone();
+        fl2.needsUpdate = true;
+        fl2.wrapS = fl2.wrapT = THREE.RepeatWrapping;
+        fl2.repeat.set(0.22, 0.22);
+        const hf = new THREE.Mesh(
+          new THREE.ShapeGeometry(hexShape),
+          new THREE.MeshLambertMaterial({ map: fl2, color: 0xf0dfc6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+        );
+        hf.rotation.x = -Math.PI / 2;
+        hf.position.y = 4.01;
+        HG.add(hf);
+        V.hexNeon = [];
+        const Rn = (V.HEX.A - 1.0) / Math.cos(Math.PI / 6);
+        for (let k = 0; k < 6; k++) {
+          const a0 = (k * Math.PI) / 3,
+            a1 = ((k + 1) * Math.PI) / 3;
+          V.hexNeon.push(
+            segH(
+              [CX + Rn * Math.cos(a0), 4.045, CZ + Rn * Math.sin(a0)],
+              [CX + Rn * Math.cos(a1), 4.045, CZ + Rn * Math.sin(a1)],
+              0.09, 0xff4fd8, true,
+            ).material,
           );
-          lb2.position.set(px, 1.68, 49.0);
-          G.add(lb2);
-          pulse(glow(0xffb36b, 2.2, 0.45, px, 1.68, 49.0), 0.45);
-        });
-        const glass = new THREE.MeshLambertMaterial({
-          color: 0xdff1ee,
-          transparent: true,
-          opacity: 0.26,
-        });
-        const rail = (w, d, x, z) => {
-          const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.0, d), glass);
-          m.position.set(x, 4.5, z);
-          roofG.add(m);
-          bx(w + 0.1, 0.08, d + 0.1, CARA, x, 5.02, z, roofG);
-        };
-        rail(38, 0.06, 0, 50);
-        rail(0.06, 10, -19, 55);
-        rail(0.06, 7.6, 19, 53.8);
-        const wingBackWall = bx(38, 1.4, 0.3, DARK, 0, 4.7, 60.1, roofG);
-        if (three.occluders) three.occluders.push(wingBackWall);
-        /* Màn hình Sky Bar cũ đã gỡ khỏi sân thượng — màn hình Bar mới ở khu bar mặt đất phía tây vườn (xem khối KHU BAR MỚI bên dưới). */
-        /* Quầy bar + kệ rượu + neon Sky Bar cũ đã gỡ khỏi sân thượng. */
-        /* Bàn DJ Sky Bar cũ đã gỡ khỏi sân thượng. */
-        // sofa lounge + bàn thấp + cây + dây đèn
-        /* Sofa lounge + bàn thấp Sky Bar cũ đã gỡ khỏi sân thượng. */
-        [
-          [-18.2, 58.9],
-          [18.4, 51],
-          [-18.2, 50.6],
-        ].forEach((p) => {
-          cyl(0.42, 0.3, 0.6, TERRA, p[0], 4.3, p[1], roofG, 14);
-          const b = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 8), lm(OLIVE));
-          b.position.set(p[0], 5.1, p[1]);
-          b.scale.y = 1.3;
-          roofG.add(b);
-        });
+          segH(
+            [CX + V.HEX.R * Math.cos(a0), 3.62, CZ + V.HEX.R * Math.sin(a0)],
+            [CX + V.HEX.R * Math.cos(a1), 3.62, CZ + V.HEX.R * Math.sin(a1)],
+            0.12, k % 2 ? 0x00e5ff : 0xff4fd8, true,
+          );
+        }
 
-        const rl2 = new THREE.PointLight(0xffb36b, 1.8, 17);
-        rl2.position.set(0, 7.2, 55);
-        S.add(rl2);
-        V.roofLight = rl2;
-        V.roofG = roofG;
+        /* ── cột đỡ sàn (bỏ cột rơi đúng hành lang C1 x[-2.5,2.5] và cột
+           rơi đúng quầy bóng bay công viên (-11,76.5)) ── */
+        (function () {
+          const pts = [];
+          for (let k = 0; k < 12; k++) {
+            const a = (k * Math.PI) / 6;
+            pts.push([26 * Math.cos(a), 26 * Math.sin(a)]);
+          }
+          for (let k = 0; k < 6; k++) {
+            const a = Math.PI / 6 + (k * Math.PI) / 3;
+            pts.push([14 * Math.cos(a), 14 * Math.sin(a)]);
+          }
+          pts.forEach((p) => {
+            const wx = CX + p[0],
+              wz = CZ + p[1];
+            if (wx >= -2.9 && wx <= 2.9) return; // hành lang C1
+            if (Math.abs(wx + 11) < 1.2 && Math.abs(wz - 76.5) < 1.2) return; // quầy bóng bay
+            cyl(0.42, 0.48, 3.7, 0xcdbfa6, wx, 1.85, wz, HG, 16);
+            bx(1.1, 0.18, 1.1, 0xc9bba0, wx, 3.62, wz, HG);
+            glowH(0xffb36b, 2.4, 0.45, p[0], 3.1, p[1]);
+            OBSTACLES.push({ minX: wx - 0.5, maxX: wx + 0.5, minZ: wz - 0.5, maxZ: wz + 0.5, groundOnly: true });
+          });
+        })();
 
-        /* ═══ KHU BAR MỚI — mặt đất phía TÂY vườn (đối diện phòng karaoke riêng
-           ở phía ĐÔNG), thay toàn bộ Sky Bar cũ trên sân thượng dãy phòng:
-           quầy bar + ghế quầy, bàn DJ, màn hình chiếu nối cùng hệ video/YouTube
-           + bridge như màn Sky Bar cũ (V.screenMesh / V.corners / V.bar),
-           điểm điều khiển tại V.SCRCTL, neon trang trí, biển "BAR" lơ lửng
-           không vật cản. Sân thượng giữ nguyên sàn/lan can/mái — chỉ còn sân
-           trống. Lối dốc tháp 2 (x 8.4–22.4, z 8.4–11.6) ở phía đông, không
-           bị ảnh hưởng. ═══ */
-        {
-          bx(13.9, 0.05, 11.0, DARK, -14, 0.025, 36); // viền sàn
-          bx(13.5, 0.14, 10.6, MID, -14, 0.07, 36); // sàn gỗ khu bar
-          // vách nền + màn hình hướng đông (ra giữa vườn)
-          bx(0.3, 5.4, 11.2, DARK, -20.55, 2.7, 36);
-          bx(0.18, 4.0, 7.0, ESP, -20.3, 2.9, 36);
+        /* ── lan can kính quanh sàn (chừa đúng các thang) ── */
+        (function () {
+          const glass = new THREE.MeshLambertMaterial({ color: 0xdff1ee, transparent: true, opacity: 0.26 });
+          function railLine(x0, z0, x1, z1) {
+            const L = Math.hypot(x1 - x0, z1 - z0);
+            if (L < 0.3) return;
+            const yaw = Math.atan2(-(z1 - z0), x1 - x0),
+              mx = (x0 + x1) / 2,
+              mz = (z0 + z1) / 2;
+            const gl = new THREE.Mesh(new THREE.BoxGeometry(L, 1.0, 0.06), glass);
+            gl.position.set(mx, 4.5, mz);
+            gl.rotation.y = yaw;
+            HG.add(gl);
+            bx(L + 0.1, 0.08, 0.1, CARA, mx, 5.02, mz, HG).rotation.y = yaw;
+            const n = Math.max(1, Math.ceil(L / 3.2));
+            for (let i = 0; i <= n; i++) {
+              const u = i / n;
+              bx(0.1, 1.02, 0.1, DARK, x0 + (x1 - x0) * u, 4.51, z0 + (z1 - z0) * u, HG);
+            }
+          }
+          for (let k = 0; k < 6; k++) {
+            const al = ((30 + 60 * k) * Math.PI) / 180,
+              ox = Math.cos(al),
+              oz = Math.sin(al),
+              tx = -Math.sin(al),
+              tz = Math.cos(al),
+              H = V.HEX.R / 2;
+            const midX = CX + V.HEX.A * ox,
+              midZ = CZ + V.HEX.A * oz;
+            const spans = V.HEXSTAIRS.filter((s) => s.k === k).map((s) => {
+              const t = (s.ox - midX) * tx + (s.oz - midZ) * tz;
+              return [t - s.w / 2 - 0.3, t + s.w / 2 + 0.3];
+            });
+            const P = (t) => [midX + t * tx, midZ + t * tz];
+            const blocked = (t) => spans.some((s) => t > s[0] && t < s[1]);
+            let run = null;
+            const runs = [];
+            for (let t = -H; t <= H + 1e-6; t += 0.25) {
+              if (!blocked(t)) {
+                if (!run) run = [t, t];
+                else run[1] = t;
+              } else if (run) {
+                runs.push(run);
+                run = null;
+              }
+            }
+            if (run) runs.push(run);
+            runs.forEach((r) => {
+              const a = P(r[0]),
+                b = P(r[1]);
+              railLine(a[0], a[1], b[0], b[1]);
+            });
+          }
+        })();
+
+        /* ── 10 thang rộng quanh sân (11 bậc + mặt đất, cao 4 m) ── */
+        (function () {
+          const ARCH_TEX = vLabel("🍸 LÊN SKY BAR", 420, 96, "#17122B", "#7FF3FF", 54);
+          V.HEXSTAIRS.forEach((st, idx) => {
+            const g = new THREE.Group();
+            g.position.set(st.ox, 0, st.oz);
+            g.rotation.y = Math.atan2(st.nx, st.nz);
+            HG.add(g);
+            const N = 11,
+              D = 0.7,
+              rise = 4 / 12,
+              nc = [0xff4fd8, 0x00e5ff, 0xffd24a][idx % 3],
+              yT = (i) => 4 - (i + 1) * rise,
+              w = st.w;
+            for (let i = 0; i < N; i++) {
+              bx(w, yT(i), D, i % 2 ? MID : 0xd5a876, 0, yT(i) / 2, (i + 0.5) * D, g);
+              if (i % 3 === 0) bbH(w - 0.1, 0.03, 0.06, nc, 0, yT(i) + 0.02, (i + 1) * D - 0.05, g);
+            }
+            [-1, 1].forEach((s) => {
+              const xs = s * (w / 2 - 0.06),
+                pts = [0, 2, 4, 6, 8, 10].map((i) => [xs, yT(i) + 1, (i + 0.5) * D]);
+              pts.forEach((p) => bx(0.07, 1, 0.07, DARK, p[0], p[1] - 0.5, p[2], g));
+              for (let i = 0; i < pts.length - 1; i++) segH(pts[i], pts[i + 1], 0.08, CARA, false, g);
+              bx(0.07, 1, 0.07, DARK, xs, 4.5, -0.15, g);
+              segH([xs, 5, -0.15], pts[0], 0.08, CARA, false, g);
+              cyl(0.06, 0.08, 1.6, DARK, s * (w / 2 + 0.35), 0.8, N * D + 0.4, g, 8);
+              pulse(glow(0xffb36b, 2.2, 0.45, s * (w / 2 + 0.35), 1.68, N * D + 0.4, g), 0.45);
+              bx(0.18, 3.6, 0.18, DARK, s * (w / 2 + 0.22), 5.8, -0.3, g);
+            });
+            bx(w + 0.9, 0.2, 0.34, DARK, 0, 7.7, -0.3, g);
+            bbH(w + 0.7, 0.07, 0.07, nc, 0, 7.5, -0.12, g);
+            const sg = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(w, 3.4), 0.8), new THREE.MeshBasicMaterial({ map: ARCH_TEX }));
+            sg.position.set(0, 6.85, -0.1);
+            g.add(sg);
+            pulse(glow(nc, 5, 0.35, 0, 7, 0.2, g), 0.35);
+          });
+        })();
+
+        /* ── BỂ CÁ TRUNG TÂM (r 5.4, y 4.8→9.8) + thang xoắn lên đỉnh ── */
+        (function () {
+          cyl(6.2, 6.4, 0.8, DARK, CX, 4.4, CZ, HG, 48);
+          cyl(5.4, 5.4, 0.06, 0xe8d9b0, CX, 4.83, CZ, HG, 40);
+          const glassT = new THREE.Mesh(
+            new THREE.CylinderGeometry(5.4, 5.4, 5, 48, 1, true),
+            new THREE.MeshBasicMaterial({ color: 0x7fe3f0, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }),
+          );
+          glassT.position.set(CX, 7.3, CZ);
+          HG.add(glassT);
+          const waterT = new THREE.Mesh(
+            new THREE.CylinderGeometry(5.36, 5.36, 4.7, 40),
+            new THREE.MeshBasicMaterial({ color: 0x2fb6d0, transparent: true, opacity: 0.14, depthWrite: false }),
+          );
+          waterT.position.set(CX, 7.15, CZ);
+          HG.add(waterT);
+          [4.82, 9.8].forEach((y) => {
+            const r = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.12, 8, 48), lm(0xd9a64a));
+            r.rotation.x = Math.PI / 2;
+            r.position.set(CX, y, CZ);
+            HG.add(r);
+          });
+          const baseNeon = new THREE.Mesh(new THREE.TorusGeometry(6.3, 0.06, 6, 48), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+          baseNeon.rotation.x = Math.PI / 2;
+          baseNeon.position.set(CX, 4.84, CZ);
+          HG.add(baseNeon);
+          for (let i = 0; i < 8; i++) {
+            const a = i * 2.4,
+              r = 1.5 + ((i * 7) % 5) * 0.7,
+              s = spH(0.35 + (i % 3) * 0.15, 0x8a8f96, CX + Math.cos(a) * r, 4.95, CZ + Math.sin(a) * r);
+            s.scale.y = 0.6;
+          }
+          for (let i = 0; i < 18; i++) {
+            const a = i * 1.37,
+              r = 0.9 + ((i * 11) % 10) * 0.43,
+              h = 0.7 + ((i * 13) % 7) * 0.22;
+            coneH(0.17, h, i % 2 ? 0x2f9e4d : 0x5fbf6a, CX + Math.cos(a) * r, 4.86 + h / 2, CZ + Math.sin(a) * r, HG, 5);
+          }
+          for (let i = 0; i < 10; i++) {
+            const a = i * 0.63 + 0.3,
+              r = 2 + ((i * 5) % 6) * 0.5;
+            coneH(0.22, 0.7, [0xe77fb0, 0xff8a2a, 0xb26bff][i % 3], CX + Math.cos(a) * r, 5.2, CZ + Math.sin(a) * r, HG, 5);
+          }
+          cyl(0.28, 0.28, 10.65, 0xe8d9c0, CX, 10.175, CZ, HG, 16);
+          [5.6, 6.8, 8.0, 9.2].forEach((y, i) => cyl(0.42, 0.42, 0.12, [0xff4fd8, 0x00e5ff, 0xffd24a, 0xb26bff][i], CX, y, CZ, HG, 16));
+          glowH(0x7fe3f0, 9, 0.28, 0, 7.3, 0);
+          const orb = spH(0.45, 0xffe9c0, CX, 15.7, CZ);
+          orb.material = new THREE.MeshBasicMaterial({ color: 0xffe9c0 });
+          glowH(0xffd9a8, 6, 0.5, 0, 15.7, 0);
+          // cá + bong bóng (hoạt họa trong villaTick)
+          const FC = [0xff8a2a, 0xffd24a, 0xff4f4f, 0x4fd0ff, 0xe77fb0, 0x7aff7a, 0xffffff, 0xb26bff];
+          V.hexFish = [];
+          for (let i = 0; i < 18; i++) {
+            const big = i < 2,
+              s = big ? 3.2 : 0.7 + (((i * 37) % 10) / 10) * 1.2,
+              col = big ? [0x5a7a9a, 0x8a6a9a][i] : FC[i % FC.length];
+            const g = new THREE.Group(),
+              mt = new THREE.MeshBasicMaterial({ color: col }),
+              body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), mt);
+            body.scale.set(1.7, 0.8, 0.7);
+            g.add(body);
+            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.32, 4), mt);
+            tail.rotation.z = -Math.PI / 2;
+            tail.position.x = -0.47;
+            g.add(tail);
+            [-1, 1].forEach((e) => {
+              const ey = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+              ey.position.set(0.3, 0.05, e * 0.12);
+              g.add(ey);
+            });
+            g.scale.setScalar(s);
+            HG.add(g);
+            V.hexFish.push({
+              g, tail,
+              r: big ? 2.2 + i * 0.9 : 1.0 + (((i * 53) % 10) / 10) * 3.0,
+              y: big ? [7.4, 6.4][i] : 5.6 + (((i * 29) % 10) / 10) * 3.4,
+              spd: (i % 2 ? 1 : -1) * (big ? 0.12 : 0.22 + ((i * 17) % 10) * 0.05),
+              ph: i * 1.9,
+            });
+          }
+          V.hexBubbles = [];
+          for (let i = 0; i < 16; i++) {
+            const b = new THREE.Mesh(
+              new THREE.SphereGeometry(0.07, 6, 5),
+              new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }),
+            );
+            HG.add(b);
+            V.hexBubbles.push({ b, a: i * 0.9, r: 0.9 + (i % 5) * 0.25, ph: i / 16 });
+          }
+          // đỉnh bể: sàn vòng + kính nhìn xuống + lan can + cầu nối + ghế đẩu
+          const rs = new THREE.Shape();
+          rs.absarc(0, 0, 5.9, 0, Math.PI * 2, false);
+          const hp = new THREE.Path();
+          hp.absarc(0, 0, 2.6, 0, Math.PI * 2, true);
+          rs.holes.push(hp);
+          const tgeo = new THREE.ExtrudeGeometry(rs, { depth: 0.3, bevelEnabled: false, curveSegments: 40 });
+          tgeo.rotateX(-Math.PI / 2);
+          const tp = new THREE.Mesh(tgeo, lm(0x8a6a4a));
+          tp.position.set(CX, 9.7, CZ);
+          HG.add(tp);
+          const sk = new THREE.Mesh(
+            new THREE.CircleGeometry(2.6, 40),
+            new THREE.MeshBasicMaterial({ color: 0x7fe3f0, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false }),
+          );
+          sk.rotation.x = -Math.PI / 2;
+          sk.position.set(CX, 9.99, CZ);
+          HG.add(sk);
+          for (let i = 0; i < 24; i++) {
+            const a = (i / 24) * Math.PI * 2;
+            if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.27) continue;
+            bx(0.08, 1, 0.08, DARK, CX + 5.75 * Math.cos(a), 10.5, CZ + 5.75 * Math.sin(a), HG);
+          }
+          const capG = new THREE.Group();
+          capG.position.set(CX, 11, CZ);
+          capG.rotation.y = -0.27;
+          HG.add(capG);
+          const cap = new THREE.Mesh(new THREE.TorusGeometry(5.75, 0.05, 6, 48, Math.PI * 2 - 0.54), lm(CARA));
+          cap.rotation.x = Math.PI / 2;
+          capG.add(cap);
+          bx(4.2, 0.3, 2.2, 0x8a6a4a, CX + 7.5, 9.85, CZ, HG);
+          [-1, 1].forEach((s) => {
+            [5.7, 7.5, 9.4].forEach((xx) => bx(0.07, 1, 0.07, DARK, CX + xx, 10.5, CZ + s * 1.05, HG));
+            segH([CX + 5.7, 11, CZ + s * 1.05], [CX + 9.4, 11, CZ + s * 1.05], 0.07, CARA, false, HG);
+          });
+          for (let i = 0; i < 6; i++) {
+            const a = (i / 6) * Math.PI * 2 + 0.5;
+            stoolH(CX + 4.1 * Math.cos(a), CZ + 4.1 * Math.sin(a), 0.85, [0xff4fd8, 0x00e5ff][i % 2], 10.0);
+          }
+          // thang xoắn lên đỉnh bể (34 bậc, 1.25 vòng, r 7.1→9.3)
+          const SN = 34,
+            TH0 = -Math.PI / 2,
+            DTH = (Math.PI * 2 * 1.25) / SN,
+            RISE = 6 / 35,
+            posts = [[], []];
+          for (let i = 0; i < SN; i++) {
+            const a = TH0 + i * DTH,
+              yTop = 4 + (i + 1) * RISE,
+              x = CX + 8.2 * Math.cos(a),
+              z = CZ + 8.2 * Math.sin(a);
+            bx(2.2, 0.16, 1.95, i % 2 ? MID : 0xd5a876, x, yTop - 0.08, z, HG).rotation.y = -a;
+            if (i % 3 === 0) {
+              const h = yTop - 0.16 - 4;
+              if (h > 0.15) cyl(0.12, 0.12, h, 0x3a2f28, CX + 9.15 * Math.cos(a), 4 + h / 2, CZ + 9.15 * Math.sin(a), HG, 6);
+            }
+            if (i % 4 === 0) glowH(0x00e5ff, 1.8, 0.35, 8.2 * Math.cos(a), yTop + 0.15, 8.2 * Math.sin(a));
+            if (i % 2 === 0 || i === SN - 1)
+              [7.08, 9.22].forEach((r, k) => {
+                const px = CX + r * Math.cos(a),
+                  pz = CZ + r * Math.sin(a);
+                bx(0.07, 1, 0.07, DARK, px, yTop + 0.5, pz, HG);
+                posts[k].push([px, yTop + 1, pz]);
+              });
+          }
+          posts.forEach((arr) => {
+            for (let i = 0; i < arr.length - 1; i++) segH(arr[i], arr[i + 1], 0.07, CARA, false, HG);
+          });
+          signH("🐠 BỂ CÁ MÈO", 3.4, 0.8, 408, 96, "#0F2A3A", "#7FF3FF", 54, CX, 6.1, CZ - 5.5, Math.PI);
+        })();
+
+        /* ── SÀN NHẢY LED vòng quanh bể (r 11.8→23.5) ── */
+        (function () {
+          const tilePts = [];
+          for (let i = -12; i <= 12; i++)
+            for (let j = -12; j <= 12; j++) {
+              const x = i * 2,
+                z = j * 2,
+                r = Math.hypot(x, z);
+              if (r < 11.8 || r > 23.5) continue;
+              if (z < -19.5 && Math.abs(x) < 13) continue; // chừa quầy bar phía bắc
+              if (z > 20.5 && Math.abs(x) < 13.5) continue; // chừa sân khấu phía nam
+              if (x > 22 && Math.abs(z) < 6.5) continue; // chừa hồ bơi phía đông
+              if (x < -22 && Math.abs(z) < 7.5) continue; // chừa VIP phía tây
+              tilePts.push([x, z, i, j]);
+            }
+          const ringBase = new THREE.Mesh(
+            new THREE.RingGeometry(11.5, 23.9, 64),
+            new THREE.MeshLambertMaterial({ color: 0x15111f, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+          );
+          ringBase.rotation.x = -Math.PI / 2;
+          ringBase.position.set(CX, 4.025, CZ);
+          HG.add(ringBase);
+          const tiles = new THREE.InstancedMesh(new THREE.BoxGeometry(1.9, 0.05, 1.9), new THREE.MeshBasicMaterial({ color: 0xffffff }), tilePts.length);
+          const tm = new THREE.Matrix4(),
+            tcol = new THREE.Color(0x222222);
+          tilePts.forEach((p, n) => {
+            tm.setPosition(CX + p[0], 4.06, CZ + p[1]);
+            tiles.setMatrixAt(n, tm);
+            tiles.setColorAt(n, tcol);
+          });
+          tiles.frustumCulled = false;
+          HG.add(tiles);
+          V.hexTiles = { mesh: tiles, pts: tilePts };
+        })();
+
+        /* ── cột cờ 6 đỉnh + dây đèn lều + bóng disco + đèn quét ── */
+        (function () {
+          const POLEY = 12,
+            MASTY = 15.5,
+            vt = [];
+          for (let k = 0; k < 6; k++) {
+            const vx = V.HEX.R * Math.cos((k * Math.PI) / 3),
+              vz = V.HEX.R * Math.sin((k * Math.PI) / 3);
+            cyl(0.22, 0.3, 8, 0x2a2138, CX + vx, 8, CZ + vz, HG, 10);
+            glowH(0xffd9a8, 3, 0.5, vx, 12.2, vz);
+            vt.push([CX + vx, POLEY, CZ + vz]);
+          }
+          for (let k = 0; k < 6; k++) segH(vt[k], vt[(k + 1) % 6], 0.14, 0x3a3550, false, HG);
+          const lp = [],
+            bulbs = [];
+          for (let k = 0; k < 6; k++) {
+            const A = [CX, MASTY, CZ],
+              B = vt[k],
+              P = (u) => [
+                A[0] + (B[0] - A[0]) * u,
+                A[1] + (B[1] - A[1]) * u - Math.sin(Math.PI * u) * 0.7,
+                A[2] + (B[2] - A[2]) * u,
+              ];
+            for (let j = 0; j < 30; j++) {
+              const p = P(j / 30),
+                q = P((j + 1) / 30);
+              lp.push(p[0], p[1], p[2], q[0], q[1], q[2]);
+              if (j > 1) bulbs.push(p);
+            }
+            const C2 = vt[(k + 1) % 6];
+            for (let j = 1; j < 16; j++) {
+              const u = j / 16;
+              bulbs.push([B[0] + (C2[0] - B[0]) * u, B[1] - 0.25, B[2] + (C2[2] - B[2]) * u]);
+            }
+          }
+          const lg = new THREE.BufferGeometry();
+          lg.setAttribute("position", new THREE.Float32BufferAttribute(lp, 3));
+          HG.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x2a2138 })));
+          const bm = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd9a8 }), bulbs.length);
+          const bmm = new THREE.Matrix4();
+          bulbs.forEach((p, i) => {
+            bmm.setPosition(p[0], p[1], p[2]);
+            bm.setMatrixAt(i, bmm);
+          });
+          bm.frustumCulled = false;
+          HG.add(bm);
+          [60, 120, 240, 300].forEach((d) => {
+            const a = (d * Math.PI) / 180,
+              r = 17,
+              y = MASTY - ((MASTY - POLEY) * r) / 34;
+            const db = discoH(CX + r * Math.cos(a), y - 2.2, CZ + r * Math.sin(a), 0.9, y);
+            if (!V.disco) V.disco = db;
+          });
+          for (let k = 0; k < 6; k++) {
+            const a = (k * Math.PI) / 3,
+              r = 24;
+            beamH(
+              CX + r * Math.cos(a),
+              MASTY - ((MASTY - POLEY) * r) / 34 - 0.3,
+              CZ + r * Math.sin(a),
+              [0xff4fd8, 0x00e5ff, 0xffd24a, 0xb26bff, 0x7aff7a, 0xff8a2a][k],
+              k, 8.7,
+            );
+          }
+        })();
+
+        /* ── SÂN KHẤU DJ + MÀN HÌNH KHỔNG LỒ (phía nam sàn, nhìn về bể cá) ── */
+        (function () {
+          bx(25, 0.6, 6, 0x2a2030, CX, 4.3, CZ + 25.4, HG);
+          bbH(25.2, 0.1, 0.1, 0xff4fd8, CX, 4.64, CZ + 22.38, HG);
+          bbH(25.2, 0.1, 0.1, 0x00e5ff, CX, 4.1, CZ + 22.35, HG);
+          bx(20.4, 12, 0.3, ESP, CX, V.SCR.y, CZ + 28.95, HG);
           const idle = document.createElement("canvas");
           idle.width = 800;
           idle.height = 450;
@@ -8661,101 +9070,172 @@
           ig.fillRect(0, 0, 800, 450);
           ig.fillStyle = "#FFD9A8";
           ig.textAlign = "center";
-          ig.font = '800 74px "Baloo 2", sans-serif';
-          ig.fillText("🍸 BAR MÈO", 400, 215);
+          ig.font = '800 70px "Baloo 2", sans-serif';
+          ig.fillText("🍸 SKY BAR LỤC GIÁC", 400, 215);
           ig.font = '600 30px "Be Vietnam Pro", sans-serif';
           ig.fillText("Đứng gần màn hình → bấm nút để dán link YouTube", 400, 285);
           V.idleMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(idle) });
           V.blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
           const scr = new THREE.Mesh(new THREE.PlaneGeometry(V.SCR.w, V.SCR.h), V.idleMat);
           scr.position.set(V.SCR.x, V.SCR.y, V.SCR.z);
-          scr.rotation.y = Math.PI / 2;
-          G.add(scr);
+          scr.rotation.y = Math.PI;
+          HG.add(scr);
           V.screenMesh = scr;
-          V.corners = [
-            [-1, 1],
-            [1, 1],
-            [1, -1],
-            [-1, -1],
-          ].map(
-            (c) =>
-              new THREE.Vector3(
-                V.SCR.x + 0.05,
-                V.SCR.y + (c[1] * V.SCR.h) / 2,
-                V.SCR.z - (c[0] * V.SCR.w) / 2,
-              ),
+          V.corners = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(
+            (c) => new THREE.Vector3(V.SCR.x - (c[0] * V.SCR.w) / 2, V.SCR.y + (c[1] * V.SCR.h) / 2, V.SCR.z - 0.02),
           );
-          // quầy bar dọc theo z + mặt quầy + chai + ghế quầy
-          bx(1.1, 1.1, 7.0, DARK, -9.5, 0.62, 36);
-          bx(1.45, 0.1, 7.4, 0xe9c9a6, -9.5, 1.22, 36);
-          const bcCols = [0xb56a3a, 0x748b6f, 0xe9c9a6, 0xa9704b, 0xbecfbd, 0x8b4a2b];
-          for (let i = 0; i < 9; i++) cyl(0.09, 0.11, 0.45, bcCols[i % 6], -9.5, 1.5, 33.2 + i * 0.7, G, 8);
-          [33.2, 34.7, 36.2, 37.7, 39.2].forEach((z) => {
-            cyl(0.27, 0.27, 0.08, CARA, -11.15, 1.0, z, G, 14);
-            cyl(0.045, 0.045, 0.95, ESP, -11.15, 0.5, z, G, 6);
-          });
-          // bàn DJ + đĩa + EQ + loa (góc nam khu bar, cạnh màn hình)
-          bx(2.8, 0.9, 1.1, ESP, V.DJ.x, 0.52, V.DJ.z);
-          bx(2.9, 0.06, 1.2, DARK, V.DJ.x, 1.0, V.DJ.z);
-          V.eqBaseY = 1.0;
-          V.discs = [-0.8, 0.8].map((o) => {
-            const d = cyl(0.4, 0.4, 0.04, 0x1c1c21, V.DJ.x + o, 1.05, V.DJ.z, G, 24);
-            cyl(0.12, 0.12, 0.05, CARA, V.DJ.x + o, 1.07, V.DJ.z, G, 12);
+          // bàn DJ trên sân khấu (V.DJ) + đĩa + EQ + loa
+          bx(5, 1.1, 1.6, ESP, V.DJ.x, 5.15, V.DJ.z, HG);
+          bx(5.1, 0.06, 1.7, DARK, V.DJ.x, 5.73, V.DJ.z, HG);
+          V.eqBaseY = 5.05;
+          V.discs = [-1.1, 1.1].map((o) => {
+            const d = cyl(0.45, 0.45, 0.04, 0x1c1c21, V.DJ.x + o, 5.78, V.DJ.z, HG, 24);
+            cyl(0.13, 0.13, 0.05, CARA, V.DJ.x + o, 5.8, V.DJ.z, HG, 12);
             return d;
           });
-          bx(0.5, 0.1, 0.6, CARA, V.DJ.x, 1.04, V.DJ.z);
-          [-1.9, 1.9].forEach((o) => {
-            bx(0.9, 1.9, 0.9, ESP, V.DJ.x + o, 0.95, V.DJ.z);
-            const spk = cyl(0.28, 0.28, 0.06, 0x3a2f28, V.DJ.x + o, 1.15, V.DJ.z + 0.46, G, 16);
-            spk.rotation.x = Math.PI / 2;
-          });
           V.eq = [];
-          for (let i = 0; i < 8; i++)
-            V.eq.push(bx(0.14, 0.5, 0.06, i % 2 ? CARA : 0xffb36b, V.DJ.x - 0.95 + i * 0.27, 1.25, V.DJ.z + 0.58));
-          V.djGlow = glow(0xff9933, 4.2, 0.5, V.DJ.x, 1.6, V.DJ.z);
+          for (let i = 0; i < 12; i++)
+            V.eq.push(bx(0.18, 0.5, 0.06, i % 2 ? CARA : 0xffb36b, V.DJ.x - 1.5 + i * 0.27, 5.3, V.DJ.z - 0.84, HG));
+          V.djGlow = glow(0xff9933, 5, 0.5, V.DJ.x, 6.2, V.DJ.z, HG);
           pulse(V.djGlow, 0.5);
-          // neon trang trí: dải dọc vách màn hình + mặt quầy
-          const neonStrip = (len, c, x, y, z) => {
-            const m = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, len), new THREE.MeshBasicMaterial({ color: c }));
-            m.position.set(x, y, z);
-            G.add(m);
-            return m;
-          };
-          neonStrip(7.2, 0x00e5ff, -20.12, 5.05, 36);
-          neonStrip(7.2, 0xff4fd8, -20.12, 0.75, 36);
-          neonStrip(7.0, 0x00e5ff, -10.12, 1.05, 36);
-          neonStrip(7.0, 0xb26bff, -10.12, 0.35, 36);
-          pulse(glow(0x00e5ff, 5.5, 0.35, -19.6, 2.9, 36), 0.35);
-          pulse(glow(0xff4fd8, 5.0, 0.32, -10.5, 1.4, 36), 0.32);
-          // biển BAR lơ lửng trên khu bar (hai mặt, không vật cản)
           [-1, 1].forEach((s) => {
-            const bp = new THREE.Mesh(
-              new THREE.PlaneGeometry(3.2, 0.85),
-              new THREE.MeshBasicMaterial({ map: vLabel("🍸 BAR", 384, 100, "#17122B", "#7FF3FF", 60) }),
-            );
-            bp.position.set(-19.9, 6.1, 36);
-            bp.rotation.y = (s * Math.PI) / 2;
-            G.add(bp);
+            bx(1.6, 5.2, 1.6, ESP, CX + s * 11.9, 7.2, CZ + 26.4, HG);
+            [5.4, 7.0, 8.6].forEach((y) => {
+              const sp2 = cyl(0.45, 0.45, 0.06, 0x3a2f28, CX + s * 11.9, y, CZ + 25.58, HG, 16);
+              sp2.rotation.x = Math.PI / 2;
+            });
+            cyl(0.12, 0.12, 7.8, 0x555555, CX + s * 13.3, 7.9, CZ + 23.2, HG, 8);
           });
-          pulse(glow(0x00e5ff, 4.5, 0.35, -19.9, 6.1, 35.2), 0.35);
-          // bàn nhỏ trên sàn + đèn ấm khu bar
-          [
-            [-13.5, 33.2],
-            [-13.5, 38.8],
-          ].forEach((tp) => {
-            cyl(0.55, 0.55, 0.06, MID, tp[0], 0.78, tp[1], G, 14);
-            cyl(0.05, 0.05, 0.75, ESP, tp[0], 0.4, tp[1], G, 6);
+          bx(26.8, 0.3, 0.3, 0x555555, CX, 11.8, CZ + 23.2, HG);
+          [-9, -4.5, 0, 4.5, 9].forEach((x, i) =>
+            beamH(CX + x, 11.6, CZ + 23.2, [0xff4fd8, 0x00e5ff, 0xffd24a, 0xb26bff, 0x7aff7a][i], i + 3, 7.6),
+          );
+        })();
+
+        /* ── QUẦY BAR (phía bắc sàn) ── */
+        (function () {
+          bx(20, 3.4, 0.5, DARK, CX, 5.7, CZ - 27.9, HG);
+          [5.7, 6.5].forEach((y) => bx(19, 0.06, 0.4, MID, CX, y, CZ - 27.45, HG));
+          for (let i = 0; i < 18; i++) {
+            const r = i < 9 ? 5.7 : 6.5;
+            cyl(0.1, 0.12, 0.5, [CARA, OLIVE, 0xe9c9a6, TERRA, SAGE, DARK][i % 6], CX - 8.4 + (i % 9) * 2.1, r + 0.28, CZ - 27.4, HG, 8);
+          }
+          bx(19, 1.1, 1, DARK, CX, 4.55, CZ - 22.8, HG);
+          bx(19.6, 0.1, 1.3, 0xeed3b0, CX, 5.15, CZ - 22.8, HG);
+          bbH(19, 0.07, 0.07, 0x00e5ff, CX, 4.9, CZ - 22.25, HG);
+          bbH(19, 0.07, 0.07, 0xff4fd8, CX, 4.35, CZ - 22.25, HG);
+          glowH(0x00e5ff, 6, 0.35, 0, 5.2, -22.5);
+          for (let i = 0; i < 9; i++) stoolH(CX - 8 + i * 2, CZ - 21.3, 0.85, [CARA, OLIVE][i % 2], 4);
+          [-1, 1].forEach((s) => bx(0.2, 5, 0.2, DARK, CX + s * 9.7, 6.5, CZ - 27.9, HG));
+          signH("🍸 SKY BAR", 5.6, 1.1, 672, 132, "#17122B", "#7FF3FF", 64, CX, 8.4, CZ - 27.55, 0);
+          glowH(0x00e5ff, 5, 0.35, 0, 8.4, -27.8);
+        })();
+
+        /* ── HỒ BƠI NỔI (phía đông sàn) ── */
+        (function () {
+          bx(9.4, 0.6, 7, 0xe9dcc4, CX + 28.8, 4.3, CZ, HG);
+          const wv = plane(8.4, 6, new THREE.MeshBasicMaterial({ color: 0x4fd6e8, transparent: true, opacity: 0.88 }), CX + 28.8, 4.61, CZ, HG);
+          V.hexPoolWater = wv;
+          glowH(0x4fd6e8, 12, 0.3, 28.8, 4.9, 0);
+          for (let i = 0; i < 4; i++) {
+            const x = CX + 25 + i * 2.5;
+            bx(0.8, 0.2, 1.8, 0xf6efe2, x, 4.25, CZ - 4.8, HG);
+            bx(0.8, 0.5, 0.15, 0xf6efe2, x, 4.55, CZ - 5.6, HG);
+          }
+          [26.25, 31.25].forEach((rx, i) => {
+            cyl(0.04, 0.04, 2.6, ESP, CX + rx, 5.3, CZ - 5.2, HG, 6);
+            coneH(1.4, 0.5, [0xe77fb0, 0xf2b705][i], CX + rx, 6.85, CZ - 5.2, HG, 10);
           });
-          const barLight = new THREE.PointLight(0xffb36b, 1.6, 16);
-          barLight.position.set(-14, 3.2, 36);
-          S.add(barLight);
-          // vật cản mặt đất của khu bar (chừa lối đi quanh sàn + trước màn hình)
-          OBSTACLES.push({ minX: -20.75, maxX: -20.15, minZ: 30.3, maxZ: 41.7 }); // vách + màn hình
-          OBSTACLES.push({ minX: -10.15, maxX: -8.85, minZ: 32.4, maxZ: 39.6 }); // quầy bar
-          OBSTACLES.push({ minX: -19.35, maxX: -14.65, minZ: 31.0, maxZ: 33.4 }); // bàn DJ + loa
-          OBSTACLES.push({ minX: -14.1, maxX: -12.9, minZ: 32.6, maxZ: 33.8 }); // bàn nhỏ 1
-          OBSTACLES.push({ minX: -14.1, maxX: -12.9, minZ: 38.2, maxZ: 39.4 }); // bàn nhỏ 2
-        }
+        })();
+
+        /* ── VIP LOUNGE (phía tây sàn): lò lửa + sofa + giường tròn có mái.
+           Giường tròn nắn vào trong sàn (bản thiết kế đặt tâm ở đúng đỉnh
+           tây r34 nên nửa giường lơ lửng ngoài sàn; nay tâm r31.5). ── */
+        (function () {
+          cyl(1.1, 1.2, 0.5, 0xcdbfa6, CX - 29, 4.25, CZ, HG, 16);
+          cyl(0.8, 0.8, 0.05, 0x2a1208, CX - 29, 4.52, CZ, HG, 16);
+          glowH(0xff8a2a, 3.6, 0.7, -29, 4.8, 0);
+          [180, 90, 270].forEach((d, i) => {
+            const b = (d * Math.PI) / 180;
+            sofaH([0x7a2a5a, 0x2a4a7a, 0x7a2a5a][i], CX - 29 + 2.8 * Math.cos(b), CZ + 2.8 * Math.sin(b), Math.atan2(Math.cos(b), Math.sin(b)), 3.4, 4);
+          });
+          [[-31.5, -3.6], [-31.5, 3.6]].forEach((p, i) => {
+            const wx = CX + p[0],
+              wz = CZ + p[1],
+              col = [0xe77fb0, 0x7cc7c0][i];
+            cyl(1.5, 1.5, 0.4, 0xf6efe2, wx, 4.2, wz, HG, 20);
+            cyl(1.4, 1.4, 0.12, col, wx, 4.46, wz, HG, 20);
+            [[-1.4, 0], [1.4, 0], [0, -1.4], [0, 1.4]].forEach((o) => cyl(0.04, 0.04, 3, ESP, wx + o[0], 5.5, wz + o[1], HG, 6));
+            cyl(1.9, 1.9, 0.08, col, wx, 7, wz, HG, 20);
+          });
+        })();
+
+        /* ── POD SOFA phía bắc sàn + cây ở các đỉnh nam ── */
+        (function () {
+          [240, 300].forEach((d, pi) => {
+            const a = (d * Math.PI) / 180,
+              px = 27 * Math.cos(a),
+              pz = 27 * Math.sin(a);
+            cyl(0.7, 0.7, 0.07, 0x201830, CX + px, 4.46, CZ + pz, HG, 18);
+            cyl(0.08, 0.08, 0.46, DARK, CX + px, 4.23, CZ + pz, HG, 8);
+            glowH([0xff4fd8, 0x00e5ff][pi % 2], 3, 0.5, px, 4.9, pz);
+            [-70, 0, 70].forEach((dd, i) => {
+              const b = a + (dd * Math.PI) / 180;
+              sofaH([0x7a2a5a, 0x2a4a7a, 0x7a2a5a][i], CX + px + 2.5 * Math.cos(b), CZ + pz + 2.5 * Math.sin(b), Math.atan2(Math.cos(b), Math.sin(b)), 2.8, 4);
+            });
+          });
+          [60, 120, 240, 300].forEach((d) => {
+            const a = (d * Math.PI) / 180;
+            plantH(CX + 31 * Math.cos(a), CZ + 31 * Math.sin(a), 4, 1.3);
+          });
+        })();
+
+        /* ── biển lơ lửng khu bar (2 mặt, trên mép nam sàn, không vật cản) ── */
+        [-1, 1].forEach((s) => {
+          const bp = new THREE.Mesh(
+            new THREE.PlaneGeometry(6.4, 0.95),
+            new THREE.MeshBasicMaterial({ map: vLabel("🍸 SKY BAR LỤC GIÁC", 768, 110, "#17122B", "#7FF3FF", 62) }),
+          );
+          bp.position.set(CX, 7.6, CZ + 30.5);
+          bp.rotation.y = s > 0 ? 0 : Math.PI;
+          HG.add(bp);
+        });
+        glowH(0x00e5ff, 5.5, 0.35, 0, 7.6, 30.5);
+
+        /* ── vật cản riêng trên sàn (posAllowed dùng VILLA_UPPER khi ở cao) ── */
+        VILLA_UPPER.push(
+          { minX: CX - 2.6, maxX: CX + 2.6, minZ: CZ + 23.7, maxZ: CZ + 25.5 }, // bàn DJ
+          { minX: CX - 10.2, maxX: CX + 10.2, minZ: CZ + 28.8, maxZ: CZ + 29.1 }, // lưng màn hình lớn
+          { minX: CX - 9.8, maxX: CX + 9.8, minZ: CZ - 25.3, maxZ: CZ - 22.3 }, // quầy bar
+          { minX: CX - 10.0, maxX: CX + 10.0, minZ: CZ - 28.4, maxZ: CZ - 27.6 }, // kệ rượu
+          { minX: CX - 30.3, maxX: CX - 27.7, minZ: CZ - 1.3, maxZ: CZ + 1.3 }, // lò lửa VIP
+          { minX: CX - 12.7, maxX: CX - 11.1, minZ: CZ + 25.6, maxZ: CZ + 27.2 }, // loa trái sân khấu
+          { minX: CX + 11.1, maxX: CX + 12.7, minZ: CZ + 25.6, maxZ: CZ + 27.2 }, // loa phải sân khấu
+        );
+
+        /* ── ánh sáng khu + đăng ký thông số ── */
+        const rl = new THREE.PointLight(0xffb36b, 1.5, 70);
+        rl.position.set(CX, 13, CZ);
+        S.add(rl);
+        V.roofLight = rl;
+        const sl3 = new THREE.PointLight(0xff4fd8, 1.0, 45);
+        sl3.position.set(CX, 9, CZ + 24);
+        S.add(sl3);
+        V.hexStageLight = sl3;
+        V.roofG = HG;
+        window.__lmSkyHex = {
+          center: [CX, CZ],
+          circumradius: V.HEX.R,
+          apothem: +V.HEX.A.toFixed(3),
+          deckY: 4,
+          stairs: V.HEXSTAIRS.map((s) => ({ x: +s.ox.toFixed(2), z: +s.oz.toFixed(2), dirX: +s.nx.toFixed(3), dirZ: +s.nz.toFixed(3), width: s.w, deckY: 4 })),
+          tank: { x: CX, z: CZ, r: 5.4, topY: 10 },
+          spiral: { rInner: 7.1, rOuter: 9.3, steps: 34, startDeg: -90, turns: 1.25, topY: 10 },
+          screen: V.SCR,
+          dj: V.DJ,
+          bar: { minX: CX - 9.5, maxX: CX + 9.5, minZ: CZ - 28, maxZ: CZ - 22 },
+          pool: { minX: CX + 24.1, maxX: CX + 33.5, minZ: CZ - 3.6, maxZ: CZ + 3.6 },
+        };
 
         three.villaTick = function (dt, t) {
           if (three.gardenV2) three.gardenV2.tickFx(dt, t); /* GHÉP SÂN VƯỜN V2: nước hồ mới + cá koi + nhịp glow (mesh nước cũ đã gỡ cùng hồ cũ) */
@@ -8771,9 +9251,49 @@
           });
           V.djGlow.material.opacity = playing ? 0.45 + 0.3 * Math.sin(t * 9) : 0.3;
           V.djGlow.material.color.setHSL(0.07 + 0.05 * Math.sin(t * 1.3), 1, 0.6);
-          const inWing = inRect2(myPos.x, myPos.z, V.WING) && myY < 2.6;
-          V.roofG.visible = !inWing;
-          V.roofLight.visible = !inWing;
+          const inHex = hexMetric(myPos.x, myPos.z) <= 1 && myY < 2.6;
+          V.roofG.visible = !inHex;
+          V.roofLight.visible = !inHex;
+          /* Hoạt họa khu lục giác: cá bơi trong bể + bong bóng + sàn LED +
+             viền neon đổi màu + đèn quét + đèn sân khấu + nước hồ trên sàn */
+          if (V.hexFish)
+            V.hexFish.forEach((f) => {
+              const th2 = f.ph + f.spd * t,
+                sg = f.spd > 0 ? 1 : -1;
+              f.g.position.set(
+                V.HEX.cx + Math.cos(th2) * f.r,
+                f.y + 0.25 * Math.sin(t * 1.2 + f.ph),
+                V.HEX.cz + Math.sin(th2) * f.r,
+              );
+              f.g.rotation.y = Math.atan2(-Math.cos(th2) * sg, -Math.sin(th2) * sg);
+              f.tail.rotation.y = 0.5 * Math.sin(t * 9 + f.ph);
+            });
+          if (V.hexBubbles)
+            V.hexBubbles.forEach((b) => {
+              const u = (t * 0.18 + b.ph) % 1;
+              b.b.position.set(
+                V.HEX.cx + Math.cos(b.a + t * 0.3) * b.r,
+                4.95 + u * 4.8,
+                V.HEX.cz + Math.sin(b.a + t * 0.3) * b.r,
+              );
+            });
+          if (V.hexTiles && V.n % 3 === 0) {
+            const T = V.hexTiles,
+              tc = new THREE.Color();
+            T.pts.forEach((p, n) => {
+              tc.setHSL((t * 0.1 + (p[2] + p[3]) * 0.05 + Math.hypot(p[0], p[1]) * 0.012) % 1, 0.9, 0.3 + 0.2 * Math.sin(t * 3 + p[2] * 0.8 - p[3] * 0.6));
+              T.mesh.setColorAt(n, tc);
+            });
+            if (T.mesh.instanceColor) T.mesh.instanceColor.needsUpdate = true;
+          }
+          if (V.hexNeon) V.hexNeon.forEach((m, k) => m.color.setHSL((t * 0.08 + k / 6) % 1, 0.9, 0.55));
+          if (V.hexBeams)
+            V.hexBeams.forEach((b) => {
+              b.g.rotation.x = 0.4 * Math.sin(t * 1.3 + b.ph);
+              b.g.rotation.z = 0.4 * Math.cos(t * 1.1 + b.ph * 1.7);
+            });
+          if (V.hexStageLight) V.hexStageLight.color.setHSL((t * 0.1) % 1, 0.9, 0.6);
+          if (V.hexPoolWater) V.hexPoolWater.material.opacity = 0.83 + 0.05 * Math.sin(t * 2);
           if (villaRide) {
             /* Trượt bằng HỆ CỦA LÀNG trên đường cong v2: chạy theo chiều dài
                thật (getPointAt), tốc độ v = max(1, sqrt(1 + 19.6·κ·(y0 − y)))
@@ -8878,7 +9398,10 @@
      mép như cũ để nhân vật không lẹm ra ngoài rào. */
         if (x >= -44.6 && x <= 44.6 && z >= -64.6 && z <= 119.6) return true;
         if (x >= -57.6 && x <= 57.6 && z >= 118 && z <= 247.6) return true;
-        if (inRect2(x, z, V.RRAMP) || inRect2(x, z, V.RLAND)) return true;
+        /* Khu bar lục giác: mở khung đi được theo dấu chân lục giác + bệ
+           chân 10 thang (metric 1.30 ≈ sàn + 8.8 m), vẫn kẹp trong biên
+           thế giới x ±57.6 / z -64.6..247.6. */
+        if (x >= -57.6 && x <= 57.6 && z >= -64.6 && z <= 247.6 && hexMetric(x, z) <= 1.3) return true;
         return false;
       }
       function posAllowed(x, z, curY) {
@@ -13832,8 +14355,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         return myY < 1.6 && Math.abs(myPos.x) < 10.5 && myPos.z > -50.8 && myPos.z < -36.2;
       }
       function inBarZone() {
-        /* Khu bar MỚI ở mặt đất phía tây vườn (V.BARZONE) — thay Sky Bar sân thượng. */
-        return myY < 2.6 && typeof inRect2 === "function" && inRect2(myPos.x, myPos.z, V.BARZONE);
+        /* Khu bar LỤC GIÁC: đang ở trên sàn (y>3.2) trong dấu chân lục
+           giác nới 12% (tính cả sân khấu/bệ quanh mép sàn). */
+        return myY > 3.2 && typeof hexMetric === "function" && hexMetric(myPos.x, myPos.z) <= 1.12;
       }
       function ytSetVol(frame, vol) {
         if (!frame || !frame.getAttribute("src")) return;
@@ -14129,8 +14653,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       window.DJ = { cur: null, audio: null, vol: 0.8, muted: false };
       function vlGain(kind) {
         /* Âm thanh theo KHU: nhạc DJ + màn hình Bar chỉ nghe trong khu bar
-     (mặt đất phía tây vườn); ra khỏi khu là tắt hẳn, không còn nghe xa dần. */
-        const inBar = myY < 2.6 && inRect2(myPos.x, myPos.z, V.BARZONE);
+     lục giác (trên sàn); ra khỏi khu là tắt hẳn, không còn nghe xa dần. */
+        const inBar = myY > 3.2 && hexMetric(myPos.x, myPos.z) <= 1.12;
         if (!inBar) return 0;
         if (kind === "dj") {
           const d = Math.hypot(myPos.x - V.DJ.x, myPos.z - V.DJ.z);
@@ -14276,10 +14800,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const d2 = Math.hypot(6.7 - myPos.x, 10 - myPos.z);
           if (d2 < 2.3 && (!best || d2 < best.dist)) best = { type: "vslide2", dist: d2 };
         }
-        if (myY < 2.6) {
-          /* Khu bar mặt đất: bàn DJ + điểm điều khiển màn hình Bar */
-          const dv = Math.hypot(V.DJ.x + 1.6 - myPos.x, V.DJ.z - myPos.z);
-          if (dv < 3.0 && (!best || dv < best.dist)) best = { type: "vdj", dist: dv };
+        if (myY > 3.2 && myY < 8) {
+          /* Khu bar lục giác: bàn DJ trên sân khấu + điểm điều khiển màn
+             hình Bar trên sàn nhảy trước sân khấu */
+          const dv = Math.hypot(V.DJ.x - myPos.x, V.DJ.z - 2.4 - myPos.z);
+          if (dv < 3.2 && (!best || dv < best.dist)) best = { type: "vdj", dist: dv };
           const ds = Math.hypot(V.SCRCTL.x - myPos.x, V.SCRCTL.z - myPos.z);
           if (ds < 3.6 && (!best || ds < best.dist)) best = { type: "vscreen", dist: ds };
         }
@@ -14364,7 +14889,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           ["🔥 Lửa trại", () => vlTP(12.7, 34, 0, Math.PI / 2, -Math.PI / 2)],
           ["🏊 Hồ bơi", () => vlTP(-1.2, 6, 0, -Math.PI / 2, Math.PI)],
           ["🛝 Cầu tụt", () => vlTP(-23, -3.8, 4.0, Math.PI / 2, Math.PI)],
-          ["🍸 Khu bar", () => vlTP(-12.6, 36, 0, -Math.PI / 2, Math.PI / 2)],
+          ["🍸 Khu bar", () => vlTP(-24, 68, 4.0, 0, Math.PI)],
         ];
         dest.forEach((d) => {
           const b = document.createElement("button");
@@ -24053,9 +24578,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             [22.8, 62],
             [27.0, 84],
             [8, 66.4],
-            [-8, 66.4],
             [16, 88],
-            [-16, 76],
             [30, 96],
             [38, 116],
             [10, 116],
