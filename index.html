@@ -4265,7 +4265,9 @@
              tia nước đài phun, cá koi, đom đóm, mặt nước): ở xa thì bỏ qua
              cập nhật — các hoạt họa này đều tính theo đồng hồ tuyệt đối nên
              tới gần lại khớp ngay, không lệch pha, không đổi gameplay.
-         (3) Chế độ Nhẹ giảm một nửa số hạt tia phun + đom đóm (drawRange).
+         (3) Tầng eco (Nhẹ, hoặc Tự động trên điện thoại) giảm một nửa số
+             hạt tia phun của cả 2 đài phun + lửa trại + đom đóm (drawRange);
+             rời eco khôi phục đủ số hạt.
          (4) Nút gạt "Giảm lag (điện thoại)" trong menu ☰ → Cài đặt: Tự động
              (mặc định) / Nhẹ / Đầy đủ, lưu theo máy bằng localStorage
              (khóa lmLagMode). Máy tính để bàn giữ nguyên chất lượng như cũ. */
@@ -8612,10 +8614,11 @@
           /* GIẢM LAG ĐIỆN THOẠI: cổng khoảng cách ~45 m cho mặt nước hồ bơi,
              tia nước đài phun vườn (0, 20) và cá koi (-16, -6) — ở xa bỏ qua
              cập nhật (mọi chuyển động tính theo đồng hồ tuyệt đối nên tới
-             gần khớp ngay). Chế độ Nhẹ: tia phun chỉ chạy/vẽ một nửa số hạt. */
-          const liteFx = !!window.__lmEco;
+             gần khớp ngay). Tầng eco (__lmEco): tia phun chỉ chạy/vẽ một
+             nửa số hạt, rời eco khôi phục đủ số hạt. */
+          const ecoFx = !!window.__lmEco;
           if (waterTex && window.__lmNear(-13, 6, 45)) { waterTex.offset.x = t * 0.02; waterTex.offset.y = t * 0.015; }
-          if (fountainJet && window.__lmNear(0, 20, 45)) { const F = fountainJet; const lim = liteFx ? Math.ceil(F.seed.length / 2) : F.seed.length; F.pts.geometry.setDrawRange(0, lim); for (let i = 0; i < lim; i++) { const s = F.seed[i], h = (t * s.sp + s.ph) % 1; const rr = s.r + h * 2.6; F.pos[i * 3] = Math.cos(s.a) * rr; F.pos[i * 3 + 1] = Math.max(0.6, 4.3 + h * 0.7 - h * h * 4.4); F.pos[i * 3 + 2] = Math.sin(s.a) * rr; } F.pts.geometry.attributes.position.needsUpdate = true; }
+          if (fountainJet && window.__lmNear(0, 20, 45)) { const F = fountainJet; const lim = ecoFx ? Math.ceil(F.seed.length / 2) : F.seed.length; F.pts.geometry.setDrawRange(0, lim); for (let i = 0; i < lim; i++) { const s = F.seed[i], h = (t * s.sp + s.ph) % 1; const rr = s.r + h * 2.6; F.pos[i * 3] = Math.cos(s.a) * rr; F.pos[i * 3 + 1] = Math.max(0.6, 4.3 + h * 0.7 - h * h * 4.4); F.pos[i * 3 + 2] = Math.sin(s.a) * rr; } F.pts.geometry.attributes.position.needsUpdate = true; }
           if (koi && window.__lmNear(-16, -6, 45)) koi.children.forEach((f) => { const a = t * 0.5 + f.userData.ph; f.position.set(Math.cos(a) * f.userData.r, Math.sin(t * 1.7 + f.userData.ph * 2) * 0.02, Math.sin(a) * f.userData.r); f.rotation.y = -a; f.rotation.z = Math.sin(t * 7 + f.userData.ph * 3) * 0.05; if (f.userData.tail) f.userData.tail.rotation.y = Math.sin(t * 7 + f.userData.ph * 3) * 0.5; }); /* đuôi vẫy + thân lượn nhẹ theo nhịp bơi */
           pulses.forEach((g) => { g.s.material.opacity = g.b * (0.78 + 0.22 * Math.sin(t * 1.9 + g.ph)); });
         }
@@ -25609,7 +25612,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                   });
               }
               /* Đài phun nước — GIẢM LAG: cổng khoảng cách ~45 m quanh (0, 84);
-                 chế độ Nhẹ chỉ chạy/vẽ một nửa số tia nước. */
+                 tầng eco (__lmEco) chỉ chạy/vẽ một nửa số tia nước, rời eco
+                 khôi phục đủ số hạt. */
               var F = window.__bcFountain;
               if (F && window.__lmNear(0, 84, 45)) {
                 var fLim = window.__lmEco ? Math.ceil(F.seed.length / 2) : F.seed.length;
