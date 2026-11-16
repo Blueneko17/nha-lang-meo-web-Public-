@@ -4256,9 +4256,11 @@
       /* ===== TẦNG CHẤT LƯỢNG TỰ ĐỘNG + GIẢM LAG ĐIỆN THOẠI (2026-11-16) =====
          Chủ nhân báo điện thoại vào làng khá lag. Khắc phục 4 lớp:
          (1) Phát hiện điện thoại (cảm ứng + màn nhỏ / UA di động / ≤4 nhân CPU)
-             → Tự động giới hạn pixelRatio tối đa 1.5 (đỡ tải GPU theo tỉ lệ
-             bình phương), shadow map 1024; chế độ Nhẹ ép pixelRatio = 1.0,
-             shadow map 512 và tắt castShadow cho vật trang trí nhỏ.
+             → Tự động giới hạn pixelRatio tối đa 1.25 (đỡ tải GPU theo tỉ lệ
+             bình phương), shadow map 512 ngay ở nấc eco; chế độ Nhẹ ép
+             pixelRatio = 1.0, shadow map 512 và tắt castShadow cho vật trang
+             trí nhỏ. (Đợt đầu: 1.5 / 1024 — chủ nhân xác nhận đỡ lag, hạ
+             thêm một nấc 2026-11-16.)
          (2) Cổng khoảng cách ~45 m cho hoạt họa nặng mỗi khung hình (đu quay,
              tia nước đài phun, cá koi, đom đóm, mặt nước): ở xa thì bỏ qua
              cập nhật — các hoạt họa này đều tính theo đồng hồ tuyệt đối nên
@@ -4342,12 +4344,12 @@
           applyTo: function (renderer, spot) {
             if (!renderer) return;
             var L = lite();
-            var cap = L ? 1.0 : eco() ? 1.5 : 1.75;
+            var cap = L ? 1.0 : eco() ? 1.25 : 1.75;
             renderer.setPixelRatio(
               Math.min(window.devicePixelRatio || 1, cap),
             );
             if (spot && spot.shadow && spot.shadow.mapSize) {
-              var s = L ? 512 : 1024;
+              var s = L || eco() ? 512 : 1024;
               if (spot.shadow.mapSize.x !== s) {
                 spot.shadow.mapSize.set(s, s);
                 if (spot.shadow.map) {
@@ -8475,7 +8477,11 @@
         function updateFire(dt, t) {
           if (!fireSys) return;
           const fp = fireSys.flame, fpos = fp.geo.attributes.position.array, fcol = fp.geo.attributes.color.array;
-          for (let i = 0; i < fp.n; i++) {
+          /* GIẢM LAG (eco): chỉ chạy + vẽ một nửa số hạt lửa (drawRange) —
+             cùng quy tắc với tia phun đài phun + đom đóm ở nấc eco. */
+          const fLim = window.__lmEco ? Math.ceil(fp.n / 2) : fp.n;
+          fp.geo.setDrawRange(0, fLim);
+          for (let i = 0; i < fLim; i++) {
             fp.age[i] += dt; if (fp.age[i] > fp.life[i]) { fp.age[i] = 0; fp.life[i] = 0.55 + Math.random() * 0.6; fp.seed[i] = Math.random() * 6.28; fp.rad[i] = Math.random() * 0.3; }
             const f = fp.age[i] / fp.life[i], k = i * 3;
             fpos[k] = FIRE_POS.x + Math.cos(fp.seed[i]) * fp.rad[i] * (1 - f * 0.7) + Math.sin(t * 7 + fp.seed[i] * 3) * 0.04 * f; fpos[k + 1] = FIRE_Y + 0.2 + f * 0.95; fpos[k + 2] = FIRE_POS.z + Math.sin(fp.seed[i]) * fp.rad[i] * (1 - f * 0.7);
@@ -10811,11 +10817,17 @@ function winUnit(x, y, z, ry, w, h) {
   [-31.6, -25, -11, 11, 26, 31.6].forEach(x => { bx(0.9, WH, 0.7, STONE, x, WH / 2, 17.55); });
   [-31.6, 31.6].forEach(x => bx(0.9, WH, 0.7, STONE, x, WH / 2, -17.55));
   // cửa sổ
-  [-28, -21, -14, -8, 8, 22, 29].forEach(x => winUnit(x, 1.9, 17.2, 0, 1.7, 2.2));
+  /* GỠ CỬA SỔ KẸT SAU KỆ SÁCH (2026-11-16, theo ảnh chủ nhân chụp): khung
+     winUnit là hộp đặc 0.46 sâu (tường chỉ 0.4) đặt trùng tâm tường nên nhô
+     cả hai mặt; các ô cửa nằm sau hàng kệ sách bị kệ che khuất gần hết, chỉ
+     còn dải khung nâu be lồi lên trên lưng kệ / kẹt vào lưng kệ — trông như
+     "tấm nâu be dính trên tường". Gỡ 23 ô chạm kệ: mặt nam x −14 (sau tủ
+     sách sảnh), mặt bắc y 1.9 x ±27 + y 6.2 x ±22/±27 (sau kệ tường bắc),
+     hai tường bên x ±32.2 tại z −11/−3.5/4/11 cả 2 hàng y (sau kệ tây/đông).
+     Kệ sách giữ nguyên, lưng kệ áp sát mặt tường như cũ. */
+  [-28, -21, -8, 8, 22, 29].forEach(x => winUnit(x, 1.9, 17.2, 0, 1.7, 2.2));
   [-28, -21, -14, -8, -3.6, 3.6, 8, 22, 29].forEach(x => winUnit(x, 6.2, 17.2, 0, 1.7, 2.8));
-  [-27, -22, -17, 17, 22, 27].forEach(x => { winUnit(x, 6.2, -17.2, Math.PI, 1.7, 2.8); });
-  [-27, 27].forEach(x => winUnit(x, 1.9, -17.2, Math.PI, 1.7, 2.2));
-  [-11, -3.5, 4, 11].forEach(z => { [-1, 1].forEach(s => { winUnit(s * 32.2, 1.9, z, s * Math.PI / 2, 1.7, 2.2); winUnit(s * 32.2, 6.2, z, s * Math.PI / 2, 1.7, 2.8); }); });
+  [-17, 17].forEach(x => { winUnit(x, 6.2, -17.2, Math.PI, 1.7, 2.8); });
   // vật cản tường
   OB(-32.4, 32.4, -17.45, -16.95); OB(-32.4, -31.95, -17, 17); OB(31.95, 32.4, -17, 17); OB(-32.4, -1.3, 16.86, 17.4); OB(1.3, 32.4, 16.86, 17.4);
   // cột vòm trong nhà + dầm trần
@@ -11676,6 +11688,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         if (!three || !three.cats) return;
         const yb = three.yarnBall;
         three.cats.forEach((cat) => {
+          /* GIẢM LAG (eco): mèo NPC cách người chơi > ~45 m thì tạm dừng
+             cập nhật hoạt họa + trạng thái (đứng yên tại chỗ; tới gần là
+             chạy tiếp). Máy tính / nấc Đầy đủ không đổi (cổng luôn mở). */
+          if (window.__lmNear && !window.__lmNear(cat.grp.position.x, cat.grp.position.z, 45)) return;
           cat.timer -= dt;
           cat.moving = false;
           const p = cat.grp.position;
@@ -12894,7 +12910,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         const step =
           3.3 *
           dt *
-          (window.__joySprint || keysDown["ShiftLeft"] || keysDown["ShiftRight"] ? 1.45 : 1);
+          (window.__joySprint || keysDown["ShiftLeft"] || keysDown["ShiftRight"] ? 2.175 : 1);
+        /* TỐC ĐỘ CHẠY NHANH (2026-11-16): hệ số Shift 1.45 → 2.175, tức tốc
+           độ chạy 4.79 → 7.18 m/s (+50% theo yêu cầu chủ nhân); đi bộ giữ
+           nguyên 3.3 m/s. Chỉ là hệ số di chuyển cục bộ — máy chủ chỉ kẹp
+           biên thế giới, giao thức mạng không đổi; cầu tụt/đu quay dùng vật
+           lý + ghế riêng, không phụ thuộc hệ số này. */
         const nx = myPos.x + mx * step,
           nz = myPos.z + mz * step;
         if (posAllowed(nx, myPos.z, myY)) myPos.x = nx;
@@ -15229,7 +15250,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         if (three.polishTick) three.polishTick(t);
         if (three.villaTick) three.villaTick(dt, t);
         if (three.skyTick) three.skyTick(dt, t);
-        if (three.dust) {
+        if (three.dust && window.__lmNear(0, -35, 45)) {
           const dp = three.dust.points.geometry.attributes.position;
           three.dust.base.forEach((b, i) => {
             dp.array[i * 3] = b[0] + Math.sin(t * 0.12 + i * 1.7) * 0.5;
@@ -15238,10 +15259,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           });
           dp.needsUpdate = true;
         }
-        three.fish.forEach((f, i) => {
-          f.position.y = f.userData.y0 + Math.sin(t * 1.6 + i * 2.1) * 0.07;
-          f.rotation.y = Math.sin(t * 0.7 + i * 1.7) * 0.45;
-        });
+        /* GIẢM LAG (eco): cá trong bể (22.5, −50.5) chỉ bơi khi người chơi
+           trong ~45 m — nhịp bơi tính theo đồng hồ tuyệt đối nên khớp lại
+           ngay khi tới gần. */
+        if (window.__lmNear(22.5, -50.5, 45))
+          three.fish.forEach((f, i) => {
+            f.position.y = f.userData.y0 + Math.sin(t * 1.6 + i * 2.1) * 0.07;
+            f.rotation.y = Math.sin(t * 0.7 + i * 1.7) * 0.45;
+          });
         if (RoomState.inRoom && performance.now() - lastMoveSentAt > 120) {
           lastMoveSentAt = performance.now();
           sendMove(false);
@@ -15293,6 +15318,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           scene.background = new THREE.Color(0x1d130c);
           scene.fog = new THREE.FogExp2(0x1d130c, 0.0032); /* CÔNG VIÊN: mật độ sương đêm hạ hẳn — trước đây 0.0075 khiến khu công viên ở xa (z 68–120) bị một màn sương nâu-đen phủ kín, tối hơn hẳn các khu gần; nay công viên trong rõ như các khu khác cả ngày lẫn đêm (màu sương/giờ giấc giữ nguyên) */
           const camera = new THREE.PerspectiveCamera(55, 1.5, 0.1, 240);
+          /* GIẢM LAG (eco): rút tầm nhìn xa 240 → 200 ở nấc eco (sương mù
+             FogExp2 đã phủ mờ vật ở xa; các khu chơi chính đều trong 200 m
+             tính từ điểm đứng thường gặp). __lmApplyQuality cập nhật lại
+             khi người chơi đổi nấc trong menu. */
+          if (window.__lmEco) camera.far = 200;
           camera.position.set(7.5, 5.4, -24.5);
           /* Ánh sáng theo brief: hemisphere ấm nhẹ + spot chính ấm đổ bóng mềm + các point ấm cục bộ */
           const hemi = new THREE.HemisphereLight(0xffe9c4, 0x3a2a1c, 0.44);
@@ -15307,7 +15337,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           spot.position.set(2, 10.5, -33.5);
           spot.target.position.set(0, 0, -36);
           spot.castShadow = false; // đã bỏ đổ bóng trong nhà (xem ghi chú ở shadowMap)
-          spot.shadow.mapSize.set(window.__lmLite ? 512 : 1024, window.__lmLite ? 512 : 1024);
+          spot.shadow.mapSize.set(window.__lmLite || window.__lmEco ? 512 : 1024, window.__lmLite || window.__lmEco ? 512 : 1024);
           spot.shadow.bias = -0.0004;
           spot.shadow.normalBias = 0.02;
           spot.shadow.radius = 3;
@@ -15396,6 +15426,13 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             if (!three || !window.LMQuality) return;
             window.LMQuality.applyTo(three.renderer, three.spot);
             window.LMQuality.applyDecorShadows(three.scene);
+            if (three.camera) {
+              var f = window.__lmEco ? 200 : 240;
+              if (three.camera.far !== f) {
+                three.camera.far = f;
+                three.camera.updateProjectionMatrix();
+              }
+            }
             sizeRenderer();
           };
           if (window.LMQuality) window.LMQuality.applyDecorShadows(scene);
@@ -17284,8 +17321,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
 
         /* ---------- renderer / scene ---------- */
         var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-        /* GIẢM LAG: bi-a cũng theo tầng chất lượng — Nhẹ = 1.0, điện thoại Tự động tối đa 1.5, máy tính giữ 2 */
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__lmLite ? 1 : window.LMQuality && window.LMQuality.isMobile ? 1.5 : 2));
+        /* GIẢM LAG: bi-a cũng theo tầng chất lượng — Nhẹ = 1.0, điện thoại Tự động tối đa 1.25 (khớp nấc eco của làng), máy tính giữ 2 */
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__lmLite ? 1 : window.LMQuality && window.LMQuality.isMobile ? 1.25 : 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         var scene = new THREE.Scene();
@@ -17309,7 +17346,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         spot.position.set(0, 24, 0);
         spot.target.position.set(0, 0, 0);
         spot.castShadow = true;
-        spot.shadow.mapSize.set(window.__lmLite ? 512 : 1024, window.__lmLite ? 512 : 1024);
+        spot.shadow.mapSize.set(window.__lmLite || window.__lmEco ? 512 : 1024, window.__lmLite || window.__lmEco ? 512 : 1024);
         spot.shadow.camera.near = 10;
         spot.shadow.camera.far = 45;
         spot.shadow.bias = -0.0004;
@@ -25001,13 +25038,24 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           // hàng rào bao quanh toàn khu (đúng mép khung đất)
           (function () {
             var fc = 0x6e5136;
-            bx(90.6, 1.0, 0.35, fc, 0, 0.5, -29.8);
+            /* RÀO BẮC: BỎ ĐOẠN XUYÊN NHÀ CHÍNH (2026-11-16, theo ảnh chủ nhân
+               chụp): đoạn cũ là MỘT thanh gỗ nâu 90.6 × 1.0 × 0.35 m tại
+               z −29.8 kèm cọc 0.18 × 1.35 × 0.18 m cách 4 m — nhà chính nay
+               nằm ở z −52.4..−17.6 nên thanh này chạy XUYÊN QUA nhà: trong
+               thư viện nó hiện thành "thanh/phân vách thấp màu nâu có cọc
+               nhỏ chạy dọc giữa sàn", nhìn qua cửa chính nó thành "băng nâu
+               dày chắn ngang phòng trên bàn trà, trước dãy sofa". Nay chỉ
+               giữ 2 đoạn mép NGOÀI nhà (x −45.3..−32.8 và 32.8..45.3) nối
+               rào đông/tây; đoạn rào bắc vốn không đăng ký vật cản riêng
+               (chỉ rào nam có) nên gỡ mesh + cọc là hết chắn hẳn. */
+            bx(12.5, 1.0, 0.35, fc, -39.05, 0.5, -29.8);
+            bx(12.5, 1.0, 0.35, fc, 39.05, 0.5, -29.8);
             bx(50, 1.0, 0.35, fc, -31, 0.5, 119.8); // rào nam đoạn tây: nới tới x −56, CHỪA CỔNG x∈[−6,6] vào khu trò chơi mới
             bx(50, 1.0, 0.35, fc, 31, 0.5, 119.8); // rào nam đoạn đông: nới tới x +56
             bx(0.35, 1.0, 150, fc, -44.8, 0.5, 45);
             bx(0.35, 1.0, 150, fc, 44.8, 0.5, 45);
             for (var fx = -44; fx <= 44; fx += 4) {
-              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -29.8);
+              if (Math.abs(fx) >= 36) bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -29.8); // cọc rào bắc: chỉ còn trên 2 đoạn mép ngoài nhà
               if (Math.abs(fx) > 6) bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 119.8); // cọc rào nam (chừa cổng)
             }
           })();
