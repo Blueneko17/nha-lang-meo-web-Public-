@@ -3463,6 +3463,18 @@
         border-color: var(--gold);
         color: #37261a;
       }
+      .sysmenu-sub .set-row input[type="range"].set-slider {
+        flex: 1.1;
+        min-width: 84px;
+        height: 32px;
+        accent-color: var(--gold);
+        cursor: pointer;
+      }
+      .sysmenu-sub .set-row .set-val {
+        min-width: 42px;
+        text-align: right;
+        font-size: 0.8rem;
+      }
       .sysmenu-sub ul {
         margin: 4px 0 0;
         padding-left: 18px;
@@ -5311,6 +5323,36 @@
                   <p style="margin: 2px 0 4px; opacity: 0.75; font-size: 0.78rem">
                     Tự động: điện thoại tự giảm độ nét và bớt hoạt họa ở xa. Nhẹ: nhẹ nhất
                     cho máy yếu. Đầy đủ: đẹp nhất, nặng máy nhất. Lưu theo máy này.
+                  </p>
+                  <div class="set-row">
+                    <span>🎙️ Âm lượng mic</span
+                    ><input
+                      class="set-slider"
+                      id="setMicVol"
+                      type="range"
+                      min="50"
+                      max="200"
+                      step="5"
+                      value="160"
+                      aria-label="Âm lượng mic"
+                    /><b class="set-val" id="setMicVolVal">160%</b>
+                  </div>
+                  <div class="set-row">
+                    <span>🔈 Âm lượng loa</span
+                    ><input
+                      class="set-slider"
+                      id="setSpkVol"
+                      type="range"
+                      min="0"
+                      max="150"
+                      step="5"
+                      value="100"
+                      aria-label="Âm lượng loa"
+                    /><b class="set-val" id="setSpkVolVal">100%</b>
+                  </div>
+                  <p style="margin: 2px 0 4px; opacity: 0.75; font-size: 0.78rem">
+                    Mic: độ lớn của tiếng bạn nói ra (mặc định 160%). Loa: độ lớn của tiếng
+                    mọi người nói mà bạn nghe. Kéo là áp dụng ngay, lưu theo máy này.
                   </p>
                 </div>
                 <button class="sysmenu-item" id="menuVoiceBtn" type="button" aria-expanded="false">
@@ -13673,17 +13715,31 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
    dùng thật — hai người cùng một WiFi bật mic vẫn câm hoàn toàn (đàm phán
    offer/answer + ICE/NAT phía khách không qua nổi). Nay tiếng đi ĐÚNG
    đường mà chat/di chuyển đang chạy tốt: WebSocket của làng.
-   - Thu: mic → WebAudio (AudioWorklet, không có thì ScriptProcessor),
-     hạ mẫu về PCM 16-bit mono 16kHz, cắt gói ~0.25 giây (4000 mẫu =
-     8000 byte ≈ 10.7KB base64 — dưới trần 16KB/tin của kênh sync).
+   - Thu: mic → WebAudio (AudioWorklet, không có thì ScriptProcessor)
+     qua GainNode khuếch đại (mặc định ×1.6, chỉnh bằng thanh trượt
+     "Âm lượng mic" 50–200% trong menu ☰ → Cài đặt, lưu localStorage
+     lmMicVol) rồi qua DynamicsCompressor (ngưỡng −18dB, tỉ lệ 12:1 —
+     kiểu limiter) để tiếng to không vỡ rè; sau đó hạ mẫu về PCM
+     16-bit mono 16kHz, cắt gói ~0.25 giây (4000 mẫu = 8000 byte ≈
+     10.7KB base64 — dưới trần 16KB/tin của kênh sync). RMS đo "đang
+     nói" lấy SAU gain+compressor nên mic xanh khớp mức âm thật đã
+     khuếch đại.
    - Gửi: mỗi gói là một tin sync kind 'vl-va' {ch, d} — máy chủ relay
      broadcast cho cả làng trừ người gửi. 'ch' là phạm vi nghe: 'all'
      (kênh chung toàn làng) hoặc id phòng riêng 'vr-…'. Có cổng VAD:
-     gói gần như im lặng thì không gửi (tiết kiệm đường relay), giữ đuôi
-     600ms để không cụt cuối từ.
-   - Nghe: WebAudio + hàng đợi đệm theo từng người nói (điểm phát dự
-     kiến ~0.35s trong tương lai → tiếng liền mạch, độ trễ < 0.5s);
-     nhiều người nói cùng lúc phát song song, tự trộn trong context.
+     gói gần như im lặng thì không gửi (tiết kiệm đường relay), giữ
+     đuôi 700ms sau gói có tiếng cuối để không cụt cuối câu, và giữ
+     sẵn 1 gói ngay trước lúc bắt đầu nói (pre-roll) gửi kèm khi tiếng
+     bắt đầu để không mất chữ đầu.
+   - Nghe: WebAudio + hàng đợi đệm theo từng người nói (đệm rung cơ
+     số ~0.5s trong tương lai, tự nới thêm 0.08s mỗi lần đệm cạn vì
+     gói trễ/mất — trần 0.9s — rồi thu dần về 0.5s khi đường tiếng ổn
+     định); khoảng trống do gói trễ/mất được che bằng mẩu âm cuối lặp
+     lại mờ dần thay vì im lặng cứng, các mẩu nối nhau bằng crossfade
+     12ms. Mọi tiếng phát đều qua một master GainNode chung — thanh
+     trượt "Âm lượng loa" 0–150% trong Cài đặt (lưu localStorage
+     lmSpkVol) chỉnh node này. Nhiều người nói cùng lúc phát song
+     song, tự trộn trong context.
      Máy khách chỉ PHÁT gói thuộc phạm vi mình đang ở (kênh chung /
      cùng phòng riêng) — gói khác phạm vi bỏ ngay.
    - CHIỀU NGHE KÊNH CHUNG LUÔN MỞ: đường phát (AudioContext + giải
@@ -13700,6 +13756,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
      tin game-wrap 'voice-state' / 'voice-room*', máy chủ chỉ relay).
    - Mic xanh trên đầu: phía gửi đo RMS thật của luồng mic; phía nghe
      đo RMS của gói nhận được — trạng thái khớp tiếng thật hai đầu. */
+      /* Đọc % âm lượng đã lưu theo máy (mic/loa) — thiếu/hỏng thì mặc định. */
+      function lmLoadVol(key, def, min, max) {
+        try {
+          const v = parseInt(localStorage.getItem(key), 10);
+          if (isFinite(v)) return Math.min(max, Math.max(min, v));
+        } catch (e) {}
+        return def;
+      }
       const VoiceChat = {
         enabled: false, // chiều NÓI: mic đang thu + gửi tiếng của mình
         listening: false, // chiều NGHE: đường phát đang mở (vào làng là mở, ra sảnh mới đóng)
@@ -13713,6 +13777,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         levelTimer: null,
         lastLoudAt: 0,
         lastSpeakPingAt: 0,
+        /* --- Âm lượng (thanh trượt trong menu ☰ → Cài đặt) --- */
+        micVol: lmLoadVol("lmMicVol", 160, 50, 200), // % gain mic khi gửi — mặc định ×1.6
+        spkVol: lmLoadVol("lmSpkVol", 100, 0, 150), // % master gain khi nghe — mặc định ×1.0
+        micGain: null, // GainNode khuếch đại trong chuỗi thu
+        micComp: null, // DynamicsCompressor chống vỡ tiếng trong chuỗi thu
+        playMaster: null, // GainNode tổng của mọi tiếng phát ra loa
         /* --- Thu âm (gửi) --- */
         SR: 16000, // tần số mẫu của gói tiếng trên đường relay
         CHUNK: 4000, // mẫu/gói = 0.25 giây ở 16kHz
@@ -13725,10 +13795,15 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         _chunk: [], // mẫu 16kHz đang gom cho gói kế tiếp
         _rms: 0, // RMS của mẻ mẫu gốc gần nhất (đo "đang nói")
         _rmsAt: 0,
-        _lastSentAt: 0, // mốc gửi gói cuối (cổng VAD giữ đuôi tiếng)
+        _lastSentAt: 0, // mốc gửi gói cuối
+        _vadLoudAt: 0, // mốc gói CÓ TIẾNG cuối (VAD giữ đuôi 700ms từ mốc này)
+        _preChunk: null, // gói im lặng ngay trước lúc bắt đầu nói (mở đầu mềm)
         /* --- Phát âm (nghe) --- */
+        JB_BASE: 0.5, // đệm rung cơ số phía nhận (giây)
+        JB_MAX: 0.9, // trần đệm rung thích ứng (giây)
+        XF: 0.012, // crossfade nối các mẩu tiếng (giây)
         playCtx: null,
-        playStates: new Map(), // id -> {nextAt} điểm phát dự kiến trong playCtx
+        playStates: new Map(), // id -> {nextAt, srcs, bufT, lastFd} hàng đợi đệm theo người nói
         myRoomId() {
           const r = this.rooms.get(this.channel);
           return r && r.members.includes(RoomState.me.id) ? this.channel : null;
@@ -13739,6 +13814,25 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const theirs = this.peerChannels.get(id);
           if (mine) return theirs === mine;
           return theirs === "all" || theirs === undefined || theirs === null;
+        },
+        /* ----- Âm lượng: áp ngay vào node đang chạy + lưu theo máy ----- */
+        setMicVol(pct) {
+          pct = Math.round(Number(pct));
+          if (!isFinite(pct)) pct = 160;
+          this.micVol = Math.min(200, Math.max(50, pct));
+          try {
+            localStorage.setItem("lmMicVol", String(this.micVol));
+          } catch (e) {}
+          if (this.micGain) this.micGain.gain.value = this.micVol / 100;
+        },
+        setSpkVol(pct) {
+          pct = Math.round(Number(pct));
+          if (!isFinite(pct)) pct = 100;
+          this.spkVol = Math.min(150, Math.max(0, pct));
+          try {
+            localStorage.setItem("lmSpkVol", String(this.spkVol));
+          } catch (e) {}
+          if (this.playMaster) this.playMaster.gain.value = this.spkVol / 100;
         },
         /* Tên giữ từ bản WebRTC (nhiều nơi gọi định kỳ): nay nghĩa là "ai
            không còn cùng phạm vi nghe thì bỏ đệm tiếng đã xếp của họ" —
@@ -13757,6 +13851,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               });
               st.srcs = [];
               st.nextAt = 0;
+              st.lastFd = null;
             }
           });
         },
@@ -13785,6 +13880,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               st.srcs = [];
             }
             st.nextAt = 0;
+            st.lastFd = null;
           });
           this.broadcastState();
           this.updateGains();
@@ -13859,6 +13955,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               this.playCtx.close();
             } catch (e) {}
             this.playCtx = null;
+            this.playMaster = null;
           }
         },
         async toggle() {
@@ -13935,9 +14032,13 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           );
         },
         /* ----- Thu mic → gói PCM: AudioWorklet nếu có, không thì
-           ScriptProcessor. Cả hai đều qua một GainNode gain=0 mới nối ra
-           loa (node xử lý phải nằm trong graph mới chạy; gain 0 nên mic
-           không bao giờ dội thẳng ra loa gây hú). ----- */
+           ScriptProcessor. Chuỗi thu: nguồn mic → GainNode khuếch đại
+           (micVol, mặc định ×1.6) → DynamicsCompressor (limiter chống
+           vỡ rè khi nói to) → node thu mẫu → GainNode gain=0 nối ra loa
+           (node xử lý phải nằm trong graph mới chạy; gain 0 nên mic
+           không bao giờ dội thẳng ra loa gây hú). Mẫu node thu nhận đã
+           qua gain+compressor nên RMS "đang nói" và cổng VAD đều đo
+           theo mức âm thật SAU khuếch đại. ----- */
         async startCapture() {
           const AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) throw new Error("no-audio-context");
@@ -13947,6 +14048,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           this._rms = 0;
           this._rmsAt = 0;
           this._lastSentAt = 0;
+          this._vadLoudAt = 0;
+          this._preChunk = null;
           this.capCtx = new AC();
           if (this.capCtx.state === "suspended") {
             try {
@@ -13955,6 +14058,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           }
           const rate = this.capCtx.sampleRate;
           this.capSrc = this.capCtx.createMediaStreamSource(this.stream);
+          this.micGain = this.capCtx.createGain();
+          this.micGain.gain.value = this.micVol / 100;
+          this.micComp = this.capCtx.createDynamicsCompressor();
+          this.micComp.threshold.value = -18;
+          this.micComp.knee.value = 20;
+          this.micComp.ratio.value = 12;
+          this.micComp.attack.value = 0.003;
+          this.micComp.release.value = 0.25;
+          this.capSrc.connect(this.micGain);
+          this.micGain.connect(this.micComp);
           this.capSink = this.capCtx.createGain();
           this.capSink.gain.value = 0;
           this.capSink.connect(this.capCtx.destination);
@@ -13979,7 +14092,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               }
               const node = new AudioWorkletNode(this.capCtx, "vcap");
               node.port.onmessage = (e) => feed(e.data);
-              this.capSrc.connect(node);
+              this.micComp.connect(node);
               node.connect(this.capSink);
               this.capNode = node;
               workletOk = true;
@@ -13994,7 +14107,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                 feed(e.inputBuffer.getChannelData(0).slice(0));
               } catch (err) {}
             };
-            this.capSrc.connect(node);
+            this.micComp.connect(node);
             node.connect(this.capSink);
             this.capNode = node;
           }
@@ -14014,6 +14127,18 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             } catch (e) {}
             this.capSrc = null;
           }
+          if (this.micGain) {
+            try {
+              this.micGain.disconnect();
+            } catch (e) {}
+            this.micGain = null;
+          }
+          if (this.micComp) {
+            try {
+              this.micComp.disconnect();
+            } catch (e) {}
+            this.micComp = null;
+          }
           if (this.capSink) {
             try {
               this.capSink.disconnect();
@@ -14030,6 +14155,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           this._chunk = [];
           this._phase = 0;
           this._rms = 0;
+          this._vadLoudAt = 0;
+          this._preChunk = null;
         },
         /* Hạ mẫu một mẻ mẫu gốc (rate của AudioContext, thường 44.1/48k)
            về 16kHz bằng nội suy tuyến tính liên tục qua các mẻ; đủ 0.25
@@ -14067,10 +14194,34 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
           const rms = Math.sqrt(sum / samples.length);
           const now = Date.now();
-          /* Cổng VAD: im lặng (RMS < 0.008) thì bỏ gói, nhưng giữ đuôi
-             600ms sau gói có tiếng cuối để không cụt cuối từ. */
-          if (rms < 0.008 && now - this._lastSentAt > 600) return;
-          this._lastSentAt = now;
+          /* Cổng VAD (RMS đo trên mẫu SAU gain): gói có tiếng
+             (RMS ≥ 0.008) gửi ngay — trước đó gửi kèm mẩu đệm đầu
+             (pre-roll) nếu có, để không mất chữ đầu. Gói im lặng chỉ
+             gửi khi còn trong đuôi giữ 700ms kể từ gói CÓ TIẾNG cuối
+             (đuôi tính theo mốc có tiếng, không tự gia hạn theo gói im
+             lặng) để không cụt cuối câu. Ngoài đuôi thì bỏ gói nhưng
+             giữ lại làm mẩu đệm đầu cho lần nói kế tiếp. */
+          if (rms >= 0.008) {
+            this._vadLoudAt = now;
+            if (this._preChunk) {
+              const pre = this._preChunk;
+              this._preChunk = null;
+              this._packet(pre);
+            }
+            this._packet(samples);
+            this._lastSentAt = now;
+            return;
+          }
+          if (this._vadLoudAt && now - this._vadLoudAt <= 700) {
+            this._packet(samples);
+            this._lastSentAt = now;
+            return;
+          }
+          this._preChunk = samples;
+        },
+        /* Đóng một gói mẫu 16kHz thành PCM 16-bit + base64 rồi gửi qua
+           kênh sync 'vl-va' — định dạng gói giữ nguyên như cũ. */
+        _packet(samples) {
           const i16 = new Int16Array(samples.length);
           for (let i = 0; i < samples.length; i++) {
             let v = samples[i];
@@ -14125,54 +14276,126 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               return null;
             }
           }
+          /* Master gain của chiều nghe: MỌI tiếng voice phát ra đều đi
+             qua node này rồi mới ra loa — thanh trượt "Âm lượng loa"
+             trong Cài đặt chỉ việc đổi gain của nó là áp dụng ngay cho
+             tiếng của mọi người đang nói. */
+          if (!this.playMaster) {
+            try {
+              this.playMaster = this.playCtx.createGain();
+              this.playMaster.gain.value = this.spkVol / 100;
+              this.playMaster.connect(this.playCtx.destination);
+            } catch (e) {
+              this.playMaster = null;
+            }
+          }
           if (this.playCtx.state === "suspended") {
             const pr = this.playCtx.resume();
             if (pr && pr.catch) pr.catch(() => {});
           }
           return this.playCtx;
         },
-        /* Phát một gói với hàng đợi đệm theo từng người nói: điểm phát
-           dự kiến giữ ~0.35s trong tương lai (đệm rung), gói đến trễ/
-           sớm vẫn xếp nối tiếp nhau → tiếng liền mạch, trễ < 0.5s.
-           Nhiều người nói cùng lúc = nhiều nguồn phát song song, tự
-           trộn trong AudioContext. */
+        /* Phát một gói với hàng đợi đệm theo từng người nói: đệm rung
+           cơ số 0.5s (gói đầu/cạn đệm phát ở hiện tại + bufT), tự nới
+           thêm 0.08s mỗi lần đệm cạn vì gói trễ/mất (trần 0.9s) và thu
+           dần về 0.5s khi đường tiếng ổn định — thay cho đệm cố định
+           0.35s cũ hay bị hụt khi mạng rung. Các mẩu nối nhau bằng
+           crossfade 12ms qua GainNode riêng từng mẩu (không còn cắt
+           cứng giữa các mẩu); khoảng trống do gói trễ/mất được
+           _conceal che bằng mẩu âm cuối lặp lại mờ dần. Mọi nguồn phát
+           đều qua master gain (playMaster) rồi mới ra loa. Nhiều
+           người nói cùng lúc = nhiều nguồn phát song song, tự trộn
+           trong AudioContext. */
         _play(fromId, i16) {
           const ctx = this._ensurePlayCtx();
           if (!ctx || !i16.length) return;
+          const out = this.playMaster || ctx.destination;
           let st = this.playStates.get(fromId);
           if (!st) {
-            st = { nextAt: 0, srcs: [] };
+            st = { nextAt: 0, srcs: [], bufT: this.JB_BASE, lastFd: null };
             this.playStates.set(fromId, st);
           }
           const now = ctx.currentTime;
-          st.srcs = st.srcs.filter((s) => s.at > now);
-          let t = st.nextAt;
-          if (t < now + 0.05) t = now + 0.35;
-          else if (t > now + 1.0) {
-            /* Đệm tồn đọng > 1s (vừa treo máy / mạng lag dồn gói): cắt
-               hẳn tiếng cũ chưa phát, nhảy về tiếng mới nhất cho khỏi
-               nghe giọng "quá khứ" kéo dài. */
+          st.srcs = st.srcs.filter((s) => s.at + (s.dur || 0.25) > now);
+          const dur = i16.length / this.SR;
+          const endPrev = st.nextAt; // điểm kết thúc của audio đã xếp cuối (0 = chưa có)
+          let t;
+          if (endPrev > now + st.bufT + 0.8) {
+            /* Đệm tồn đọng quá nhiều (vừa treo máy / mạng lag dồn gói):
+               cắt hẳn tiếng cũ chưa phát, nhảy về tiếng mới nhất cho
+               khỏi nghe giọng "quá khứ" kéo dài. */
             st.srcs.forEach((s) => {
-              try {
-                s.src.stop();
-              } catch (e) {}
+              if (s.at > now) {
+                try {
+                  s.src.stop();
+                } catch (e) {}
+              }
             });
             st.srcs = [];
-            t = now + 0.35;
+            t = now + st.bufT;
+          } else if (endPrev <= now + 0.03) {
+            /* Đệm đã cạn: gói đến trễ hoặc bị mất. Nếu khoảng câm còn
+               "tươi" (≤ 1.2s — đang giữa câu) thì nới đệm thích ứng và
+               che khoảng trống bằng mẩu âm cuối; câu mới sau im lặng
+               dài thì phát bình thường theo đệm hiện tại. */
+            const fresh = endPrev > 0 && now - endPrev <= 1.2;
+            if (fresh) st.bufT = Math.min(this.JB_MAX, st.bufT + 0.08);
+            t = now + st.bufT;
+            if (fresh && st.lastFd) this._conceal(st, Math.max(endPrev, now + 0.005), t, out);
+          } else {
+            /* Nối tiếp liền mạch: bắt đầu sớm XF để crossfade với mẩu
+               trước; đường tiếng ổn định thì thu đệm dần về cơ số. */
+            t = endPrev - this.XF;
+            if (st.bufT > this.JB_BASE) st.bufT = Math.max(this.JB_BASE, st.bufT - 0.01);
           }
           const buf = ctx.createBuffer(1, i16.length, this.SR);
           const fd = buf.getChannelData(0);
           for (let i = 0; i < i16.length; i++) fd[i] = i16[i] / 32768;
+          st.lastFd = fd.slice(0);
           const srcNode = ctx.createBufferSource();
           srcNode.buffer = buf;
-          srcNode.connect(ctx.destination);
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(1, t + this.XF);
+          g.gain.setValueAtTime(1, Math.max(t + this.XF, t + dur - this.XF));
+          g.gain.linearRampToValueAtTime(0, t + dur);
+          srcNode.connect(g);
+          g.connect(out);
           try {
             srcNode.start(t);
           } catch (e) {
             return;
           }
-          st.srcs.push({ src: srcNode, at: t });
-          st.nextAt = t + i16.length / this.SR;
+          st.srcs.push({ src: srcNode, at: t, dur: dur });
+          st.nextAt = t + dur;
+        },
+        /* Che khoảng trống (from → to) khi gói tiếng đến trễ/bị mất:
+           lặp mẩu âm cuối của người nói, âm lượng mờ dần về 0, thay vì
+           để im lặng cứng; một lần che tối đa 0.6s. */
+        _conceal(st, from, to, out) {
+          const ctx = this.playCtx;
+          if (!ctx || !st.lastFd || !st.lastFd.length) return;
+          const gap = Math.min(to - from, 0.6);
+          if (gap <= 0.04) return;
+          const n = Math.max(1, Math.round(gap * this.SR));
+          const buf = ctx.createBuffer(1, n, this.SR);
+          const fd = buf.getChannelData(0);
+          const last = st.lastFd;
+          for (let i = 0; i < n; i++) fd[i] = last[i % last.length];
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, from);
+          g.gain.linearRampToValueAtTime(0.55, from + 0.01);
+          g.gain.linearRampToValueAtTime(0, from + gap);
+          src.connect(g);
+          g.connect(out);
+          try {
+            src.start(from);
+          } catch (e) {
+            return;
+          }
+          st.srcs.push({ src: src, at: from, dur: gap });
         },
         stop() {
           /* Tắt mic = CHỈ đóng chiều nói (thu + gửi + phòng riêng như
@@ -16547,6 +16770,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             toast("📱 Giảm lag: " + lagLabels[nxt]);
           });
           paintLag();
+        }
+        /* Âm lượng voice: thanh trượt mic (gain chuỗi gửi) + loa (master
+           gain phía nghe) trong Cài đặt — kéo là áp dụng ngay qua
+           VoiceChat, hiển thị % cạnh thanh trượt, lưu theo máy
+           (lmMicVol / lmSpkVol). */
+        const micVolEl = $("#setMicVol"),
+          micVolVal = $("#setMicVolVal"),
+          spkVolEl = $("#setSpkVol"),
+          spkVolVal = $("#setSpkVolVal");
+        if (micVolEl && typeof VoiceChat !== "undefined") {
+          micVolEl.value = String(VoiceChat.micVol);
+          micVolVal.textContent = VoiceChat.micVol + "%";
+          micVolEl.addEventListener("input", () => {
+            VoiceChat.setMicVol(+micVolEl.value);
+            micVolVal.textContent = VoiceChat.micVol + "%";
+          });
+        }
+        if (spkVolEl && typeof VoiceChat !== "undefined") {
+          spkVolEl.value = String(VoiceChat.spkVol);
+          spkVolVal.textContent = VoiceChat.spkVol + "%";
+          spkVolEl.addEventListener("input", () => {
+            VoiceChat.setSpkVol(+spkVolEl.value);
+            spkVolVal.textContent = VoiceChat.spkVol + "%";
+          });
         }
         /* Chat gọn mặc định trên màn hình nhỏ */
         if (window.matchMedia("(max-width: 640px)").matches) {
