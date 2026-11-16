@@ -4588,8 +4588,8 @@
                     </li>
                     <li><b>Enter</b>: mở ô chat · <b>F</b>: bấm nút hành động đang hiện</li>
                     <li>
-                      <b>Voice</b>: bật mic là vào kênh chung nghe toàn khu; tạo phòng voice riêng
-                      trong mục Voice của menu này
+                      <b>Voice</b>: vào làng là nghe được kênh chung toàn khu (chưa bật mic vẫn
+                      nghe); bật mic để nói; tạo phòng voice riêng trong mục Voice của menu này
                     </li>
                     <li>
                       Đi tới sofa, bàn game, hộp điện, khung tranh… sẽ hiện nút hành động ở giữa
@@ -4617,7 +4617,7 @@
             <div id="chatBox">
               <div class="chat-head">
                 <span>💬 Chat trong phòng</span>
-                <button id="voiceBtn" type="button">🎙️ Voice: tắt</button>
+                <button id="voiceBtn" type="button">🎙️ Mic: tắt</button>
                 <button id="chatToggle" type="button" aria-label="Thu gọn chat">–</button>
               </div>
               <div class="voice-status" id="voiceStatus" hidden></div>
@@ -13579,12 +13579,23 @@
      nhiều người nói cùng lúc phát song song, tự trộn trong context.
      Máy khách chỉ PHÁT gói thuộc phạm vi mình đang ở (kênh chung /
      cùng phòng riêng) — gói khác phạm vi bỏ ngay.
+   - CHIỀU NGHE KÊNH CHUNG LUÔN MỞ: đường phát (AudioContext + giải
+     gói + hàng đợi đệm) dựng sẵn ngay khi VÀO LÀNG (startListening,
+     kích hoạt trong tương tác bấm vào làng nên khớp chính sách tự
+     phát âm thanh của trình duyệt) — người CHƯA bật mic vẫn nghe
+     được người đang nói ở kênh chung và vẫn thấy mic xanh trên đầu
+     người nói. Nút mic CHỈ khóa/mở chiều NÓI (thu + gửi gói của
+     mình), không đụng chiều nghe; tắt mic không tắt tiếng người
+     khác. Chỉ khi RA SẢNH mới đóng đường nghe (stopListening).
+     Người chỉ nghe không bị hỏi quyền mic — quyền mic chỉ xin khi
+     người dùng chủ động bấm bật mic (toggle).
    - PHÒNG VOICE RIÊNG giữ nguyên cơ chế cũ (tạo/xin vào/mời qua các
      tin game-wrap 'voice-state' / 'voice-room*', máy chủ chỉ relay).
    - Mic xanh trên đầu: phía gửi đo RMS thật của luồng mic; phía nghe
      đo RMS của gói nhận được — trạng thái khớp tiếng thật hai đầu. */
       const VoiceChat = {
-        enabled: false,
+        enabled: false, // chiều NÓI: mic đang thu + gửi tiếng của mình
+        listening: false, // chiều NGHE: đường phát đang mở (vào làng là mở, ra sảnh mới đóng)
         muted: false,
         stream: null,
         channel: "all", // 'all' = kênh chung; hoặc id phòng riêng
@@ -13616,7 +13627,7 @@
           return r && r.members.includes(RoomState.me.id) ? this.channel : null;
         },
         sameChannel(id) {
-          if (!this.enabled) return false;
+          if (!this.enabled && !this.listening) return false;
           const mine = this.myRoomId();
           const theirs = this.peerChannels.get(id);
           if (mine) return theirs === mine;
@@ -13626,7 +13637,7 @@
            không còn cùng phạm vi nghe thì bỏ đệm tiếng đã xếp của họ" —
            chuyển kênh/phòng là cắt tiếng cũ ngay, không phát nốt. */
         updateGains() {
-          if (!this.enabled) return;
+          if (!this.enabled && !this.listening) return;
           const now = this.playCtx ? this.playCtx.currentTime : 0;
           this.playStates.forEach((st, id) => {
             if (!this.sameChannel(id) && st.srcs) {
@@ -13709,6 +13720,40 @@
             this.lastSpeakPingAt = now;
           }
         },
+        /* ----- Chiều NGHE: mở sẵn khi vào làng, đóng khi ra sảnh -----
+           Vào làng là một tương tác của người dùng (bấm nút vào làng)
+           nên AudioContext dựng tại đây được trình duyệt cho chạy —
+           không phải chờ bật mic. Từ lúc này gói 'vl-va' thuộc phạm vi
+           của mình (kênh chung, hoặc phòng riêng mình đang ở) được
+           phát ngay, kể cả khi mic đang tắt. Nếu trình duyệt vẫn treo
+           context (vài webview khó tính), chạm phím/chạm màn hình lần
+           đầu trong làng sẽ resume lại qua móc _resumeHook. */
+        startListening() {
+          this.listening = true;
+          this._ensurePlayCtx();
+          if (!this._resumeHook) {
+            this._resumeHook = () => {
+              if (this.listening) this._ensurePlayCtx();
+            };
+            document.addEventListener("pointerdown", this._resumeHook);
+            document.addEventListener("keydown", this._resumeHook);
+          }
+        },
+        stopListening() {
+          this.listening = false;
+          if (this._resumeHook) {
+            document.removeEventListener("pointerdown", this._resumeHook);
+            document.removeEventListener("keydown", this._resumeHook);
+            this._resumeHook = null;
+          }
+          this.playStates.clear();
+          if (this.playCtx) {
+            try {
+              this.playCtx.close();
+            } catch (e) {}
+            this.playCtx = null;
+          }
+        },
         async toggle() {
           if (this.enabled) {
             this.stop();
@@ -13719,7 +13764,7 @@
             st.hidden = false;
             st.textContent =
               '🎙️ Voice đi qua máy chủ online — hiện trang chưa nối được tới máy chủ (đang nối hoặc mất kết nối) nên chưa bật voice được. Chờ trạng thái trong menu ☰ báo "Đã nối máy chủ" rồi bấm lại nút này nhé.';
-            $("#voiceBtn").textContent = "🎙️ Voice: chờ kết nối";
+            $("#voiceBtn").textContent = "🎙️ Mic: chờ kết nối";
             return;
           }
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -13728,7 +13773,7 @@
             const st = $("#voiceStatus");
             st.hidden = false;
             st.textContent =
-              "🎙️ Trình duyệt này không cho dùng mic nên chưa bật voice được — hãy mở trang bằng Chrome (điện thoại) hoặc Chrome/Edge (máy tính) rồi bấm lại nút Voice nhé.";
+              "🎙️ Trình duyệt này không cho dùng mic nên chưa bật voice được — hãy mở trang bằng Chrome (điện thoại) hoặc Chrome/Edge (máy tính) rồi bấm lại nút Mic nhé.";
             toast("Trình duyệt này không hỗ trợ mic — mở bằng Chrome nhé");
             return;
           }
@@ -13743,17 +13788,17 @@
             const st = $("#voiceStatus");
             st.hidden = false;
             st.textContent = denied
-              ? "🎙️ Chưa được cấp quyền mic nên chưa nói được. Cách cấp: bấm vào biểu tượng ổ khoá (hoặc ⋮ → Cài đặt trang) trên thanh địa chỉ → Micro → Cho phép, rồi bấm lại nút Voice. Mở trang bằng Chrome thì mic chạy ổn định nhất."
+              ? "🎙️ Chưa được cấp quyền mic nên chưa nói được. Cách cấp: bấm vào biểu tượng ổ khoá (hoặc ⋮ → Cài đặt trang) trên thanh địa chỉ → Micro → Cho phép, rồi bấm lại nút Mic. Mở trang bằng Chrome thì mic chạy ổn định nhất."
               : "🎙️ Không mở được mic (" +
                 (e && e.name ? e.name : "lỗi lạ") +
-                ") — kiểm tra máy có mic / ứng dụng khác đang chiếm mic, rồi bấm lại nút Voice nhé.";
-            $("#voiceBtn").textContent = "🎙️ Voice: chưa có quyền mic";
+                ") — kiểm tra máy có mic / ứng dụng khác đang chiếm mic, rồi bấm lại nút Mic nhé.";
+            $("#voiceBtn").textContent = "🎙️ Mic: chưa có quyền mic";
             toast(denied ? "Chưa được cấp quyền mic — xem hướng dẫn dưới khung chat" : "Không mở được mic");
             return;
           }
           this.enabled = true;
           this.muted = false;
-          this._ensurePlayCtx();
+          this.startListening();
           try {
             await this.startCapture();
           } catch (e) {
@@ -13765,18 +13810,22 @@
             const st = $("#voiceStatus");
             st.hidden = false;
             st.textContent =
-              "🎙️ Mic đã cấp quyền nhưng không khởi động được bộ thu âm trên trình duyệt này — hãy mở trang bằng Chrome rồi bấm lại nút Voice nhé.";
+              "🎙️ Mic đã cấp quyền nhưng không khởi động được bộ thu âm trên trình duyệt này — hãy mở trang bằng Chrome rồi bấm lại nút Mic nhé.";
             toast("Không khởi động được bộ thu âm — mở bằng Chrome nhé");
             return;
           }
           this.startLevelMonitor();
-          $("#voiceBtn").textContent = "🔴 Voice: đang bật";
+          $("#voiceBtn").textContent = "🔴 Mic: đang bật";
           $("#voiceBtn").classList.add("on");
           $("#voiceStatus").hidden = true;
           Transport.send("voice-hello", { channel: this.myRoomId() || "all" });
           this.broadcastState();
           renderVoicePanel();
-          toast("Đã bật voice — bạn đang ở KÊNH CHUNG: cả làng nghe thấy nhau, bất kể đứng đâu 🎙️");
+          toast(
+            this.myRoomId()
+              ? "Đã bật mic — bạn đang nói trong PHÒNG RIÊNG: chỉ người trong phòng nghe 🎙️"
+              : "Đã bật mic — bạn đang ở KÊNH CHUNG: cả làng nghe thấy nhau, bất kể đứng đâu 🎙️",
+          );
         },
         /* ----- Thu mic → gói PCM: AudioWorklet nếu có, không thì
            ScriptProcessor. Cả hai đều qua một GainNode gain=0 mới nối ra
@@ -13931,7 +13980,10 @@
         },
         /* ----- Nhận gói tiếng qua relay → phát theo phạm vi ----- */
         receiveAudio(fromId, data) {
-          if (!this.enabled || !data || typeof data.d !== "string" || !data.d) return;
+          /* Chiều NGHE độc lập với mic: chỉ cần đang ở trong làng
+             (listening) là nhận + phát; mic tắt không chặn tiếng vào. */
+          if (!this.listening && !this.enabled) return;
+          if (!data || typeof data.d !== "string" || !data.d) return;
           const ch = typeof data.ch === "string" ? data.ch : "all";
           this.peerChannels.set(fromId, ch);
           const mine = this.myRoomId();
@@ -14016,24 +14068,21 @@
           st.nextAt = t + i16.length / this.SR;
         },
         stop() {
+          /* Tắt mic = CHỈ đóng chiều nói (thu + gửi + phòng riêng như
+             cũ). Chiều nghe KHÔNG đụng vào: playCtx + đệm phát giữ
+             nguyên để vẫn nghe kênh chung; đường nghe chỉ đóng ở
+             stopListening() khi ra sảnh. */
           if (!this.enabled) return;
           this.leaveRoom(true);
           this.stopLevelMonitor();
           this.enabled = false;
           this.channel = "all";
           this.stopCapture();
-          this.playStates.clear();
-          if (this.playCtx) {
-            try {
-              this.playCtx.close();
-            } catch (e) {}
-            this.playCtx = null;
-          }
           if (this.stream) {
             this.stream.getTracks().forEach((t) => t.stop());
             this.stream = null;
           }
-          $("#voiceBtn").textContent = "🎙️ Voice: tắt";
+          $("#voiceBtn").textContent = "🎙️ Mic: tắt";
           $("#voiceBtn").classList.remove("on");
           Transport.send("voice-bye", {});
           renderVoicePanel();
@@ -14121,7 +14170,10 @@
           if (room) {
             this.rooms.set(room.id, room);
             if (room.members.includes(RoomState.me.id)) {
-              if (this.channel !== room.id && this.enabled) this.setChannel(room.id);
+              /* Vào phòng riêng: chuyển phạm vi NGHE sang phòng (kể cả
+                 khi chỉ nghe, chưa bật mic) — setChannel cắt tiếng kênh
+                 chung đang đệm; ngoài phòng thì giữ nguyên gán thẳng. */
+              if (this.channel !== room.id && (this.enabled || this.listening)) this.setChannel(room.id);
               else if (this.channel !== room.id) this.channel = room.id;
             } else if (this.channel === room.id) {
               this.channel = "all";
@@ -14170,7 +14222,7 @@
             el.style.opacity = "0.15";
             return;
           }
-          if (!VoiceChat.enabled) {
+          if (!VoiceChat.enabled && !VoiceChat.listening) {
             el.style.opacity = "0.18";
             el.textContent = "🎙️";
             return;
@@ -14200,13 +14252,14 @@
           "</button></div>";
         h +=
           '<div class="vnote">' +
-          (vc.enabled
-            ? room
-              ? "Bạn đang trong phòng riêng <b>" +
-                esc(room.name) +
-                "</b> — chỉ người trong phòng nghe nhau."
-              : "Bạn đang ở <b>kênh voice chung</b> — nghe/nói toàn khu như nhau, bất kể đứng đâu."
-            : "Bật mic là tự vào kênh voice chung. Muốn nói chuyện riêng: tạo phòng voice riêng rồi mời bạn vào.") +
+          (room
+            ? "Bạn đang trong phòng riêng <b>" +
+              esc(room.name) +
+              "</b> — chỉ người trong phòng nghe nhau." +
+              (vc.enabled ? "" : " Mic đang tắt: bạn vẫn nghe trong phòng, bật mic mới nói được.")
+            : vc.enabled
+              ? "Bạn đang ở <b>kênh voice chung</b> — nghe/nói toàn khu như nhau, bất kể đứng đâu."
+              : "Bạn đang <b>nghe kênh voice chung</b> của cả làng — chưa bật mic thì chỉ nghe, không ai nghe thấy bạn. Bấm nút mic phía trên để nói; muốn nói chuyện riêng: bật mic, tạo phòng voice riêng rồi mời bạn vào.") +
           "</div>";
         if (vc.enabled && !room) {
           h +=
@@ -15463,6 +15516,10 @@
         resetSpawn();
         Transport.connect();
         Transport.send("join", { member: publicMe() });
+        /* Mở sẵn chiều NGHE voice ngay khi vào làng (tương tác bấm vào
+           làng này là cử chỉ người dùng nên AudioContext được phép
+           chạy): chưa bật mic vẫn nghe kênh chung; mic chỉ là chiều nói. */
+        VoiceChat.startListening();
         document.body.classList.add("in-room");
         requestAnimationFrame(() => sizeRenderer());
         $("#entryOverlay").classList.remove("open");
@@ -15471,7 +15528,7 @@
         $("#chatInput").placeholder = "Nhắn cho cả phòng…";
         addChatLine(
           "Làng Mèo",
-          "Bạn đã vào phòng — đi gần bạn bè để đấm/ôm/đập tay, chat ở đây cả phòng cùng thấy 🐾",
+          "Bạn đã vào phòng — đi gần bạn bè để đấm/ôm/đập tay, chat ở đây cả phòng cùng thấy 🐾 Bạn đang nghe kênh voice chung — bấm 🎙️ khi muốn nói",
           true,
         );
         addFeed("<b>Bạn</b> đã vào <b>Làng Mèo</b> 🐾");
@@ -15482,6 +15539,7 @@
         if (viewMode === "first") setView("third");
         closeSysMenu();
         VoiceChat.stop();
+        VoiceChat.stopListening();
         Transport.send("leave", {});
         Transport.disconnect();
         $("#chatInput").disabled = true;
