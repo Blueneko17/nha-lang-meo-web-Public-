@@ -4252,6 +4252,140 @@
       }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      /* ===== TẦNG CHẤT LƯỢNG TỰ ĐỘNG + GIẢM LAG ĐIỆN THOẠI (2026-11-16) =====
+         Chủ nhân báo điện thoại vào làng khá lag. Khắc phục 4 lớp:
+         (1) Phát hiện điện thoại (cảm ứng + màn nhỏ / UA di động / ≤4 nhân CPU)
+             → Tự động giới hạn pixelRatio tối đa 1.5 (đỡ tải GPU theo tỉ lệ
+             bình phương), shadow map 1024; chế độ Nhẹ ép pixelRatio = 1.0,
+             shadow map 512 và tắt castShadow cho vật trang trí nhỏ.
+         (2) Cổng khoảng cách ~45 m cho hoạt họa nặng mỗi khung hình (đu quay,
+             tia nước đài phun, cá koi, đom đóm, mặt nước): ở xa thì bỏ qua
+             cập nhật — các hoạt họa này đều tính theo đồng hồ tuyệt đối nên
+             tới gần lại khớp ngay, không lệch pha, không đổi gameplay.
+         (3) Chế độ Nhẹ giảm một nửa số hạt tia phun + đom đóm (drawRange).
+         (4) Nút gạt "Giảm lag (điện thoại)" trong menu ☰ → Cài đặt: Tự động
+             (mặc định) / Nhẹ / Đầy đủ, lưu theo máy bằng localStorage
+             (khóa lmLagMode). Máy tính để bàn giữ nguyên chất lượng như cũ. */
+      (function () {
+        var KEY = "lmLagMode";
+        var mode = "auto";
+        try {
+          var v = localStorage.getItem(KEY);
+          if (v === "lite" || v === "full" || v === "auto") mode = v;
+        } catch (e) {}
+        var coarsePtr = !!(
+          window.matchMedia && window.matchMedia("(pointer: coarse)").matches
+        );
+        var smallScreen =
+          Math.min(window.screen.width || 9999, window.screen.height || 9999) <= 820;
+        var fewCores =
+          typeof navigator.hardwareConcurrency === "number" &&
+          navigator.hardwareConcurrency <= 4;
+        /* Điện thoại = (cảm ứng + màn nhỏ) hoặc UA di động hoặc (cảm ứng +
+           ≤4 nhân). Máy tính để bàn — kể cả máy yếu ít nhân nhưng không cảm
+           ứng — KHÔNG bị tính là di động, giữ nguyên chất lượng như cũ. */
+        var isMobile =
+          (coarsePtr && smallScreen) ||
+          /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "") ||
+          (coarsePtr && fewCores);
+        /* lite = chế độ Nhẹ ép buộc (pixelRatio 1.0, shadow 512).
+           eco  = tầng tiết kiệm đang hiệu lực (Nhẹ, hoặc Tự động trên điện
+           thoại): bật cổng khoảng cách + giảm hạt + tắt bóng trang trí nhỏ. */
+        function lite() {
+          return mode === "lite";
+        }
+        function eco() {
+          return lite() || (mode === "auto" && isMobile);
+        }
+        function sync() {
+          window.__lmLite = lite();
+          window.__lmEco = eco();
+        }
+        sync();
+        /* Cổng khoảng cách dùng chung: chỉ chặn khi tầng tiết kiệm hiệu lực
+           (máy tính/Đầy đủ giữ nguyên như cũ). Vị trí người chơi do vòng lặp
+           chính công bố mỗi khung hình qua window.__lmPP ({x, z}); chưa có
+           thì coi như ở gần (cập nhật bình thường). */
+        window.__lmNear = function (x, z, r) {
+          if (!window.__lmEco) return true;
+          var p = window.__lmPP;
+          if (!p || typeof p.x !== "number") return true;
+          var dx = p.x - x,
+            dz = p.z - z;
+          return dx * dx + dz * dz <= r * r;
+        };
+        window.LMQuality = {
+          get mode() {
+            return mode;
+          },
+          get isMobile() {
+            return isMobile;
+          },
+          get lite() {
+            return lite();
+          },
+          get eco() {
+            return eco();
+          },
+          setMode: function (m) {
+            if (m !== "lite" && m !== "full") m = "auto";
+            mode = m;
+            try {
+              localStorage.setItem(KEY, m);
+            } catch (e) {}
+            sync();
+            if (typeof window.__lmApplyQuality === "function")
+              window.__lmApplyQuality();
+          },
+          /* Áp pixelRatio + cỡ shadow map cho renderer chính của làng. */
+          applyTo: function (renderer, spot) {
+            if (!renderer) return;
+            var L = lite();
+            var cap = L ? 1.0 : eco() ? 1.5 : 1.75;
+            renderer.setPixelRatio(
+              Math.min(window.devicePixelRatio || 1, cap),
+            );
+            if (spot && spot.shadow && spot.shadow.mapSize) {
+              var s = L ? 512 : 1024;
+              if (spot.shadow.mapSize.x !== s) {
+                spot.shadow.mapSize.set(s, s);
+                if (spot.shadow.map) {
+                  spot.shadow.map.dispose();
+                  spot.shadow.map = null;
+                }
+              }
+            }
+          },
+          /* Chế độ Nhẹ: tắt đổ bóng cho vật trang trí NHỎ (bán kính bao
+             < 0.9 m); vật kết cấu lớn giữ nguyên. Đổ bóng trong nhà vốn đã
+             tắt toàn cục theo thiết kế cũ — quy tắc đó không đổi. */
+          applyDecorShadows: function (scene) {
+            if (!scene || !window.THREE) return;
+            var L = eco();
+            scene.traverse(function (o) {
+              if (!o.isMesh) return;
+              if (o.userData.__lmCs0 === undefined)
+                o.userData.__lmCs0 = o.castShadow;
+              if (!L) {
+                o.castShadow = o.userData.__lmCs0;
+                return;
+              }
+              var small = false;
+              try {
+                if (o.geometry) {
+                  if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+                  var bs = o.geometry.boundingSphere;
+                  var sc = Math.max(o.scale.x || 1, o.scale.y || 1, o.scale.z || 1);
+                  small = bs && bs.radius * sc < 0.9;
+                }
+              } catch (e) {}
+              o.castShadow = small ? false : o.userData.__lmCs0;
+            });
+          },
+        };
+      })();
+    </script>
     <style>
       /* ---------- P7: lưới 8pt + vùng chạm ≥44px trên điện thoại, kính mờ ấm thống nhất ---------- */
       #sysMenu {
@@ -5166,6 +5300,14 @@
                     <span>✨ Hiệu ứng hạt bụi bay</span
                     ><button class="set-toggle on" id="setFxBtn" type="button">Bật</button>
                   </div>
+                  <div class="set-row">
+                    <span>📱 Giảm lag (điện thoại)</span
+                    ><button class="set-toggle" id="setLagBtn" type="button">Tự động</button>
+                  </div>
+                  <p style="margin: 2px 0 4px; opacity: 0.75; font-size: 0.78rem">
+                    Tự động: điện thoại tự giảm độ nét và bớt hoạt họa ở xa. Nhẹ: nhẹ nhất
+                    cho máy yếu. Đầy đủ: đẹp nhất, nặng máy nhất. Lưu theo máy này.
+                  </p>
                 </div>
                 <button class="sysmenu-item" id="menuVoiceBtn" type="button" aria-expanded="false">
                   🎙️ Voice · kênh chung &amp; phòng riêng <span class="chev">▸</span>
@@ -8347,7 +8489,7 @@
           for (let i = 0; i < em.n; i++) { em.age[i] += dt; if (em.age[i] > em.life[i]) { em.age[i] = 0; em.life[i] = 1 + Math.random() * 1.4; em.seed[i] = Math.random() * 6.28; } const f = em.age[i] / em.life[i], k = i * 3; ea[k] = FIRE_POS.x + Math.sin(t * 2.2 + em.seed[i] * 5) * 0.35 * f + f * 0.5; ea[k + 1] = FIRE_Y + 0.5 + f * 2.1; ea[k + 2] = FIRE_POS.z + Math.cos(em.seed[i]) * 0.25; }
           em.geo.attributes.position.needsUpdate = true;
           if (fireLight) fireLight.intensity = (three.fireBase || 2.0) + Math.sin(t * 11) * 0.15 + (Math.random() - 0.5) * 0.2;
-          if (fireflies) { const a = fireflies.geo.attributes.position.array; for (let i = 0; i < fireflies.n; i++) { const b = fireflies.base[i], sd = fireflies.seed[i], k = i * 3; a[k] = b[0] + Math.sin(t * 0.45 + sd) * 0.55; a[k + 1] = b[1] + Math.sin(t * 0.8 + sd * 2.1) * 0.22; a[k + 2] = b[2] + Math.cos(t * 0.35 + sd) * 0.45; } fireflies.geo.attributes.position.needsUpdate = true; fireflies.pts.material.opacity = 0.55 + 0.35 * Math.sin(t * 1.6); }
+          if (fireflies) { const a = fireflies.geo.attributes.position.array; const fn = window.__lmEco ? Math.ceil(fireflies.n / 2) : fireflies.n; fireflies.geo.setDrawRange(0, fn); for (let i = 0; i < fn; i++) { const b = fireflies.base[i], sd = fireflies.seed[i], k = i * 3; a[k] = b[0] + Math.sin(t * 0.45 + sd) * 0.55; a[k + 1] = b[1] + Math.sin(t * 0.8 + sd * 2.1) * 0.22; a[k + 2] = b[2] + Math.cos(t * 0.35 + sd) * 0.45; } fireflies.geo.attributes.position.needsUpdate = true; fireflies.pts.material.opacity = 0.55 + 0.35 * Math.sin(t * 1.6); } /* GIẢM LAG: chế độ Nhẹ chỉ chạy/vẽ một nửa đom đóm */
         }
         /* ───────── RÀO CÂY + CỔNG (v2 buildFence, nguyên văn: xà ngang cổng y 2.95 + biển) ───────── */
         function buildFence() {
@@ -8461,9 +8603,14 @@
         }
         function buildMain() { buildHill(); buildGround(); buildPool(); buildSlides(); buildGarden(); buildFence(); }
         function tickFx(dt, t) {
-          if (waterTex) { waterTex.offset.x = t * 0.02; waterTex.offset.y = t * 0.015; }
-          if (fountainJet) { const F = fountainJet; for (let i = 0; i < F.seed.length; i++) { const s = F.seed[i], h = (t * s.sp + s.ph) % 1; const rr = s.r + h * 2.6; F.pos[i * 3] = Math.cos(s.a) * rr; F.pos[i * 3 + 1] = Math.max(0.6, 4.3 + h * 0.7 - h * h * 4.4); F.pos[i * 3 + 2] = Math.sin(s.a) * rr; } F.pts.geometry.attributes.position.needsUpdate = true; }
-          if (koi) koi.children.forEach((f) => { const a = t * 0.5 + f.userData.ph; f.position.set(Math.cos(a) * f.userData.r, Math.sin(t * 1.7 + f.userData.ph * 2) * 0.02, Math.sin(a) * f.userData.r); f.rotation.y = -a; f.rotation.z = Math.sin(t * 7 + f.userData.ph * 3) * 0.05; if (f.userData.tail) f.userData.tail.rotation.y = Math.sin(t * 7 + f.userData.ph * 3) * 0.5; }); /* đuôi vẫy + thân lượn nhẹ theo nhịp bơi */
+          /* GIẢM LAG ĐIỆN THOẠI: cổng khoảng cách ~45 m cho mặt nước hồ bơi,
+             tia nước đài phun vườn (0, 20) và cá koi (-16, -6) — ở xa bỏ qua
+             cập nhật (mọi chuyển động tính theo đồng hồ tuyệt đối nên tới
+             gần khớp ngay). Chế độ Nhẹ: tia phun chỉ chạy/vẽ một nửa số hạt. */
+          const liteFx = !!window.__lmEco;
+          if (waterTex && window.__lmNear(-13, 6, 45)) { waterTex.offset.x = t * 0.02; waterTex.offset.y = t * 0.015; }
+          if (fountainJet && window.__lmNear(0, 20, 45)) { const F = fountainJet; const lim = liteFx ? Math.ceil(F.seed.length / 2) : F.seed.length; F.pts.geometry.setDrawRange(0, lim); for (let i = 0; i < lim; i++) { const s = F.seed[i], h = (t * s.sp + s.ph) % 1; const rr = s.r + h * 2.6; F.pos[i * 3] = Math.cos(s.a) * rr; F.pos[i * 3 + 1] = Math.max(0.6, 4.3 + h * 0.7 - h * h * 4.4); F.pos[i * 3 + 2] = Math.sin(s.a) * rr; } F.pts.geometry.attributes.position.needsUpdate = true; }
+          if (koi && window.__lmNear(-16, -6, 45)) koi.children.forEach((f) => { const a = t * 0.5 + f.userData.ph; f.position.set(Math.cos(a) * f.userData.r, Math.sin(t * 1.7 + f.userData.ph * 2) * 0.02, Math.sin(a) * f.userData.r); f.rotation.y = -a; f.rotation.z = Math.sin(t * 7 + f.userData.ph * 3) * 0.05; if (f.userData.tail) f.userData.tail.rotation.y = Math.sin(t * 7 + f.userData.ph * 3) * 0.5; }); /* đuôi vẫy + thân lượn nhẹ theo nhịp bơi */
           pulses.forEach((g) => { g.s.material.opacity = g.b * (0.78 + 0.22 * Math.sin(t * 1.9 + g.ph)); });
         }
         const api = { buildMain, buildFire, updateFire, tickFx, slides: SLIDES, obstacles: gObs };
@@ -10809,18 +10956,40 @@ const HouseRoof = new th.Group(); HouseRoof.name = "HouseRoof"; scene.add(HouseR
 /* ───────── GÁC LỬNG (tầng 2) + CẦU THANG + BAN CÔNG ───────── */
 (function loft() {
   const ft = woodTex(); ft.repeat.set(10, 6);
-  const slab = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2; OCCL.push(bx(w, 0.2, d, TRIM, cx, Y - 0.1, cz)); const t = new th.Mesh(new th.PlaneGeometry(w, d), new th.MeshLambertMaterial({ map: ft })); t.rotation.x = -Math.PI / 2; t.position.set(cx, Y + 0.005, cz); scene.add(t); };
+  const slab = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2; OCCL.push(bx(w, 0.2, d, 0xe9dcc2, cx, Y - 0.1, cz)); const t = new th.Mesh(new th.PlaneGeometry(w, d), new th.MeshLambertMaterial({ map: ft })); t.rotation.x = -Math.PI / 2; t.position.set(cx, Y + 0.005, cz); scene.add(t); };
   slab(6.8, 20.6, -16.95, 17); slab(20.6, 24.2, -16.95, -7.5); slab(20.6, 24.2, 5, 17); slab(24.2, 31.8, -16.95, 17);
   /* DẢI NÂU CHẮN NGANG ĐÃ GỠ (ĐỢT 2): dải ốp nâu dài 33.9 m (0xb56a3a) + dải
      sáng chạy dọc mép gác ở x 6.86 từng tạo thành một vệt nâu dài chắn ngang
      tầm nhìn sảnh – thư viện ở tầng trệt (ảnh chủ nhân chụp). Gỡ cả hai dải
      ốp trang trí này; mép sàn gác kết cấu + lan can + cột đỡ giữ nguyên. */
+  /* THANH CHẮN NGANG GIỮA NHÀ — CẢI TẠO ĐỢT 3 (2026-11-16): chủ nhân test lại
+     vẫn thấy một thanh dài chắn ngang giữa nhà chính. Liệt kê mọi phần tử
+     ngang dài còn vắt qua không gian mở tầng trệt ở cao độ 1–4.5 m: dầm trần
+     (y 8.45–8.7, ngoài tầm), phào chân tường áp tường (y 1.35), dây đèn thả
+     (điểm nhỏ), tay vịn cầu thang (chéo, trong giếng thang) — thủ phạm đúng
+     là CỤM MÉP SÀN GÁC tại x 6.8–6.95 (tọa độ nhà; world z −51.95..−18):
+     (a) MẶT ĐỨNG mép sàn: hộp slab() màu TRIM nâu sẫm 0x8b4a2b, dày 0.2,
+         cao độ y 3.0–3.2, dài 33.95 m chạy dọc giữa nhà → nay ĐỔI SANG MÀU
+         KEM SÁNG 0xe9dcc2 tiệp với tường (0xf3e8d6): vẫn là mép sàn kết cấu
+         (giữ nguyên kích thước/vị trí/cao độ mặt sàn Y=3.2, ghế gác
+         N18–N29 và sàn tầng 2 không đổi) nhưng không còn là vệt nâu chắn mắt.
+     (b) LAN CAN mép gác (hàm rail() ngay dưới): thanh ngang trên caramel
+         0xb56a3a dài 33.75 m ở y 4.15 + thanh ngang giữa MID ở y 3.7 + song
+         dọc TRIM cách ~1.7 m — cụm này chồng lên mép sàn thành "thanh chắn"
+         ở tầm đứng → nay thay bằng TẤM KÍNH trong suốt (opacity 0.16, cao
+         0.88, y 3.23–4.11) + chỉ giữ TAY VỊN GỖ MỎNG trên cùng (0.07 dày ở
+         y 4.15) và TRỤ THƯA mỗi ~4.2 m. Ban công + cầu thang giữ nguyên. */
   [-16.4, -8, 0, 8, 16.4].forEach(z => bx(0.3, Y, 0.3, TRIM, 7, Y / 2, z));
   for (let i = 0; i < 14; i++) bx(3.4, 0.14, 0.85, i % 2 ? MID : 0xc99a68, 22.4, (i + 1) * (Y / 14) - 0.07, 4.6 - i * 0.87 - 0.42);
   const ang = Math.atan2(Y, 12.5), bl = Math.hypot(12.5, Y);
   [20.75, 24.05].forEach(x => { bx(0.08, 0.5, bl, TRIM, x, Y / 2 - 0.1, -1.25).rotation.x = ang; bx(0.07, 0.07, bl, 0xb56a3a, x, Y / 2 + 0.95, -1.25).rotation.x = ang; for (let i = 0; i < 6; i++) { const z = 4.2 - i * 2.2; bx(0.07, 0.95, 0.07, TRIM, x, stairYAt(z) + 0.47, z); } });
   OB(20.6, 24.3, -7.5, -0.5, { groundOnly: true });
-  const rail = (x0, z0, x1, z1) => { const len = Math.hypot(x1 - x0, z1 - z0), a = Math.atan2(-(z1 - z0), x1 - x0); bx(len, 0.08, 0.08, 0xb56a3a, (x0 + x1) / 2, Y + 0.95, (z0 + z1) / 2).rotation.y = a; bx(len, 0.05, 0.05, MID, (x0 + x1) / 2, Y + 0.5, (z0 + z1) / 2).rotation.y = a; const n = Math.max(2, Math.round(len / 1.7)); for (let i = 0; i <= n; i++) bx(0.07, 0.95, 0.07, TRIM, x0 + (x1 - x0) * i / n, Y + 0.47, z0 + (z1 - z0) * i / n); };
+  const rail = (x0, z0, x1, z1) => { const len = Math.hypot(x1 - x0, z1 - z0), a = Math.atan2(-(z1 - z0), x1 - x0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2; bx(len, 0.07, 0.09, 0xb56a3a, cx, Y + 0.98, cz).rotation.y = a; const gp = new th.Mesh(new th.PlaneGeometry(len, 0.88), new th.MeshLambertMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.16, side: th.DoubleSide, depthWrite: false })); gp.position.set(cx, Y + 0.47, cz); gp.rotation.y = a; scene.add(gp); const n = Math.max(1, Math.round(len / 4.2)); for (let i = 0; i <= n; i++) bx(0.07, 0.95, 0.07, TRIM, x0 + (x1 - x0) * i / n, Y + 0.47, z0 + (z1 - z0) * i / n); };
+  /* rail() ĐỢT 3: bỏ thanh ngang giữa (MID, y Y+0.5) + song dọc dày ~1.7 m;
+     thay bằng tấm kính trong suốt + tay vịn gỗ mỏng trên cùng + trụ thưa
+     ~4.2 m — lan can vẫn chắn rơi như cũ nhưng nhìn xuyên qua được, hết
+     vệt ngang chắn tầm nhìn tầng trệt. Áp cho cả 2 đoạn rail() gọi dưới đây
+     (mép gác x 6.95 dài 33.75 m + mép giếng thang dài 3.35 m). */
   rail(6.95, -16.85, 6.95, 16.9); rail(20.75, 5.1, 24.1, 5.1);
   // kệ sách gác
   [10.4, 13.2, 16, 18.8].forEach((x, si) => { bx(2.6, 2.7, 0.4, TRIM, x, Y + 1.35, -16.72); [0.55, 1.3, 2.05].forEach((y, r) => { bx(2.4, 0.06, 0.34, MID, x, Y + y, -16.66); for (let b = 0; b < 6; b++) { const h = 0.45 + ((b * 7 + r * 3 + si) % 4) * 0.08; bx(0.26, h, 0.22, bc[(b + r + si) % 6], x - 0.95 + b * 0.38, Y + y + 0.03 + h / 2, -16.64); } }); });
@@ -15053,7 +15222,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         updateAvatars(dt);
         updateCats(dt, t);
         updateCamera(dt);
-        updateFire(dt, t);
+        window.__lmPP = myPos; /* vị trí người chơi cho cổng khoảng cách __lmNear (giảm lag) */
+        /* GIẢM LAG: lửa trại + đom đóm ở đồi (-33, 4) chỉ cập nhật khi người
+           chơi trong ~45 m — ở xa không ai nhìn thấy hạt lửa/đom đóm. */
+        if (window.__lmNear(-33, 4, 45)) updateFire(dt, t);
         if (three.polishTick) three.polishTick(t);
         if (three.villaTick) three.villaTick(dt, t);
         if (three.skyTick) three.skyTick(dt, t);
@@ -15102,7 +15274,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) ||
             (typeof navigator.hardwareConcurrency === "number" &&
               navigator.hardwareConcurrency <= 4);
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowGpu ? 1.25 : 1.75));
+          /* GIẢM LAG (2026-11-16): pixelRatio qua tầng chất lượng LMQuality —
+             điện thoại Tự động tối đa 1.5, chế độ Nhẹ = 1.0, máy tính giữ
+             1.75 như cũ. lowGpu giữ lại cho các ngưỡng phụ khác bên dưới. */
+          if (window.LMQuality) window.LMQuality.applyTo(renderer, null);
+          else
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowGpu ? 1.25 : 1.75));
           renderer.outputEncoding = THREE.sRGBEncoding;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
           renderer.toneMappingExposure = 1.14;
@@ -15130,7 +15307,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           spot.position.set(2, 10.5, -33.5);
           spot.target.position.set(0, 0, -36);
           spot.castShadow = false; // đã bỏ đổ bóng trong nhà (xem ghi chú ở shadowMap)
-          spot.shadow.mapSize.set(lowGpu ? 512 : 1024, lowGpu ? 512 : 1024);
+          spot.shadow.mapSize.set(window.__lmLite ? 512 : 1024, window.__lmLite ? 512 : 1024);
           spot.shadow.bias = -0.0004;
           spot.shadow.normalBias = 0.02;
           spot.shadow.radius = 3;
@@ -15212,6 +15389,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               o.castShadow = !(o.material && o.material.transparent) && !o.userData.noCast;
             }
           });
+          /* GIẢM LAG: điểm áp chất lượng cho nút gạt "Giảm lag (điện thoại)"
+             trong menu ☰ — đổi chế độ là áp ngay pixelRatio + shadow map +
+             đổ bóng vật trang trí nhỏ, không cần tải lại trang. */
+          window.__lmApplyQuality = function () {
+            if (!three || !window.LMQuality) return;
+            window.LMQuality.applyTo(three.renderer, three.spot);
+            window.LMQuality.applyDecorShadows(three.scene);
+            sizeRenderer();
+          };
+          if (window.LMQuality) window.LMQuality.applyDecorShadows(scene);
           /* Chao đèn trần cho 5 đèn điểm mới của nhà chính: dây treo từ xà
              trần 8.7 xuống + đĩa phát sáng (MeshBasic — luôn sáng rõ). Vị
              trí khớp từng đèn: thư viện tây, quầy trà, phòng ăn, gác đông,
@@ -16255,6 +16442,24 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           fxBtn.textContent = on ? "Bật" : "Tắt";
           fxBtn.classList.toggle("on", on);
         });
+        /* Giảm lag (điện thoại): nút gạt 3 nấc Tự động → Nhẹ → Đầy đủ, áp
+           ngay qua LMQuality và lưu theo máy bằng localStorage (lmLagMode). */
+        const lagBtn = $("#setLagBtn");
+        if (lagBtn && window.LMQuality) {
+          const lagLabels = { auto: "Tự động", lite: "Nhẹ", full: "Đầy đủ" };
+          const paintLag = () => {
+            lagBtn.textContent = lagLabels[window.LMQuality.mode] || "Tự động";
+            lagBtn.classList.toggle("on", !!window.LMQuality.eco);
+          };
+          lagBtn.addEventListener("click", () => {
+            const order = ["auto", "lite", "full"];
+            const nxt = order[(order.indexOf(window.LMQuality.mode) + 1) % 3];
+            window.LMQuality.setMode(nxt);
+            paintLag();
+            toast("📱 Giảm lag: " + lagLabels[nxt]);
+          });
+          paintLag();
+        }
         /* Chat gọn mặc định trên màn hình nhỏ */
         if (window.matchMedia("(max-width: 640px)").matches) {
           $("#chatBox").classList.add("collapsed");
@@ -17079,7 +17284,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
 
         /* ---------- renderer / scene ---------- */
         var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        /* GIẢM LAG: bi-a cũng theo tầng chất lượng — Nhẹ = 1.0, điện thoại Tự động tối đa 1.5, máy tính giữ 2 */
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__lmLite ? 1 : window.LMQuality && window.LMQuality.isMobile ? 1.5 : 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         var scene = new THREE.Scene();
@@ -17103,7 +17309,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         spot.position.set(0, 24, 0);
         spot.target.position.set(0, 0, 0);
         spot.castShadow = true;
-        spot.shadow.mapSize.set(1024, 1024);
+        spot.shadow.mapSize.set(window.__lmLite ? 512 : 1024, window.__lmLite ? 512 : 1024);
         spot.shadow.camera.near = 10;
         spot.shadow.camera.far = 45;
         spot.shadow.bias = -0.0004;
@@ -25335,9 +25541,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             f++;
             var t = Date.now() / 1000;
             try {
-              /* Water ripples: subtle vertical movement; no geometry reconstruction. */
+              /* Water ripples: subtle vertical movement; no geometry reconstruction.
+                 GIẢM LAG: mặt nước hồ công viên (35, 90) chỉ cập nhật trong ~45 m. */
               var PP = window.__lmParkPool;
-              if (PP && PP.water) PP.water.position.y = PP.baseY + Math.sin(t * 1.7) * 0.008;
+              if (PP && PP.water && window.__lmNear(35, 90, 45)) PP.water.position.y = PP.baseY + Math.sin(t * 1.7) * 0.008;
               /* Show interiors from inside rooms; outside retain full opaque roofs. */
               if (f % 6 === 0 && window.__lmRoomRoofs && typeof myPos !== "undefined") {
                 // Local camera/player coordinates, never network member metadata.
@@ -25353,10 +25560,13 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                     }
                   });
               }
-              /* Đài phun nước */
+              /* Đài phun nước — GIẢM LAG: cổng khoảng cách ~45 m quanh (0, 84);
+                 chế độ Nhẹ chỉ chạy/vẽ một nửa số tia nước. */
               var F = window.__bcFountain;
-              if (F) {
-                for (var i = 0; i < F.seed.length; i++) {
+              if (F && window.__lmNear(0, 84, 45)) {
+                var fLim = window.__lmEco ? Math.ceil(F.seed.length / 2) : F.seed.length;
+                F.pts.geometry.setDrawRange(0, fLim);
+                for (var i = 0; i < fLim; i++) {
                   var s = F.seed[i],
                     h = (t * s.sp + s.ph) % 1;
                   var rr = s.r + h * 1.9,
@@ -25368,9 +25578,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                 F.pts.geometry.attributes.position.needsUpdate = true;
                 F.water.rotation.z = t * 0.25;
               }
-              /* Đu quay + ghế ngựa khớp vị trí */
+              /* Đu quay + ghế ngựa khớp vị trí — GIẢM LAG: cổng ~45 m quanh
+                 (-20, 92); vị trí ghế tính theo đồng hồ tuyệt đối nên tới gần
+                 khớp ngay, người đang ngồi luôn ở trong cổng. */
               var C = window.__bcCarousel;
-              if (C) {
+              if (C && window.__lmNear(-20, 92, 45)) {
                 var A = t * 0.5;
                 C.rotation.y = A;
                 for (var hi = 0; hi < 4; hi++) {
@@ -25407,7 +25619,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
            thẳng đứng (gon.rotation.z = −WA), ghế G1..G8 bám đúng vị trí cabin
            theo đồng hồ tường — người ngồi theo cabin lên cao ngắm toàn map,
            người khác thấy qua presence như ghế thường. */
-              if (window.__bcWheel) {
+              if (window.__bcWheel && window.__lmNear(24, 108, 45)) {
+                /* GIẢM LAG: vòng quay lớn chỉ cập nhật trong ~45 m (ghế G tính
+                   theo đồng hồ tuyệt đối — tới gần khớp ngay). */
                 var FW = window.__ferris || {
                   x: 24,
                   z: 108,
@@ -25895,7 +26109,9 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
               var gp = pulses[i];
               gp.s.material.opacity = gp.b * (0.72 + 0.28 * Math.sin(t * 2 + gp.ph));
             }
-            if (ferris) {
+            if (ferris && window.__lmNear(0, 236, 45)) {
+              /* GIẢM LAG: đu quay khu trò chơi (world 0, 236) chỉ quay khi
+                 người chơi trong ~45 m; góc quay theo đồng hồ nên khớp ngay. */
               ferris.wheel.rotation.z = t * 0.12;
               ferris.gond.forEach(function (p) {
                 p.rotation.z = -ferris.wheel.rotation.z;
