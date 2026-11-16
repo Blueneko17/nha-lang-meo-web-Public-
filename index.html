@@ -7722,7 +7722,7 @@
         maxZ: 248,
       }; /* Khung đất khớp máy chủ x[-58,58] z[-30,248] (đã gồm khu trò chơi mới phía nam) */
       const OBSTACLES = [
-        { minX: -5.3, maxX: 5.3, minZ: -16.9, maxZ: -15.9 }, // tủ TV
+        /* GHÉP V2: tủ TV — do buildHouseV2 nạp (số đo y hệt: -5.3..5.3 / -16.9..-15.9) */
         { minX: 26.7, maxX: 29.3, minZ: 226.0, maxZ: 230.0 }, // KHU MỚI: bàn bi-a engine trong phòng Bi-a (28, 228)
         { minX: 29.7, maxX: 30.9, minZ: 186.8, maxZ: 189.2 }, // KHU MỚI: máy nhảy Audition (28, 188)
         { minX: 26.3, maxX: 29.7, minZ: 166.6, maxZ: 169.4 }, // KHU MỚI: bàn UNO (28, 168)
@@ -7739,29 +7739,26 @@
         { minX: 18.85, maxX: 20.15, minZ: -15.15, maxZ: -13.85 }, // ghế đơn A1
         { minX: 18.85, maxX: 20.15, minZ: -12.15, maxZ: -10.85 }, // ghế đơn A2
         { minX: 18.85, maxX: 20.15, minZ: -9.15, maxZ: -7.85 }, // ghế đơn A3
-        { minX: 22.6, maxX: 23.2, minZ: 14.9, maxZ: 15.5 }, // đèn cây góc đông-nam
-        { minX: -23.75, maxX: -23.25, minZ: -16.1, maxZ: -12.9 }, // kệ sách tường tây (góc bắc)
-        { minX: -11.1, maxX: -10.5, minZ: -9.5, maxZ: -8.9 }, // đèn cây trái ngoài vòng cung
-        { minX: 10.5, maxX: 11.1, minZ: -9.5, maxZ: -8.9 }, // đèn cây phải
-        { minX: -19.96, maxX: -19.04, minZ: -16.56, maxZ: -15.64 }, // chậu cây góc TV trái
-        { minX: -12.92, maxX: -12.08, minZ: -16.47, maxZ: -15.63 }, // chậu cây cạnh kệ TV
-        { minX: -18.16, maxX: -17.44, minZ: -16.41, maxZ: -15.69 }, // chậu cây nhỏ góc TV
-        { minX: -1.45, maxX: 1.45, minZ: 10.35, maxZ: 11.65 }, // bàn trà sảnh nghỉ (thay cổng khu game cũ đã dỡ)
-        { minX: -17.1, maxX: -10.9, minZ: 16.4, maxZ: 16.95 }, // kệ sách sảnh nghỉ áp tường trước
-        { minX: -7.4, maxX: -5.6, minZ: 10.1, maxZ: 11.9 }, // ghế bành sảnh nghỉ trái
-        { minX: 5.6, maxX: 7.4, minZ: 10.1, maxZ: 11.9 }, // ghế bành sảnh nghỉ phải
+        /* GHÉP V2: đèn cây góc đông-nam cũ đã gỡ cùng nhà cũ (v2 không có đèn này) */
+        /* GHÉP V2: kệ sách tường tây cũ (buildPolish) đã gỡ — v2 có kệ riêng kèm vật cản riêng */
+        /* GHÉP V2: đèn cây trái — buildHouseV2 nạp số đo y hệt */
+        /* GHÉP V2: đèn cây phải — buildHouseV2 nạp số đo y hệt */
+        /* GHÉP V2: 3 chậu cây góc TV của buildPolish đã gỡ cùng buildPolish */
+        /* GHÉP V2: bàn trà sảnh nghỉ — buildHouseV2 nạp số đo y hệt */
+        /* GHÉP V2: kệ sách sảnh nghỉ — buildHouseV2 nạp số đo y hệt */
+        /* GHÉP V2: ghế bành sảnh nghỉ trái — buildHouseV2 nạp số đo y hệt */
+        /* GHÉP V2: ghế bành sảnh nghỉ phải — buildHouseV2 nạp số đo y hệt */
         { minX: -10.9, maxX: -10.1, minZ: 6.8, maxZ: 7.6 }, // chậu cây sảnh nghỉ trái
         { minX: 10.1, maxX: 10.9, minZ: 6.8, maxZ: 7.6 }, // chậu cây sảnh nghỉ phải
-        { minX: -25, maxX: -1.32, minZ: 16.86, maxZ: 17.14 }, // tường trước (trái) — chừa cửa ra sân
-        { minX: 1.32, maxX: 25, minZ: 16.86, maxZ: 17.14 }, // tường trước (phải)
-        { minX: 20.6, maxX: 24.3, minZ: -7.5, maxZ: -0.5, groundOnly: true }, // khối gầm cầu thang thấp
+        /* GHÉP V2: tường trước/trái — buildHouseV2 nạp {-32.4..-1.3 / 16.86..17.4} (cửa thật ±1.3) */
+        /* GHÉP V2: tường trước/phải — buildHouseV2 nạp {1.3..32.4 / 16.86..17.4} */
+        /* GHÉP V2: gầm cầu thang — buildHouseV2 nạp số đo y hệt (groundOnly) */
         { minX: 21.4, maxX: 23.6, minZ: 21.4, maxZ: 23.6 }, // đống lửa trại (vòng đá) — góc đông-bắc sân
         /* Tường nhà chính: trước đây THIẾU hẳn vật cản cho 3 mặt tường này, người
      chơi đi xuyên tường ra dải đất trống ngoài tường (x tới ±26, z tới -18).
      Nay chặn cứng cả 3 mặt; mặt trước (z=17) đã có 2 đoạn tường chừa cửa. */
-        { minX: -24.4, maxX: 24.4, minZ: -17.45, maxZ: -16.92 }, // tường sau (sau TV)
-        { minX: -24.42, maxX: -23.92, minZ: -17, maxZ: 17 }, // tường tây
-        { minX: 23.92, maxX: 24.42, minZ: -17, maxZ: 17 }, // tường đông
+        /* GHÉP V2: tường sau/tây/đông — buildHouseV2 nạp theo dấu chân mới:
+           sau {-32.4..32.4 / -17.45..-16.95}, tây {-32.4..-31.95 / -17..17}, đông {31.95..32.4 / -17..17} */
       ];
       /* Vật cản cho sofa/ghế bệt xếp vòng cung (AABB của hình chữ nhật đã xoay).
          HITBOX ĐÃ THU VỀ LÕI GHẾ: AABB của sofa xoay ±40° phình ra rất lớn so với
@@ -7784,8 +7781,8 @@
       const UPPER_OBSTACLES = [
         /* ĐỢT B: bàn họp + cây đã xuống tòa họp mặt đất (vật cản nằm ở OBSTACLES qua ComplexB) */
         { minX: 20.35, maxX: 20.75, minZ: -7.5, maxZ: 5 }, // lan can phía tây của cầu thang
-        { minX: -24.4, maxX: 24.4, minZ: -17.45, maxZ: -16.92 }, // tường sau (tầng 2 cũng chặn)
-        { minX: 23.92, maxX: 24.42, minZ: -17, maxZ: 5 }, // tường đông đoạn phòng họp
+        { minX: -32.4, maxX: 32.4, minZ: -17.45, maxZ: -16.95 }, // GHÉP V2: tường sau mở rộng theo dấu chân mới (tầng 2 cũng chặn)
+        { minX: 31.95, maxX: 32.4, minZ: -17, maxZ: 17 }, // GHÉP V2: tường đông mới (gác lửng nay dài hết z -16.95..17)
       ];
       /* Vùng đặc biệt: cầu thang (ramp), sàn tầng 2, sân sau + cửa ra sân */
       /* ================= BIỆT THỰ (Studio Ikaros): vườn, hồ bơi, cầu tụt, 4 phòng, sân thượng bar + DJ ================= */
@@ -8686,7 +8683,7 @@
       }
 
       const STAIR_RECT = { minX: 20.6, maxX: 24.2, minZ: -7.5, maxZ: 5 };
-      const LOFT_RECT = { minX: 6.8, maxX: 24.2, minZ: -16.95, maxZ: 17 };
+      const LOFT_RECT = { minX: 6.8, maxX: 31.8, minZ: -16.95, maxZ: 17 }; /* GHÉP V2: gác lửng mở rộng tới x 31.8 (sàn v2) */
       const BALC_RECT = { minX: 11.5, maxX: 20.5, minZ: 17, maxZ: 19.8 };
       const YARD_RECT = { minX: -8, maxX: 8, minZ: 15, maxZ: 24 };
       const DOOR_RECT = { minX: -1.05, maxX: 1.05, minZ: 15, maxZ: 19.5 };
@@ -9401,7 +9398,7 @@
         g.fillText("🎲 KHU TRÒ CHƠI 🎱", 256, 68);
         return new THREE.CanvasTexture(cv);
       }
-      function buildHouse() {
+            function buildHouse() {
         const S = three.scene;
         function labelTexture(text, bg, fg) {
           const cv = document.createElement("canvas");
@@ -9449,332 +9446,12 @@
           S.add(grp);
           return grp;
         }
-        function danceTexture() {
-          const cv = document.createElement("canvas");
-          cv.width = 256;
-          cv.height = 192;
-          const g = cv.getContext("2d");
-          g.fillStyle = "#141422";
-          g.fillRect(0, 0, 256, 192);
-          g.font = "64px sans-serif";
-          g.textAlign = "center";
-          const arrows = ["⬅️", "⬇️", "⬆️", "➡️"];
-          arrows.forEach((tx, i) => {
-            g.fillText(tx, 36 + i * 62, 84);
-          });
-          g.font = '800 26px "Baloo 2", sans-serif';
-          g.fillStyle = "#ffd98a";
-          g.fillText("AUDITION", 128, 152);
-          return new THREE.CanvasTexture(cv);
-        }
-        function unoTexture() {
-          const cv = document.createElement("canvas");
-          cv.width = 256;
-          cv.height = 192;
-          const g = cv.getContext("2d");
-          g.fillStyle = "#A9704B";
-          g.fillRect(0, 0, 256, 192);
-          const cols = ["#e0393e", "#f2b705", "#2ea44f", "#2470c7"];
-          cols.forEach((c, i) => {
-            g.fillStyle = c;
-            g.beginPath();
-            g.ellipse(52 + (i % 2) * 152, 48 + Math.floor(i / 2) * 96, 40, 30, 0.5, 0, 7);
-            g.fill();
-          });
-          g.font = '800 44px "Baloo 2", sans-serif';
-          g.textAlign = "center";
-          g.fillStyle = "#fff";
-          g.fillText("UNO", 128, 108);
-          return new THREE.CanvasTexture(cv);
-        }
-        // Sàn gỗ cực rộng 48 x 34 + thảm dấu chân mèo ở sảnh giữa
-        const floorTex = woodTexture();
-        floorTex.repeat.set(8, 5.6);
-        const floor = new THREE.Mesh(
-          new THREE.PlaneGeometry(48, 34),
-          new THREE.MeshLambertMaterial({ map: floorTex }),
-        );
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.set(0, 0, 0);
-        S.add(floor);
-        const rug = new THREE.Mesh(
-          new THREE.CircleGeometry(4.4, 36),
-          new THREE.MeshLambertMaterial({ map: rugTexture() }),
-        );
-        rug.rotation.x = -Math.PI / 2;
-        rug.scale.set(1.6, 0.85, 1);
-        rug.position.set(0, 0.02, 0.6);
-        S.add(rug);
-        /* SẢNH NGHỈ phía sau (làm lại): các trạm game đã dời hết sang phòng riêng
-     phía tây nên thảm xanh + cổng "KHU TRÒ CHƠI" cũ bị dỡ bỏ; thay bằng thảm
-     kem ấm + khu ghế bành/bàn trà/kệ sách (nội thất ở khối "sảnh nghỉ" dưới). */
-        const loungeRug = new THREE.Mesh(
-          new THREE.PlaneGeometry(22, 10.5),
-          new THREE.MeshLambertMaterial({ color: 0xd9c7a8 }),
-        );
-        loungeRug.rotation.x = -Math.PI / 2;
-        loungeRug.position.set(0, 0.012, 10.8);
-        S.add(loungeRug);
-        const loungeRugIn = new THREE.Mesh(
-          new THREE.PlaneGeometry(20.6, 9.1),
-          new THREE.MeshLambertMaterial({ color: 0xe9dcc2 }),
-        );
-        loungeRugIn.rotation.x = -Math.PI / 2;
-        loungeRugIn.position.set(0, 0.016, 10.8);
-        S.add(loungeRugIn);
-        // Thảm sảnh vào: trục đi thẳng từ cửa (z 17) tới khu xem phim, luôn để trống
-        const runner = new THREE.Mesh(
-          new THREE.PlaneGeometry(3.0, 11.5),
-          new THREE.MeshLambertMaterial({ color: 0xb56a3a }),
-        );
-        runner.rotation.x = -Math.PI / 2;
-        runner.position.set(0, 0.018, 11);
-        S.add(runner);
-        const runnerIn = new THREE.Mesh(
-          new THREE.PlaneGeometry(2.6, 11.1),
-          new THREE.MeshLambertMaterial({ color: 0xe9c9a6 }),
-        );
-        runnerIn.rotation.x = -Math.PI / 2;
-        runnerIn.position.set(0, 0.022, 11);
-        S.add(runnerIn);
-        // Tường bốn phía — tường kem ấm, hai mặt để nhìn được từ sân sau
-        const wallM = new THREE.MeshLambertMaterial({ color: 0xf2e7d8, side: THREE.DoubleSide });
-        three.wallMat = wallM;
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(48, 8.6), wallM);
-        backWall.position.set(0, 4.3, -17);
-        S.add(backWall);
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(34, 8.6), wallM);
-        leftWall.rotation.y = Math.PI / 2;
-        leftWall.position.set(-24, 4.3, 0);
-        S.add(leftWall);
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(34, 8.6), wallM);
-        rightWall.rotation.y = -Math.PI / 2;
-        rightWall.position.set(24, 4.3, 0);
-        S.add(rightWall);
-        /* Tường trước chia 3 mảng chừa cửa (x -1.3..1.3, cao 3.4) ra sân sau lửa trại */
-        const fwL = new THREE.Mesh(new THREE.PlaneGeometry(22.7, 8.6), wallM);
-        fwL.rotation.y = Math.PI;
-        fwL.position.set(-12.65, 4.3, 17);
-        S.add(fwL);
-        const fwR = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 8.6), wallM);
-        fwR.rotation.y = Math.PI;
-        fwR.position.set(7.55, 4.3, 17);
-        S.add(fwR);
-        const fwTop = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 5.2), wallM);
-        fwTop.rotation.y = Math.PI;
-        fwTop.position.set(0, 6.0, 17);
-        S.add(fwTop);
-        /* Danh sách tường/vách dùng cho tia che khuất của lớp phủ video (screenGate) */
-        three.occluders = [backWall, leftWall, rightWall, fwL, fwR, fwTop];
-        /* Cửa kính ra ban công gác lửng: mở x 13.8..17.7, y 3.2..6.2 */
-        [
-          [6.3, 8.6, 20.85, 4.3],
-          [3.9, 3.2, 15.75, 1.6],
-          [3.9, 2.4, 15.75, 7.4],
-        ].forEach((q) => {
-          const pw = new THREE.Mesh(new THREE.PlaneGeometry(q[0], q[1]), wallM);
-          pw.rotation.y = Math.PI;
-          pw.position.set(q[2], q[3], 17);
-          S.add(pw);
-          three.occluders.push(pw);
-        });
-        box(0.2, 3.4, 0.26, 0x8b4a2b, -1.36, 1.7, 17);
-        box(0.2, 3.4, 0.26, 0x8b4a2b, 1.36, 1.7, 17);
-        box(2.92, 0.24, 0.26, 0x8b4a2b, 0, 3.5, 17);
-        box(3.4, 0.12, 1.3, 0x9a8b78, 0, 0.06, 17.65);
-        box(48, 1.05, 0.07, 0xb98a5a, 0, 0.52, -16.95);
-        box(22.7, 1.05, 0.07, 0xb98a5a, -12.65, 0.52, 16.95);
-        box(22.7, 1.05, 0.07, 0xb98a5a, 12.65, 0.52, 16.95);
-        // ===== KHU XEM PHIM (phía trước) — TV lớn 16.4 × 7.3 trên tường -z =====
-        const tvPanel = box(12.3, 7.15, 0.3, 0x2a1f1a, 0, 4.5, -16.9);
-        three.occluders.push(tvPanel);
-        [-4.9, 4.9].forEach((ex, i) => {
-          const ear = new THREE.Mesh(
-            new THREE.ConeGeometry(0.48, 0.8, 4),
-            new THREE.MeshLambertMaterial({ color: 0x2f2420 }),
-          );
-          ear.position.set(ex, 8.4, -16.9);
-          ear.rotation.z = i === 0 ? 0.18 : -0.18;
-          S.add(ear);
-          const inner = new THREE.Mesh(
-            new THREE.ConeGeometry(0.22, 0.42, 4),
-            new THREE.MeshLambertMaterial({ color: 0xe77fb0 }),
-          );
-          inner.position.set(ex, 8.34, -16.72);
-          inner.rotation.z = ear.rotation.z;
-          S.add(inner);
-        });
-        three.screenIdle = new THREE.MeshBasicMaterial({ map: screenIdleTexture() });
-        /* LỖ XUYÊN CANVAS: khi có video, màn hình ghi alpha=0 + depth → iframe YouTube (nằm dưới canvas) lộ ra đúng chỗ đó,
-   còn người/đồ vật đứng trước TV vẽ đè lên bình thường như TV thật. */
-        three.screenBlack = new THREE.ShaderMaterial({
-          vertexShader: "void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
-          fragmentShader: "void main(){gl_FragColor=vec4(0.0);}",
-          blending: THREE.NoBlending,
-          transparent: false,
-          depthWrite: true,
-        });
-        /* Màn hình hiển thị đúng tỉ lệ 16:9 (13.8 × 7.76) nằm gọn trong khung TV
-     17.8 × 8.0 — trước đây mặt hiển thị 16.4 × 7.3 (tỉ lệ 2.25) khiến lớp phủ
-     video bị kéo giãn ngang và tràn ra ngoài viền như "không gắn vào TV". */
-        const scr = new THREE.Mesh(
-          new THREE.PlaneGeometry(11.2, 6.3),
-          RoomState.screen && RoomState.screen.videoId ? three.screenBlack : three.screenIdle,
-        );
-        scr.position.set(0, 4.5, -16.73);
-        scr.userData.noCast = true;
-        S.add(scr);
-        three.screenMesh = scr;
-        three.screenCorners = [
-          new THREE.Vector3(-5.6, 7.65, -16.72),
-          new THREE.Vector3(5.6, 7.65, -16.72),
-          new THREE.Vector3(5.6, 1.35, -16.72),
-          new THREE.Vector3(-5.6, 1.35, -16.72),
-        ];
-        
-        
-        const sign = new THREE.Mesh(
-          new THREE.PlaneGeometry(4.2, 1.05),
-          new THREE.MeshBasicMaterial({ map: signTexture() }),
-        );
-        sign.position.set(-14.5, 6.6, -16.9);
-        S.add(sign);
-        const poster = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.7, 2.3),
-          new THREE.MeshLambertMaterial({ map: posterTexture() }),
-        );
-        poster.rotation.y = -Math.PI / 2;
-        poster.position.set(23.94, 4, -4);
-        S.add(poster);
-        const win = new THREE.Mesh(
-          new THREE.PlaneGeometry(3, 3),
-          new THREE.MeshBasicMaterial({ map: windowTexture() }),
-        );
-        win.rotation.y = Math.PI;
-        win.position.set(-16, 4.2, 16.9);
-        S.add(win);
-
-        // Ghế bệt mặt mèo: hàng thấp TRƯỚC sofa, sát màn hình nhất
-        const cushionColors = [0xb56a3a, 0x748b6f, 0xa9704b, 0x5f7a5e];
-        const faceTex = catFaceTexture();
-        for (let i = 0; i < 8; i++) {
-          const cg = new THREE.Group();
-          const csp = SEAT_POS["C" + (i + 1)];
-          cg.position.set(csp.x, 0, csp.z);
-          cg.rotation.y = csp.rotY - Math.PI;
-          S.add(cg);
-          const cm = new THREE.MeshLambertMaterial({ color: cushionColors[i % 4] });
-          const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.6, 0.18, 20), cm);
-          pad.scale.z = 0.82;
-          pad.position.y = 0.09;
-          cg.add(pad);
-          [-0.3, 0.3].forEach((ex, ei) => {
-            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.23, 4), cm);
-            ear.position.set(ex, 0.26, 0.36);
-            ear.rotation.x = -0.28;
-            ear.rotation.z = ei === 0 ? 0.16 : -0.16;
-            cg.add(ear);
-          });
-          const face = new THREE.Mesh(
-            new THREE.CircleGeometry(0.4, 20),
-            new THREE.MeshBasicMaterial({ map: faceTex, transparent: true }),
-          );
-          face.rotation.x = -Math.PI / 2;
-          face.position.set(0, 0.185, -0.04);
-          cg.add(face);
-          const ctail = new THREE.Mesh(
-            new THREE.TorusGeometry(0.26, 0.045, 8, 20, Math.PI * 1.25),
-            cm,
-          );
-          ctail.rotation.x = -Math.PI / 2;
-          ctail.rotation.z = 0.5;
-          ctail.position.set(0.52, 0.05, 0.14);
-          cg.add(ctail);
-        }
-        /* Sofa + ghế bành cũng là VẬT CHE của lớp phủ video: camera mà bị lưng sofa
-     chắn tới tâm màn hình thì ẩn hình — TV behaves như TV thật, hình không
-     còn vẽ đè lên ghế/người đứng chắn trước màn hình. */
-        for (let i = 1; i <= 5; i++) {
-          const f = SEAT_POS["F" + i],
-            b = SEAT_POS["B" + i];
-          makeSofaSeg(0x748b6f, f.x, f.z, f.rotY - Math.PI, 2.7);
-          makeSofaSeg(0xa9704b, b.x, b.z, b.rotY - Math.PI, 3.7);
-        }
-        ["A1", "A2", "A3"].forEach((id) => {
-          const sp = SEAT_POS[id];
-          const g = makeArmchair(sp.x, sp.z, sp.rotY);
-          g.traverse((o) => {
-            if (o.isMesh) three.occluders.push(o);
-          });
-        });
-        /* --- Nội thất sảnh nghỉ (thay cổng khu game cũ) --- */
-        makeArmchair(-6.5, 11, Math.PI);
-        makeArmchair(6.5, 11, Math.PI);
-        box(2.6, 0.1, 1.2, 0x7a4526, 0, 0.46, 11); // bàn trà giữa
-        [
-          [-1.15, 10.55],
-          [1.15, 10.55],
-          [-1.15, 11.45],
-          [1.15, 11.45],
-        ].forEach((l) => box(0.09, 0.42, 0.09, 0x5a3a24, l[0], 0.21, l[1]));
-        box(0.5, 0.09, 0.36, 0xa34d7c, -0.5, 0.56, 11); // sách trên bàn trà
-        box(0.42, 0.07, 0.3, 0x2e6b8a, 0.35, 0.55, 11.1);
-        const teaCat = new THREE.Mesh(
-          new THREE.SphereGeometry(0.16, 12, 10),
-          new THREE.MeshLambertMaterial({ color: 0xf2b705 }),
-        );
-        teaCat.scale.set(1, 0.8, 1.15);
-        teaCat.position.set(0.95, 0.62, 10.8);
-        S.add(teaCat);
-        // Kệ sách áp tường trước (trái) + hàng sách nhiều màu + đèn đọc sách
-        box(6.2, 2.6, 0.38, 0x7a4526, -14, 1.3, 16.68);
-        [0.75, 1.55, 2.35].forEach((sy) => box(5.8, 0.07, 0.3, 0x5a3a24, -14, sy, 16.66));
-        const bookCols = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xb56a3a];
-        for (let bi = 0; bi < 16; bi++) {
-          const bh = 0.42 + (bi % 3) * 0.07;
-          box(
-            0.24,
-            bh,
-            0.2,
-            bookCols[bi % 6],
-            -16.6 + (bi % 8) * 0.68,
-            [0.75, 1.55, 2.35][Math.floor(bi / 8) % 3] + 0.04 + bh / 2,
-            16.64,
-          );
-        }
-        box(5.4, 0.5, 0.3, 0xb56a3a, -14, 2.85, 16.68);
-        // Chậu cây hai đầu sảnh nghỉ + đèn cây đọc sách
-        [
-          [-10.5, 7.2],
-          [10.5, 7.2],
-        ].forEach((p) => {
-          const pot = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.42, 0.3, 0.55, 14),
-            new THREE.MeshLambertMaterial({ color: 0xa9704b }),
-          );
-          pot.position.set(p[0], 0.28, p[1]);
-          S.add(pot);
-          const bush = new THREE.Mesh(
-            new THREE.SphereGeometry(0.72, 12, 10),
-            new THREE.MeshLambertMaterial({ color: 0x5f7a5e }),
-          );
-          bush.position.set(p[0], 1.05, p[1]);
-          bush.scale.y = 1.15;
-          S.add(bush);
-        });
-        stationSign("🛋️ SẢNH NGHỈ · CỬA RA SÂN SAU", "#8B4A2B", 0, 3.15, 16.82);
+        /* NHÀ CHÍNH V2: dựng nhà mới + nối màn hình / occluders / vật cản / mái */
+        buildHouseV2();
         // ===== KHU TRÒ CHƠI: đã chuyển về KHU RIÊNG phía nam (script GameZoneV2) =====
         /* Các trạm game cũ dựng tại đây (bi-a, Audition, UNO, gắp gấu, cá ngựa,
            bài cào, cò quay) đã GỠ. Bàn bi-a ENGINE (window.__poolWorld) được
            dựng lại tại phòng Bi-a của khu mới trong script GameZoneV2. */
-        // Cửa gỗ trên tường sau (phía khu game)
-        box(1.9, 3.4, 0.1, 0x8b4a2b, -6, 1.7, 16.94);
-        const knob = new THREE.Mesh(
-          new THREE.SphereGeometry(0.07, 10, 8),
-          new THREE.MeshBasicMaterial({ color: 0xf2b705 }),
-        );
-        knob.position.set(-5.3, 1.7, 16.86);
-        S.add(knob);
         // Cây cào móng có mèo ngồi (góc trước trái)
         const tree = new THREE.Group();
         tree.position.set(-22.5, 0, -15.5);
@@ -9865,26 +9542,6 @@
           tank.add(fish);
           three.fish.push(fish);
         });
-        // Kệ cá khô trên tường phải + dây đèn
-        box(0.35, 0.07, 2.6, 0x8b4a2b, 23.8, 5.2, -9);
-        [0xf2b705, 0xe4572e, 0x5f7a5e, 0xe77fb0, 0xf2b705, 0xe4572e, 0x5f7a5e].forEach((c, i) => {
-          const f = new THREE.Mesh(
-            new THREE.ConeGeometry(0.09, 0.34, 8),
-            new THREE.MeshBasicMaterial({ color: c }),
-          );
-          f.position.set(23.75, 4.92, -10.15 + i * 0.35);
-          f.rotation.x = Math.PI;
-          S.add(f);
-        });
-        const lightColors = [0xe9a13b, 0xe4572e, 0x5f7a5e, 0xf2b705];
-        for (let i = 0; i < 25; i++) {
-          const bulb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.055, 8, 8),
-            new THREE.MeshBasicMaterial({ color: lightColors[i % 4] }),
-          );
-          bulb.position.set(-22.8 + i * 1.9, 7.9 - Math.sin((i / 24) * Math.PI) * 0.3, -16.8);
-          S.add(bulb);
-        }
         // Cuộn len tĩnh trang trí
         [
           [-13.5, 2, 0x5f7a5e],
@@ -9923,63 +9580,6 @@
         yb.userData = { busy: false, rolling: false, dir: 0, timer: 0, spin: [ybBall, ybRing] };
         S.add(yb);
         three.yarnBall = yb;
-        // Cọ dừa ở góc
-        [
-          [-23.2, 16.2],
-          [23.2, 16.2],
-        ].forEach((p) => {
-          const palm = new THREE.Group();
-          palm.position.set(p[0], 0, p[1]);
-          S.add(palm);
-          const pot = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.34, 0.25, 0.52, 14),
-            new THREE.MeshLambertMaterial({ color: 0xa9704b }),
-          );
-          pot.position.y = 0.26;
-          palm.add(pot);
-          const trunk = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.06, 0.09, 1.15, 8),
-            new THREE.MeshLambertMaterial({ color: 0x8a5a30 }),
-          );
-          trunk.position.y = 1.0;
-          trunk.rotation.z = 0.12;
-          palm.add(trunk);
-          for (let i = 0; i < 5; i++) {
-            const leaf = new THREE.Mesh(
-              new THREE.ConeGeometry(0.15, 1.15, 6),
-              new THREE.MeshLambertMaterial({ color: 0x3f9e4d }),
-            );
-            const ang = (i / 5) * Math.PI * 2;
-            leaf.position.set(Math.cos(ang) * 0.34, 1.72, Math.sin(ang) * 0.34);
-            leaf.rotation.set(Math.sin(ang) * 1.05, 0, -Math.cos(ang) * 1.05);
-            palm.add(leaf);
-          }
-        });
-        // Đèn cây ấm
-        const lamp = new THREE.Group();
-        lamp.position.set(22.9, 0, 15.2);
-        S.add(lamp);
-        const lBase = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.26, 0.3, 0.06, 14),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        lBase.position.y = 0.03;
-        lamp.add(lBase);
-        const lPole = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.04, 0.04, 1.5, 8),
-          new THREE.MeshLambertMaterial({ color: 0x5a3a24 }),
-        );
-        lPole.position.y = 0.78;
-        lamp.add(lPole);
-        const lShade = new THREE.Mesh(
-          new THREE.ConeGeometry(0.44, 0.5, 18, 1, true),
-          new THREE.MeshLambertMaterial({ color: 0xf0aa45, side: THREE.DoubleSide }),
-        );
-        lShade.position.y = 1.68;
-        lamp.add(lShade);
-        const lampGlow = makeGlowSprite(0xffc37a, 2.4, 0.5);
-        lampGlow.position.set(22.9, 1.66, 15.2);
-        S.add(lampGlow);
         // Sân khấu karaoke nhỏ trước màn hình
         const stage = new THREE.Mesh(
           new THREE.BoxGeometry(5.4, 0.12, 1.7),
@@ -10124,13 +9724,395 @@
         ];
         buildCampfireYard();
         buildSecondFloor();
-        buildPolish();
-        buildMainMakeover();
         buildVilla();
         buildSkyDome();
         buildExterior();
         buildDustMotes();
       }
+      /* ═══ NHÀ CHÍNH V2 (GHÉP 2026-11-16): toàn bộ mã dựng nhà của
+         Nha_Chinh_Biet_Thu_v2.html — bỏ khung xem độc lập (renderer/camera/
+         nút #roof/vòng animate/cỏ + quảng trường ngoài trời), bọc trong hàm
+         riêng để helper nén (bx/cy/sp/cone/pl/bb/mk/pn/glow...) không đụng
+         toàn cục của làng. Điểm nối dữ liệu ở cuối hàm. ═══ */
+      function buildHouseV2() {
+"use strict";
+const th = THREE;
+const scene = three.scene;
+
+
+/* ───────── helper ───────── */
+const mats = {}, geos = {};
+const M = c => mats[c] || (mats[c] = new th.MeshLambertMaterial({ color: c }));
+const geo = (k, f) => geos[k] || (geos[k] = f());
+const put = (m, x, y, z, p) => { m.position.set(x, y, z); (p || scene).add(m); return m; };
+const bx = (w, h, d, c, x, y, z, p) => put(new th.Mesh(geo("b" + w + "|" + h + "|" + d, () => new th.BoxGeometry(w, h, d)), M(c)), x, y, z, p);
+const cy = (rt, rb, h, c, x, y, z, p, s) => { s = s || 16; return put(new th.Mesh(geo("c" + rt + "|" + rb + "|" + h + "|" + s, () => new th.CylinderGeometry(rt, rb, h, s)), M(c)), x, y, z, p); };
+const sp = (r, c, x, y, z, p) => put(new th.Mesh(geo("s" + r, () => new th.SphereGeometry(r, 12, 10)), M(c)), x, y, z, p);
+const cone = (r, h, c, x, y, z, p, s) => put(new th.Mesh(geo("n" + r + "|" + h + "|" + (s || 8), () => new th.ConeGeometry(r, h, s || 8)), M(c)), x, y, z, p);
+const pl = (w, d, c, x, y, z, p) => { const m = put(new th.Mesh(geo("p" + w + "|" + d, () => new th.PlaneGeometry(w, d)), M(c)), x, y, z, p); m.rotation.x = -Math.PI / 2; return m; };
+const bb = (w, h, d, c, x, y, z, p) => put(new th.Mesh(geo("bb" + w + "|" + h + "|" + d, () => new th.BoxGeometry(w, h, d)), new th.MeshBasicMaterial({ color: c })), x, y, z, p);
+const GT = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const gr = g.createRadialGradient(64, 64, 2, 64, 64, 64); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.35, "rgba(255,255,255,.45)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new th.CanvasTexture(c); })();
+const pulses = [];
+function glow(c, sc, op, x, y, z, p) {
+  const s = new th.Sprite(new th.SpriteMaterial({ map: GT, color: c, transparent: true, opacity: op, blending: th.AdditiveBlending, depthWrite: false }));
+  s.scale.set(sc, sc, 1); put(s, x, y, z, p); pulses.push({ s, b: op, ph: Math.random() * 6 }); return s;
+}
+function mk(w, h, fn) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); fn(g, w, h);
+  const t = new th.CanvasTexture(c);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fn(g, w, h); t.needsUpdate = true; });
+  return t;
+}
+const FONT = '"Baloo 2", sans-serif';
+function pn(w, h, tex, x, y, z, ry, rx, p) { const m = put(new th.Mesh(new th.PlaneGeometry(w, h), new th.MeshBasicMaterial({ map: tex })), x, y, z, p); m.rotation.y = ry || 0; m.rotation.x = rx || 0; return m; }
+function textTex(text, bg, fg, w, h) {
+  return mk(512, Math.round(512 * h / w), (g, W, H) => { g.fillStyle = bg; g.fillRect(0, 0, W, H); g.strokeStyle = "rgba(255,233,201,.7)"; g.lineWidth = 8; g.strokeRect(8, 8, W - 16, H - 16); g.fillStyle = fg; g.font = "800 " + Math.round(H * 0.5) + "px " + FONT; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, W / 2, H / 2 + 3, W - 40); });
+}
+const HOB = [];
+const OB = (a, b, c, d, extra) => HOB.push(Object.assign({ minX: Math.min(a, b), maxX: Math.max(a, b), minZ: Math.min(c, d), maxZ: Math.max(c, d) }, extra || {}));
+const OCCL = []; // mesh tường/TV/gác dùng cho tia che khuất video (three.occluders)
+const PORTICO_ROOF = []; // mái hiên cổng: dựng trước khi HouseRoof khai báo, gộp vào group ở cuối hàm
+const rnd = (() => { let a = 7; return () => (a = (a * 1664525 + 1013904223) % 4294967296) / 4294967296; })();
+
+const bc = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xb56a3a];
+const bc2 = [0xb56a3a, 0x748b6f, 0xe9c9a6, 0xa9704b, 0xbecfbd, 0xe0393e, 0x2470c7];
+const WH = 9, WALL = 0xf3e8d6, TRIM = 0x8b4a2b, STONE = 0xcdbfa6, MID = 0xb98a5a, DARK = 0x5a3a24, Y = 3.2;
+const STAIR = { minX: 20.6, maxX: 24.2, minZ: -7.5, maxZ: 5 };
+function stairYAt(z) { return Math.max(0, Math.min(1, (5 - z) / 12.5)) * Y; }
+
+/* ───────── ghế (dữ liệu y hệt bản cũ) ───────── */
+const SEAT_POS = {};
+function arcPt(r, deg) { const t = deg * Math.PI / 180; return { x: r * Math.sin(t), z: -17 + r * Math.cos(t), rotY: t + Math.PI }; }
+for (let i = 0; i < 5; i++) SEAT_POS["B" + (i + 1)] = Object.assign(arcPt(14.5, (i - 2) * 20), { y: 0.62 });
+for (let i = 0; i < 5; i++) SEAT_POS["F" + (i + 1)] = Object.assign(arcPt(10.5, (i - 2) * 20), { y: 0.62 });
+for (let i = 0; i < 8; i++) SEAT_POS["C" + (i + 1)] = Object.assign(arcPt(6.4, -63 + i * 18), { y: 0.16 });
+[[19.5, -14.5], [19.5, -11.5], [19.5, -8.5]].forEach((a, i) => { SEAT_POS["A" + (i + 1)] = { x: a[0], z: a[1], y: 0.55, rotY: Math.atan2(-a[0], -17 - a[1]) }; });
+
+/* ───────── texture ───────── */
+function woodTex() {
+  const t = mk(512, 512, (g) => {
+    const sh = ["#D6A57A", "#CC9C6B", "#C4945F", "#D9AC82", "#BF8F5E", "#D1A074"];
+    for (let r = 0; r < 8; r++) { let x = -((r * 173) % 260); while (x < 512) { const len = 200 + ((r * 53 + x * 7) % 130); g.fillStyle = sh[(r * 3 + Math.abs(Math.floor(x / 97))) % 6]; g.fillRect(x, r * 64, len, 64); g.fillStyle = "rgba(70,40,18,.5)"; g.fillRect(x, r * 64, 2.5, 64); x += len; } g.fillStyle = "rgba(70,40,18,.4)"; g.fillRect(0, r * 64, 512, 2.5); }
+  });
+  t.wrapS = t.wrapT = th.RepeatWrapping; return t;
+}
+function marbleTex() {
+  const t = mk(256, 256, (g) => { for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { g.fillStyle = (i + j) % 2 ? "#e4c9b5" : "#f7efe2"; g.fillRect(i * 64, j * 64, 64, 64); } g.strokeStyle = "rgba(120,90,60,.35)"; g.lineWidth = 2; g.strokeRect(0, 0, 256, 256); });
+  t.wrapS = t.wrapT = th.RepeatWrapping; return t;
+}
+const tileTex = (() => {
+  const t = mk(256, 256, (g) => { g.fillStyle = "#B25A41"; g.fillRect(0, 0, 256, 256); for (let r = 0; r < 8; r++) { g.fillStyle = r % 2 ? "rgba(0,0,0,.05)" : "rgba(255,255,255,.04)"; g.fillRect(0, r * 32, 256, 32); g.fillStyle = "rgba(70,25,10,.55)"; g.fillRect(0, r * 32 + 29, 256, 3); g.fillStyle = "rgba(70,25,10,.35)"; for (let c = (r % 2) * 32; c < 256; c += 64) g.fillRect(c, r * 32, 2, 30); } });
+  t.wrapS = t.wrapT = th.RepeatWrapping; t.repeat.set(24, 5); return t;
+})();
+const roofMat = new th.MeshLambertMaterial({ map: tileTex, side: th.DoubleSide });
+const idleTex = () => mk(512, 288, (g) => {
+  const gr = g.createRadialGradient(256, 60, 40, 256, 160, 340); gr.addColorStop(0, "#26314d"); gr.addColorStop(.6, "#101623"); gr.addColorStop(1, "#070a12"); g.fillStyle = gr; g.fillRect(0, 0, 512, 288);
+  g.fillStyle = "#e4572e"; g.beginPath(); g.arc(256, 112, 42, 0, 7); g.fill(); g.fillStyle = "#fff"; g.beginPath(); g.moveTo(242, 88); g.lineTo(242, 136); g.lineTo(282, 112); g.fill();
+  g.font = "700 29px " + FONT; g.textAlign = "center"; g.fillStyle = "#dbe6ff"; g.fillText("Màn hình Làng Mèo đang chờ chiếu", 256, 198);
+});
+const artTex = k => mk(256, 320, (g) => {
+  g.fillStyle = ["#F2E7D8", "#BECFBD", "#E9C9A6"][k % 3]; g.fillRect(0, 0, 256, 320); g.fillStyle = ["#A9704B", "#748B6F", "#B56A3A"][k % 3];
+  g.beginPath(); g.arc(128, 190, 70, 0, 7); g.fill(); [-1, 1].forEach(s => { g.beginPath(); g.moveTo(128 + s * 28, 140); g.lineTo(128 + s * 66, 96); g.lineTo(128 + s * 66, 160); g.fill(); });
+  g.fillStyle = "#2F2420"; [-24, 24].forEach(o => { g.beginPath(); g.ellipse(128 + o, 182, 7, 11, 0, 0, 7); g.fill(); });
+});
+
+/* ───────── đồ nội thất ───────── */
+function sofa(color, x, z, rotY, w, y) {
+  const g = new th.Group(); g.position.set(x, y || 0, z); g.rotation.y = rotY; scene.add(g);
+  const lt = new th.Color(color).multiplyScalar(1.22).getHex();
+  bx(w, 0.5, 1.15, color, 0, 0.3, 0, g); bx(w, 1.05, 0.26, color, 0, 0.85, 0.48, g);
+  [-1, 1].forEach(s => bx(0.32, 0.78, 1.15, color, s * (w / 2 - 0.16), 0.56, 0, g));
+  bx(w - 0.7, 0.17, 0.95, lt, 0, 0.6, -0.04, g); bx(w - 0.7, 0.62, 0.15, lt, 0, 0.98, 0.33, g);
+  [-1, 1].forEach(s => { const e = cone(0.17, 0.36, color, s * (w / 2 - 0.4), 1.55, 0.48, g, 4); e.rotation.z = -s * 0.22; });
+  return g;
+}
+function armchair(x, z, rotY, y, c) {
+  const g = new th.Group(); g.position.set(x, y || 0, z); g.rotation.y = rotY + Math.PI; scene.add(g); c = c || 0xb56a3a;
+  bx(1.25, 0.45, 1.05, c, 0, 0.28, 0, g); bx(1.25, 0.95, 0.22, c, 0, 0.78, 0.44, g); [-0.68, 0.68].forEach(a => bx(0.24, 0.68, 1.05, c, a, 0.5, 0, g));
+  [-0.42, 0.42].forEach(e => cone(0.09, 0.2, c, e, 1.34, 0.44, g, 4)); return g;
+}
+function plant(x, y, z, s) {
+  const g = new th.Group(); g.position.set(x, y, z); g.scale.setScalar(s); scene.add(g);
+  cy(0.4, 0.3, 0.55, 0xa9704b, 0, 0.28, 0, g, 14);
+  for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; const l = cone(0.18, 1.3, i % 2 ? 0x5f7a5e : 0x3f9e4d, Math.cos(a) * 0.22, 1.1, Math.sin(a) * 0.22, g, 6); l.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5); }
+}
+function chair(x, z, ry, y) { const g = new th.Group(); g.position.set(x, y || 0, z); g.rotation.y = ry; scene.add(g); bx(0.5, 0.07, 0.5, 0xb56a3a, 0, 0.5, 0, g); bx(0.5, 0.6, 0.07, 0xb56a3a, 0, 0.82, 0.22, g); [[-.2, -.2], [.2, -.2], [-.2, .2], [.2, .2]].forEach(l => bx(0.05, 0.5, 0.05, DARK, l[0], 0.25, l[1], g)); }
+function colm(x, z, h, base) { base = base || 0; cy(0.5, 0.55, 0.3, STONE, x, base + 0.15, z, null, 16); cy(0.36, 0.42, h - 0.9, 0xf6efe2, x, base + 0.3 + (h - 0.9) / 2, z, null, 18); bx(1.1, 0.3, 1.1, STONE, x, base + h - 0.45, z); bx(1.3, 0.18, 1.3, 0xb98a5a, x, base + h - 0.2, z); }
+function winUnit(x, y, z, ry, w, h) {
+  const g = new th.Group(); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g);
+  bx(w + 0.36, h + 0.36, 0.44, TRIM, 0, 0, 0, g); const _wg = bb(w, h, 0.5, 0xffc87e, 0, 0, 0, g); (three.winGlowMats = three.winGlowMats || []).push(_wg.material);
+  bx(0.08, h, 0.54, TRIM, 0, 0, 0, g); bx(w, 0.08, 0.54, TRIM, 0, 0, 0, g);
+  bx(w + 0.6, 0.14, 0.7, STONE, 0, -h / 2 - 0.25, 0.3, g);
+  [-1, 1].forEach(s => bx(0.45, h, 0.08, 0x748b6f, s * (w / 2 + 0.45), 0, 0.3, g));
+  glow(0xffb36b, w * 1.6, 0.18, 0, 0, 0.5, g);
+}
+
+/* ───────── mặt đất + nền ───────── */
+(function ground() {
+  const wt = woodTex(); wt.repeat.set(16, 8.7);
+  const f = new th.Mesh(new th.PlaneGeometry(65, 35), new th.MeshLambertMaterial({ map: wt })); f.rotation.x = -Math.PI / 2; f.position.set(0, 0.01, 0); scene.add(f);
+  const mt = marbleTex(); mt.repeat.set(3.5, 3.5);
+  const m = new th.Mesh(new th.PlaneGeometry(14, 14), new th.MeshLambertMaterial({ map: mt })); m.rotation.x = -Math.PI / 2; m.position.set(0, 0.02, 10); scene.add(m);
+  bx(14.4, 0.04, 0.2, 0xb98a5a, 0, 0.03, 3); bx(0.2, 0.04, 14, 0xb98a5a, -7.1, 0.03, 10); bx(0.2, 0.04, 14, 0xb98a5a, 7.1, 0.03, 10);
+  const rc = (rx, rz, ra, rb, c1, c2, sx) => { const a = cy(ra, ra, 0.03, c1, rx, 0.035, rz, null, 48); a.scale.z = sx; const b = cy(rb, rb, 0.03, c2, rx, 0.045, rz, null, 48); b.scale.z = sx; };
+  rc(0, -10.8, 10.4, 9.6, 0xa9704b, 0xbecfbd, 0.58);
+  bx(22, 0.03, 8.6, 0xd9c7a8, -13, 0.035, 10); // thảm sảnh nghỉ trái
+  bx(22, 0.03, 8.6, 0xd9c7a8, 13, 0.035, 10);
+  bx(2.6, 0.03, 11, 0xb56a3a, 0, 0.05, 11);
+  bx(3.2, 0.03, 12, 0xc9a97f, 13.2, 0.036, -10.5); // dưới gầm gác
+})();
+
+/* ───────── vỏ nhà: tường, cửa sổ, cột, chân tường ───────── */
+(function shell() {
+  const T = 0.4;
+  OCCL.push(bx(65, WH, T, WALL, 0, WH / 2, -17.2)); OCCL.push(bx(T, WH, 35, WALL, -32.2, WH / 2, 0)); OCCL.push(bx(T, WH, 35, WALL, 32.2, WH / 2, 0));
+  // tường trước chừa cửa chính (2.6) + cửa kính ban công (x 13.8..17.7, y 3.2..6.2)
+  const fz = 17.2;
+  OCCL.push(bx(31.1, WH, T, WALL, -16.85, WH / 2, fz)); OCCL.push(bx(12.5, WH, T, WALL, 7.55, WH / 2, fz)); OCCL.push(bx(14.7, WH, T, WALL, 25.05, WH / 2, fz));
+  OCCL.push(bx(3.9, 3.2, T, WALL, 15.75, 1.6, fz)); OCCL.push(bx(3.9, 2.8, T, WALL, 15.75, 7.6, fz)); OCCL.push(bx(2.6, WH - 3.4, T, WALL, 0, 3.4 + (WH - 3.4) / 2, fz));
+  // chân tường đá + phào
+  bx(65.4, 0.8, 0.55, STONE, 0, 0.4, 17.3); bx(65.4, 0.8, 0.55, STONE, 0, 0.4, -17.3); bx(0.55, 0.8, 35.4, STONE, -32.3, 0.4, 0); bx(0.55, 0.8, 35.4, STONE, 32.3, 0.4, 0);
+  bx(65.4, 0.35, 0.6, STONE, 0, 8.85, 17.3); bx(65.4, 0.35, 0.6, STONE, 0, 8.85, -17.3); bx(0.6, 0.35, 35.4, STONE, -32.3, 8.85, 0); bx(0.6, 0.35, 35.4, STONE, 32.3, 8.85, 0);
+  bx(65, 1.1, 0.08, MID, 0, 0.8 + 0.55, -16.96); bx(65, 0.14, 0.1, TRIM, 0, 8.5, -16.95); bx(0.08, 1.1, 34, MID, -31.95, 1.35, 0); bx(0.08, 1.1, 34, MID, 31.95, 1.35, 0);
+  // cột nhô mặt tiền (pilaster) + cột góc
+  [-31.6, -25, -11, 11, 26, 31.6].forEach(x => { bx(0.9, WH, 0.7, STONE, x, WH / 2, 17.55); });
+  [-31.6, 31.6].forEach(x => bx(0.9, WH, 0.7, STONE, x, WH / 2, -17.55));
+  // cửa sổ
+  [-28, -21, -14, -8, 8, 22, 29].forEach(x => winUnit(x, 1.9, 17.2, 0, 1.7, 2.2));
+  [-28, -21, -14, -8, -3.6, 3.6, 8, 22, 29].forEach(x => winUnit(x, 6.2, 17.2, 0, 1.7, 2.8));
+  [-27, -22, -17, 17, 22, 27].forEach(x => { winUnit(x, 6.2, -17.2, Math.PI, 1.7, 2.8); });
+  [-27, 27].forEach(x => winUnit(x, 1.9, -17.2, Math.PI, 1.7, 2.2));
+  [-11, -3.5, 4, 11].forEach(z => { [-1, 1].forEach(s => { winUnit(s * 32.2, 1.9, z, s * Math.PI / 2, 1.7, 2.2); winUnit(s * 32.2, 6.2, z, s * Math.PI / 2, 1.7, 2.8); }); });
+  // vật cản tường
+  OB(-32.4, 32.4, -17.45, -16.95); OB(-32.4, -31.95, -17, 17); OB(31.95, 32.4, -17, 17); OB(-32.4, -1.3, 16.86, 17.4); OB(1.3, 32.4, 16.86, 17.4);
+  // cột vòm trong nhà + dầm trần
+  [-1, 1].forEach(s => [-12, -4, 4, 12].forEach(z => { colm(s * 25.4, z, WH); OB(s * 25.4 - 0.5, s * 25.4 + 0.5, z - 0.5, z + 0.5); }));
+  [-1, 1].forEach(s => bx(0.7, 0.55, 34, TRIM, s * 25.4, 8.45, 0));
+  [-28, -20, -12, -4, 4, 12, 20, 28].forEach(x => bx(0.45, 0.4, 34.4, TRIM, x, 8.7, 0));
+  [-8, 0, 8].forEach(z => bx(64.4, 0.4, 0.45, TRIM, 0, 8.7, z));
+})();
+
+/* ───────── hiên cổng (portico) + cửa chính ───────── */
+(function portico() {
+  const z0 = 22.0;
+  bx(16.4, 0.3, 6.2, STONE, 0, 0.15, 20.1); [0.2, 0.4, 0.6].forEach((o, i) => bx(10.4 + (2 - i) * 0.0 + 0, 0.18, 0.7, STONE, 0, 0.09 + i * 0, 23.6 + i * 0.7 - 0.7 + 0));
+  bx(11, 0.16, 0.8, 0xbfae92, 0, 0.08, 23.2); bx(10, 0.16, 0.8, 0xb6a58a, 0, 0.08, 23.9);
+  [-6.9, -3.6, 3.6, 6.9].forEach(x => { colm(x, z0, 4.9, 0.3); OB(x - 0.5, x + 0.5, z0 - 0.5, z0 + 0.5); });
+  bx(16.2, 0.55, 0.7, STONE, 0, 5.2, z0 + 0.05); bx(16.4, 0.2, 0.8, 0xe9dcc4, 0, 5.55, z0 + 0.05);
+  const ang = Math.atan2(2.2, 7.8), hy = Math.hypot(7.8, 2.2);
+  [-1, 1].forEach(s => { const sl = put(new th.Mesh(new th.BoxGeometry(hy, 0.2, 5.8), roofMat), s * 3.9, 6.7, 20.2); sl.rotation.z = s * ang; PORTICO_ROOF.push(sl); });
+  const sh = new th.Shape(); sh.moveTo(-7.9, 5.65); sh.lineTo(7.9, 5.65); sh.lineTo(0, 7.9); sh.closePath();
+  const pd = new th.Mesh(new th.ShapeGeometry(sh), new th.MeshLambertMaterial({ color: 0xf3e8d6, side: th.DoubleSide })); pd.position.z = 22.85; scene.add(pd); PORTICO_ROOF.push(pd);
+  const sh2 = new th.Shape(); sh2.moveTo(-6.4, 5.85); sh2.lineTo(6.4, 5.85); sh2.lineTo(0, 7.5); sh2.closePath();
+  const pd2 = new th.Mesh(new th.ShapeGeometry(sh2), new th.MeshLambertMaterial({ color: 0xe0cfb2, side: th.DoubleSide })); pd2.position.z = 22.9; scene.add(pd2); PORTICO_ROOF.push(pd2);
+  pn(4.4, 1.1, textTex("🐾 LÀNG MÈO", "#8B4A2B", "#FFE9C9", 4.4, 1.1), 0, 4.1, 17.48, 0, 0);
+  // cửa chính 2 cánh + khung
+  [-1.45, 1.45].forEach(x => bx(0.25, 3.4, 0.4, TRIM, x, 1.7, 17.2)); bx(3.1, 0.3, 0.4, TRIM, 0, 3.5, 17.2);
+  [-1.2, 1.2].forEach(s => bx(0.15, 3.2, 0.18, STONE, s * 1.6, 1.6, 17.5));
+  [-4.6, 4.6].forEach(x => { cy(0.5, 0.4, 0.8, 0xa9704b, x, 0.7, 19.4, null, 12); sp(0.6, 0x5f7a5e, x, 1.4, 19.4); [0xe77fb0, 0xf2b705, 0xe4572e].forEach((c, i) => sp(0.09, c, x + Math.cos(i * 2.2) * 0.4, 1.8, 19.4 + Math.sin(i * 2.2) * 0.4)); });
+  [-2.2, 2.2].forEach(x => { cy(0.04, 0.04, 0.5, DARK, x, 3.1, 17.6, null, 6); sp(0.2, 0xffd98a, x, 2.7, 17.6); glow(0xffc37a, 2.6, 0.5, x, 2.7, 17.6); });
+  [-6, -3, 3, 6].forEach(x => glow(0xffe2a6, 1.3, 0.5, x, 5.0, 21.6));
+})();
+
+/* ───────── MÁI (group HouseRoof) ───────── */
+const HouseRoof = new th.Group(); HouseRoof.name = "HouseRoof"; scene.add(HouseRoof); window.HouseRoof = HouseRoof;
+(function roof() {
+  const R = (w, h, d, c, x, y, z, mat) => { const m = new th.Mesh(new th.BoxGeometry(w, h, d), mat || M(c)); m.position.set(x, y, z); HouseRoof.add(m); return m; };
+  const L = Math.hypot(18.4, 4.4), A = Math.atan2(4.4, 18.4);
+  R(67, 0.2, L, 0, 0, 11.3, 9.2, roofMat).rotation.x = A; R(67, 0.2, L, 0, 0, 11.3, -9.2, roofMat).rotation.x = -A;
+  R(67, 0.34, 0.5, 0x8a4433, 0, 13.55, 0); R(67, 0.3, 0.2, 0x8a4433, 0, 8.9, 18.3); R(67, 0.3, 0.2, 0x8a4433, 0, 8.9, -18.3);
+  const gs = new th.Shape(); gs.moveTo(-18, 9); gs.lineTo(18, 9); gs.lineTo(0, 13.45); gs.closePath();
+  [-1, 1].forEach(s => { const gm = new th.Mesh(new th.ShapeGeometry(gs), new th.MeshLambertMaterial({ color: WALL, side: th.DoubleSide })); gm.rotation.y = Math.PI / 2; gm.position.x = s * 32.45; HouseRoof.add(gm); const rd = new th.Mesh(new th.CircleGeometry(1.1, 20), new th.MeshBasicMaterial({ color: 0xffc87e, side: th.DoubleSide })); rd.rotation.y = Math.PI / 2; rd.position.set(s * 32.5, 10.6, 0); HouseRoof.add(rd); });
+  [-20, 20].forEach(x => { R(1.2, 3.4, 1.2, 0x9a5a48, x, 12.9, -6); R(1.5, 0.25, 1.5, 0x7a4638, x, 14.7, -6); });
+  // cửa sổ mái (dormer) mặt trước
+  [-18, -8, 8, 18].forEach(x => { const zD = 11.5, yD = 13.4 - zD / 18.4 * 4.4; R(2.2, 1.8, 1.8, WALL, x, yD + 0.7, zD); const g = new th.Mesh(new th.PlaneGeometry(1.3, 1.1), new th.MeshBasicMaterial({ color: 0xffc87e })); g.position.set(x, yD + 0.7, zD + 0.91); HouseRoof.add(g); const rr = new th.Mesh(new th.BoxGeometry(2.7, 0.14, 2.3), roofMat); rr.position.set(x, yD + 1.72, zD); HouseRoof.add(rr); });
+})();
+/* GHÉP LÀNG: bỏ nút #roof của bản độc lập — mái nhà nối vào hệ mờ mái __lmRoomRoofs của làng (xem cuối hàm). */
+
+/* ───────── PHÒNG CHIẾU: TV, ghế ───────── */
+(function cinema() {
+  const slats = new th.InstancedMesh(new th.BoxGeometry(0.16, 8.3, 0.1), M(0x9a6a42), 80); const m4 = new th.Matrix4();
+  for (let i = 0; i < 80; i++) { m4.setPosition(-15.8 + i * 0.4, 4.6, -16.93); slats.setMatrixAt(i, m4); } scene.add(slats);
+  glow(0xffb36b, 17, 0.33, 0, 4.5, -16.97);
+  OCCL.push(bx(12.3, 7.15, 0.3, 0x2a1f1a, 0, 4.5, -16.9));
+  [-4.9, 4.9].forEach(x => { const e = cone(0.48, 0.8, 0x2f2420, x, 8.4, -16.9, null, 4); e.rotation.z = -Math.sign(x) * 0.18; const i = cone(0.22, 0.42, 0xe77fb0, x, 8.34, -16.72, null, 4); i.rotation.z = e.rotation.z; });
+  const scr = pn(11.2, 6.3, idleTex(), 0, 4.5, -16.73); window.__lmScreen = scr;
+  const sc = [[-5.6, 7.65, -16.72], [5.6, 7.65, -16.72], [5.6, 1.35, -16.72], [-5.6, 1.35, -16.72]]; window.__lmScreenCorners = sc;
+  /* GHÉP LÀNG: màn hình dùng vật liệu của làng (idle/black lỗ xuyên canvas) + three.screenCorners đúng quad v2 */
+  three.screenIdle = new THREE.MeshBasicMaterial({ map: screenIdleTexture() });
+  three.screenBlack = new THREE.ShaderMaterial({
+    vertexShader: "void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
+    fragmentShader: "void main(){gl_FragColor=vec4(0.0);}",
+    blending: THREE.NoBlending, transparent: false, depthWrite: true,
+  });
+  scr.material = (typeof RoomState !== "undefined" && RoomState.screen && RoomState.screen.videoId) ? three.screenBlack : three.screenIdle;
+  three.screenMesh = scr;
+  three.screenCorners = sc.map(a => new THREE.Vector3(a[0], a[1], a[2]));
+  bb(12.2, 0.05, 0.05, 0xffd9a8, 0, 0.98, -16.72);
+  bx(10, 0.62, 0.72, 0x7a4526, 0, 0.5, -16.4); bx(10.3, 0.07, 0.8, DARK, 0, 0.85, -16.4); [-4, -2, 0, 2, 4].forEach(x => { bx(1.86, 0.46, 0.04, TRIM, x, 0.5, -16.02); bx(0.1, 0.1, 0.05, 0xf2b705, x + 0.7, 0.5, -15.99); });
+  [-6.9, 6.9].forEach(x => bx(0.75, 1.7, 0.6, 0x2a1f1a, x, 0.85, -16.4)); OB(-5.3, 5.3, -16.9, -15.9);
+  plant(-8.6, 0, -16, 1.15); plant(8.6, 0, -16, 1.15);
+  [-11.4, 11.4].forEach((x, i) => { bx(1.4, 1.8, 0.07, TRIM, x, 4.4, -16.9); pn(1.2, 1.6, artTex(i ? 2 : 1), x, 4.4, -16.85); });
+  // ghế bệt C
+  const cc = [0xb56a3a, 0x748b6f, 0xa9704b, 0x5f7a5e];
+  for (let i = 1; i <= 8; i++) { const s = SEAT_POS["C" + i]; const g = new th.Group(); g.position.set(s.x, 0, s.z); g.rotation.y = s.rotY - Math.PI; scene.add(g); const p = cy(0.56, 0.6, 0.18, cc[i % 4], 0, 0.09, 0, g, 20); p.scale.z = 0.82; [-0.3, 0.3].forEach(e => cone(0.11, 0.23, cc[i % 4], e, 0.26, 0.36, g, 4)); }
+  for (let i = 1; i <= 5; i++) { const f = SEAT_POS["F" + i], b = SEAT_POS["B" + i]; sofa(0x748b6f, f.x, f.z, f.rotY - Math.PI, 2.7); sofa(0xa9704b, b.x, b.z, b.rotY - Math.PI, 3.7); /* GHÉP LÀNG: không nạp OB ghế B/F của v2 — làng đã có vòng lặp hộp cản xoay theo ghế (B 3.1x1.05, F 2.3x1.05, C 1.0x0.85) tinh chỉnh cho tầm bấm Ngồi; hộp trục thẳng của v2 (F 2.4x2.0, B 3.2x2.0) sẽ làm sống lại lỗi "ghế không vô được" */ }
+  ["A1", "A2", "A3"].forEach(id => { const s = SEAT_POS[id]; const _ag = armchair(s.x, s.z, s.rotY); _ag.traverse(o => { if (o.isMesh) OCCL.push(o); }); /* OB ghế A: làng đã có mục tĩnh y hệt (±0.65) */ });
+  [-30, 0, 30].forEach(d => { const p = arcPt(8.4, d); cy(0.58, 0.58, 0.07, 0xa9704b, p.x, 0.44, p.z); cy(0.09, 0.09, 0.4, DARK, p.x, 0.22, p.z); cy(0.2, 0.14, 0.14, 0xe9dcc2, p.x - 0.15, 0.55, p.z + 0.05); OB(p.x - 0.6, p.x + 0.6, p.z - 0.6, p.z + 0.6); });
+  [-40, -20, 0, 20, 40].forEach(d => { const p = arcPt(12.4, d); cy(0.012, 0.012, 2.6, 0x2f2420, p.x, 7.2, p.z, null, 4); const s = sp(0.5, 0xffd9a8, p.x, 5.8, p.z); s.material = new th.MeshBasicMaterial({ color: 0xffd9a8 }); s.scale.y = 0.85; glow(0xffb36b, 3.2, 0.38, p.x, 5.8, p.z); });
+  [-10.8, 10.8].forEach(x => { cy(0.2, 0.24, 0.07, TRIM, x, 0.04, -9.2); cy(0.025, 0.025, 1.9, 0x2f2420, x, 1, -9.2, null, 8); const sh = cone(0.4, 0.5, 0xffd9a8, x, 2.1, -9.2, null, 14); sh.material = new th.MeshBasicMaterial({ color: 0xffd9a8 }); glow(0xffb36b, 3.4, 0.4, x, 2.1, -9.2); OB(x - 0.3, x + 0.3, -9.5, -8.9); });
+})();
+
+/* ───────── SẢNH NGHỈ + ĐÈN CHÙM ───────── */
+(function lounge() {
+  armchair(-6.5, 11, Math.PI); armchair(6.5, 11, Math.PI); OB(-7.4, -5.6, 10.1, 11.9); OB(5.6, 7.4, 10.1, 11.9);
+  bx(2.6, 0.1, 1.2, 0x7a4526, 0, 0.46, 11); [[-1.15, 10.55], [1.15, 10.55], [-1.15, 11.45], [1.15, 11.45]].forEach(l => bx(0.09, 0.42, 0.09, DARK, l[0], 0.21, l[1])); OB(-1.45, 1.45, 10.35, 11.65);
+  bx(0.5, 0.09, 0.36, 0xa34d7c, -0.5, 0.56, 11); bx(0.42, 0.07, 0.3, 0x2e6b8a, 0.35, 0.55, 11.1);
+  // chandelier
+  cy(0.02, 0.02, 2.6, 0x2f2420, 0, 7.7, 10, null, 4);
+  [[1.8, 0xd9a64a], [1.1, 0xd9a64a]].forEach((r, i) => { const t = new th.Mesh(new th.TorusGeometry(r[0], 0.07, 8, 36), M(r[1])); t.rotation.x = Math.PI / 2; t.position.set(0, 6.4 - i * 0.35, 10); scene.add(t); });
+  sp(0.3, 0xd9a64a, 0, 5.9, 10);
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; const fl = bb(0.1, 0.22, 0.1, 0xfff0c8, Math.cos(a) * 1.8, 6.6, 10 + Math.sin(a) * 1.8); glow(0xffd9a8, 1.3, 0.55, Math.cos(a) * 1.8, 6.75, 10 + Math.sin(a) * 1.8); }
+  glow(0xffd9a8, 7, 0.28, 0, 6, 10);
+  // kệ sách tường trước
+  bx(6.2, 2.6, 0.38, 0x7a4526, -14, 1.3, 16.68); [0.75, 1.55, 2.35].forEach(y => bx(5.8, 0.07, 0.3, DARK, -14, y, 16.66)); OB(-17.1, -10.9, 16.4, 16.95);
+  const bc = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xb56a3a];
+  for (let i = 0; i < 24; i++) { const h = 0.42 + (i % 3) * 0.07; bx(0.24, h, 0.2, bc[i % 6], -16.6 + (i % 8) * 0.68, [0.75, 1.55, 2.35][Math.floor(i / 8)] + 0.04 + h / 2, 16.64); }
+  plant(-10.5, 0, 7.2, 1.1); plant(10.5, 0, 7.2, 1.1); plant(-22, 0, 16, 1.3); plant(22, 0, 16, 1.3);
+  [-5, 5].forEach(x => { bx(0.6, 0.6, 0.6, TRIM, x, 0.3, 16.5); });
+  pn(1.4, 1.8, artTex(0), -22, 4.4, 16.9, Math.PI); pn(1.4, 1.8, artTex(2), 22, 4.4, 16.9, Math.PI);
+})();
+
+/* ───────── CÁNH TÂY: thư viện + lò sưởi + quầy trà ───────── */
+(function westWing() {
+  bx(1.4, 1.2, 3.6, STONE, -31.2, 0.6, 0); bx(0.1, 0.9, 1.8, 0x1a1210, -30.5, 0.55, 0); bx(1.8, 0.18, 4, DARK, -30.95, 1.5, 0); bx(1.0, 7.6, 2.6, STONE, -31.45, 5.3, 0);
+  glow(0xff8a2a, 3.2, 0.7, -30.4, 0.6, 0); glow(0xffd070, 1.6, 0.8, -30.4, 0.4, 0); pn(2.2, 2.8, artTex(1), -30.9, 4, 0, Math.PI / 2); bx(2.4, 3.0, 0.07, TRIM, -30.93, 4, 0).rotation.y = Math.PI / 2;
+  OB(-32, -30.4, -1.9, 1.9);
+  [-13, -9.4, -5.6, 5.6, 9.4, 13].forEach(z => {
+    bx(0.5, 6.6, 3.4, DARK, -31.75, 3.6, z); [0.7, 2.1, 3.5, 4.9, 6.2].forEach((y, r) => { bx(0.46, 0.06, 3.3, MID, -31.7, y, z); for (let k = 0; k < 5; k++) { const h = 0.7 + rnd() * 0.4; bx(0.3, h, 0.4 + rnd() * 0.25, bc2[(k + r + Math.floor(Math.abs(z))) % 7], -31.62, y + 0.05 + h / 2, z - 1.3 + k * 0.62); } });
+    OB(-32, -31.4, z - 1.7, z + 1.7);
+  });
+  bx(0.1, 6, 0.1, TRIM, -31.2, 3.4, -7.5); bx(0.1, 6, 0.1, TRIM, -31.2, 3.4, -7.9); [1, 2, 3, 4, 5].forEach(r => bx(0.08, 0.06, 0.5, TRIM, -31.2, r * 1.1, -7.7));
+  cy(3.4, 3.4, 0.03, 0xa34d7c, -26.5, 0.035, 0, null, 40); cy(3.0, 3.0, 0.03, 0xe9dcc2, -26.5, 0.045, 0, null, 40);
+  armchair(-28.6, -2.6, -Math.PI / 2 + 0.5, 0, 0x748b6f); armchair(-28.6, 2.6, -Math.PI / 2 - 0.5, 0, 0x748b6f); OB(-29.4, -27.8, -3.4, -1.8); OB(-29.4, -27.8, 1.8, 3.4);
+  sofa(0xa9704b, -24, 0, Math.PI / 2, 4.2); cy(0.6, 0.6, 0.07, 0xa9704b, -27, 0.44, 0); cy(0.1, 0.1, 0.4, DARK, -27, 0.22, 0);
+  bx(1.0, 1.0, 8.4, TRIM, -27.5, 0.5, -16.4); bx(1.2, 0.08, 8.7, DARK, -27.5, 1.04, -16.4); bx(0.6, 0.55, 0.45, 0x2a1f1a, -27.5, 1.35, -19); 
+  bx(0.3, 0.06, 7.4, MID, -27.5, 2.6, -16.9); for (let i = 0; i < 7; i++) cy(0.14, 0.14, 0.38, [0xe77fb0, 0xf2b705, 0x748b6f][i % 3], -27.5, 2.82, -19.8 + i * 1.1 + 3.4 - 3.4, null, 12);
+  [-4, -2, 0, 2].forEach(i => { const x = -30 + (i + 4) * 1.5 - 0.0; cy(0.3, 0.3, 0.08, 0xb56a3a, x, 0.78, -14.6, null, 14); cy(0.04, 0.04, 0.76, 0x2f2420, x, 0.38, -14.6, null, 6); });
+  OB(-32, -23, -17, -15.5); glow(0xffb36b, 3, 0.4, -27, 2.9, -14.4);
+})();
+
+/* ───────── CÁNH ĐÔNG: phòng ăn (tầng trệt) ───────── */
+(function eastWing() {
+  cy(3.8, 3.8, 0.03, 0xc9a97f, 28, 0.035, 0, null, 36);
+  bx(4.6, 0.12, 2.2, 0x7a4526, 28, 0.78, 0); [[-2, -0.9], [2, -0.9], [-2, 0.9], [2, 0.9]].forEach(l => bx(0.16, 0.76, 0.16, DARK, 28 + l[0], 0.38, l[1])); OB(25.6, 30.4, -1.2, 1.2);
+  [-1.6, 0, 1.6].forEach(x => { chair(28 + x, -1.7, 0); chair(28 + x, 1.7, Math.PI); }); chair(25.4, 0, Math.PI / 2); chair(30.6, 0, -Math.PI / 2);
+  [-1.4, 0, 1.4].forEach(x => { cy(0.012, 0.012, 1.2, 0x2f2420, 28 + x, 2.6, 0, null, 4); const s = sp(0.3, 0xffd9a8, 28 + x, 2.0, 0); s.material = new th.MeshBasicMaterial({ color: 0xffd9a8 }); glow(0xffb36b, 2.4, 0.45, 28 + x, 2.0, 0); });
+  bx(0.9, 1.0, 5.0, TRIM, 31.4, 0.5, 0); bx(1.1, 0.08, 5.2, DARK, 31.4, 1.04, 0); OB(30.9, 32, -2.6, 2.6);
+  plant(31, 0, 12, 1.2); plant(31, 0, -12, 1.2); plant(26.5, 0, 15, 1.0);
+  for (let i = 0; i < 6; i++) { bx(0.06, 1.1, 0.4, [0xe0393e, 0xf2b705, 0x2ea44f][i % 3], 31.8, 1.7, -14 + i * 0.5); }
+})();
+
+/* ───────── GÁC LỬNG (tầng 2) + CẦU THANG + BAN CÔNG ───────── */
+(function loft() {
+  const ft = woodTex(); ft.repeat.set(10, 6);
+  const slab = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2; OCCL.push(bx(w, 0.2, d, TRIM, cx, Y - 0.1, cz)); const t = new th.Mesh(new th.PlaneGeometry(w, d), new th.MeshLambertMaterial({ map: ft })); t.rotation.x = -Math.PI / 2; t.position.set(cx, Y + 0.005, cz); scene.add(t); };
+  slab(6.8, 20.6, -16.95, 17); slab(20.6, 24.2, -16.95, -7.5); slab(20.6, 24.2, 5, 17); slab(24.2, 31.8, -16.95, 17);
+  bx(0.14, 0.34, 33.9, 0xb56a3a, 6.86, Y - 0.17, 0); bb(0.07, 0.07, 33, 0xffd9a8, 6.7, Y - 0.38, 0);
+  [-16.4, -8, 0, 8, 16.4].forEach(z => bx(0.3, Y, 0.3, TRIM, 7, Y / 2, z));
+  for (let i = 0; i < 14; i++) bx(3.4, 0.14, 0.85, i % 2 ? MID : 0xc99a68, 22.4, (i + 1) * (Y / 14) - 0.07, 4.6 - i * 0.87 - 0.42);
+  const ang = Math.atan2(Y, 12.5), bl = Math.hypot(12.5, Y);
+  [20.75, 24.05].forEach(x => { bx(0.08, 0.5, bl, TRIM, x, Y / 2 - 0.1, -1.25).rotation.x = ang; bx(0.07, 0.07, bl, 0xb56a3a, x, Y / 2 + 0.95, -1.25).rotation.x = ang; for (let i = 0; i < 6; i++) { const z = 4.2 - i * 2.2; bx(0.07, 0.95, 0.07, TRIM, x, stairYAt(z) + 0.47, z); } });
+  OB(20.6, 24.3, -7.5, -0.5, { groundOnly: true });
+  const rail = (x0, z0, x1, z1) => { const len = Math.hypot(x1 - x0, z1 - z0), a = Math.atan2(-(z1 - z0), x1 - x0); bx(len, 0.08, 0.08, 0xb56a3a, (x0 + x1) / 2, Y + 0.95, (z0 + z1) / 2).rotation.y = a; bx(len, 0.05, 0.05, MID, (x0 + x1) / 2, Y + 0.5, (z0 + z1) / 2).rotation.y = a; const n = Math.max(2, Math.round(len / 1.7)); for (let i = 0; i <= n; i++) bx(0.07, 0.95, 0.07, TRIM, x0 + (x1 - x0) * i / n, Y + 0.47, z0 + (z1 - z0) * i / n); };
+  rail(6.95, -16.85, 6.95, 16.9); rail(20.75, 5.1, 24.1, 5.1);
+  // kệ sách gác
+  [10.4, 13.2, 16, 18.8].forEach((x, si) => { bx(2.6, 2.7, 0.4, TRIM, x, Y + 1.35, -16.72); [0.55, 1.3, 2.05].forEach((y, r) => { bx(2.4, 0.06, 0.34, MID, x, Y + y, -16.66); for (let b = 0; b < 6; b++) { const h = 0.45 + ((b * 7 + r * 3 + si) % 4) * 0.08; bx(0.26, h, 0.22, bc[(b + r + si) % 6], x - 0.95 + b * 0.38, Y + y + 0.03 + h / 2, -16.64); } }); });
+  // hố sofa U
+  cy(3.6, 3.6, 0.03, 0xe8c9a0, 12.2, Y + 0.015, -7, null, 40); cy(2.7, 2.7, 0.03, 0xf2e7d8, 12.2, Y + 0.025, -7, null, 40); cy(1.2, 1.2, 0.03, 0xe77fb0, 12.2, Y + 0.03, -7, null, 28);
+  sofa(0xb56a3a, 12.2, -10.4, Math.PI, 4.4, Y); sofa(0x748b6f, 8.6, -7, -Math.PI / 2, 3.6, Y); sofa(0x748b6f, 15.8, -7, Math.PI / 2, 3.6, Y);
+  cy(0.7, 0.7, 0.07, 0xa9704b, 12.2, Y + 0.46, -7); cy(0.1, 0.1, 0.42, DARK, 12.2, Y + 0.22, -7);
+  // góc đọc sách
+  [15.5, 18.8].forEach(x => armchair(x, -13.4, 0, Y)); cy(0.4, 0.4, 0.05, 0x7a4526, 17.15, Y + 0.6, -14); cy(0.05, 0.05, 0.58, DARK, 17.15, Y + 0.3, -14);
+  // giường
+  bx(5.2, 0.012, 3.2, 0xd9c7a8, 10, Y + 0.012, 13.8); bx(3.3, 0.4, 4.2, TRIM, 10, Y + 0.2, 14.8); bx(3.1, 0.3, 4.0, 0xf2e7d8, 10, Y + 0.55, 14.8); bx(3.12, 0.12, 2.3, 0xb56a3a, 10, Y + 0.76, 14);
+  [9.2, 10.8].forEach(x => bx(1.2, 0.22, 0.6, 0xffffff, x, Y + 0.8, 16.4)); bx(3.6, 1.5, 0.2, TRIM, 10, Y + 0.75, 16.85); [-1.4, 1.4].forEach(x => cone(0.3, 0.55, TRIM, 10 + x, Y + 1.78, 16.85, null, 4));
+  [7.7, 12.3].forEach(x => { bx(0.7, 0.62, 0.6, MID, x, Y + 0.31, 16.55); glow(0xffb36b, 2.2, 0.4, x, Y + 1.1, 16.55); });
+  // bàn làm việc
+  bx(1.3, 0.08, 3.4, MID, 31, Y + 0.78, 11.2); [[30.5, 9.7], [30.5, 12.7], [31.5, 9.7], [31.5, 12.7]].forEach(l => bx(0.08, 0.76, 0.08, TRIM, l[0], Y + 0.38, l[1])); bx(0.06, 0.72, 1.3, 0x1c1c21, 31.6, Y + 1.3, 11.2); bb(0.04, 0.64, 1.2, 0x8fd0ff, 31.55, Y + 1.32, 11.2);
+  chair(29.6, 11.2, -Math.PI / 2, Y);
+  // phòng đọc phía đông + sofa
+  cy(2.6, 2.6, 0.03, 0xe8c9a0, 28, Y + 0.015, -9, null, 32); sofa(0xa9704b, 28, -13, Math.PI, 4, Y); armchair(26, -8, Math.PI / 2, Y, 0x748b6f); armchair(30, -8, -Math.PI / 2, Y, 0x748b6f); cy(0.5, 0.5, 0.06, 0x7a4526, 28, Y + 0.45, -9);
+  plant(22.9, Y, 7, 0.9); plant(7.6, Y, 5, 0.8); plant(31, Y, 15, 1.1);
+  // đèn thả gác
+  [10.6, 13.8].forEach(x => { cy(0.012, 0.012, 2.6, 0x2f2420, x, 7.1, -8, null, 4); const s = sp(0.5, 0xffd9a8, x, 5.65, -8); s.material = new th.MeshBasicMaterial({ color: 0xffd9a8 }); glow(0xffb36b, 3.2, 0.4, x, 5.65, -8); });
+  for (let i = 0; i < 20; i++) bb(0.12, 0.12, 0.12, [0xffd9a8, 0xf2b705, 0xe77fb0][i % 3], 8 + i * 1.2, Y + 3.7 - Math.sin(i / 19 * Math.PI) * 0.35, -16.8);
+  // ban công + cửa kính
+  const bx0 = 11.5, bx1 = 20.5, bz1 = 19.8;
+  [13.8, 17.7, 15.75].forEach(x => bx(0.12, 3.0, 0.14, TRIM, x, Y + 1.5, 17)); bx(4.0, 0.14, 0.14, TRIM, 15.75, Y + 3, 17);
+  [14.8, 16.7].forEach(x => { const g = new th.Mesh(new th.PlaneGeometry(1.8, 2.9), new th.MeshLambertMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.22, side: th.DoubleSide, depthWrite: false })); g.position.set(x, Y + 1.5, 17.02); scene.add(g); });
+  bx(9, 0.2, 2.8, MID, 16, Y - 0.1, 18.4); const bt = woodTex(); bt.repeat.set(3, 1); const btp = new th.Mesh(new th.PlaneGeometry(9, 2.8), new th.MeshLambertMaterial({ map: bt })); btp.rotation.x = -Math.PI / 2; btp.position.set(16, Y + 0.005, 18.4); scene.add(btp);
+  bx(9, 0.08, 0.08, 0xb56a3a, 16, Y + 1, bz1 - 0.05); bx(0.08, 0.08, 2.8, 0xb56a3a, bx0 + 0.05, Y + 1, 18.4); bx(0.08, 0.08, 2.8, 0xb56a3a, bx1 - 0.05, Y + 1, 18.4);
+  for (let i = 0; i <= 12; i++) bx(0.05, 0.95, 0.05, TRIM, bx0 + 0.1 + i * (8.8 / 12), Y + 0.5, bz1 - 0.05);
+  [bx0 + 0.2, bx1 - 0.2].forEach(x => { bx(0.2, Y, 0.2, TRIM, x, Y / 2, bz1 - 0.2); });
+  OB(11.5, 11.9, 19.4, 19.8); OB(20.1, 20.5, 19.4, 19.8);
+  cy(0.55, 0.55, 0.06, 0xf2e7d8, 16.2, Y + 0.75, 18.5); cy(0.06, 0.06, 0.72, DARK, 16.2, Y + 0.38, 18.5, null, 6); [15.1, 17.3].forEach(x => bx(0.5, 0.5, 0.5, 0xb56a3a, x, Y + 0.45, 18.5));
+  for (let i = 0; i < 14; i++) { const t = i / 13; bb(0.12, 0.12, 0.12, i % 2 ? 0xffd9a8 : 0xf2b705, bx0 + 0.2 + t * 8.6, Y + 2.55 - Math.sin(t * Math.PI) * 0.45, bz1 - 0.2); }
+  glow(0xffb36b, 5, 0.3, 16, Y + 2.2, bz1 - 0.2);
+})();
+
+/* ── GHÉP LÀNG: nối giao diện dữ liệu với làng ── */
+PORTICO_ROOF.forEach(m2 => HouseRoof.add(m2)); // HouseRoof ở gốc, không scale/rotate -> gộp mái hiên vào group để ẩn trọn
+three.occluders = OCCL;
+three.wallMat = M(WALL);
+three.eaveGlows = [];
+OBSTACLES.push.apply(OBSTACLES, HOB); // 42 mục vật cản nhà v2 (đã trừ 13 mục ghế B/F/A do làng tự quản)
+/* Vật cản tầng 2 suy cơ học từ chính hộp nội thất mà loft() của v2 dựng (cùng cách
+   buildLoftFurniture cũ đã làm); số đo ghi cạnh từng mục ở bản đồ ghép. */
+UPPER_OBSTACLES.push(
+  { minX: 9.0, maxX: 20.2, minZ: -17.1, maxZ: -16.2 },
+  { minX: 10.0, maxX: 14.4, minZ: -11.1, maxZ: -9.7 },
+  { minX: 7.9, maxX: 9.3, minZ: -8.9, maxZ: -5.1 },
+  { minX: 15.1, maxX: 16.5, minZ: -8.9, maxZ: -5.1 },
+  { minX: 11.4, maxX: 13.0, minZ: -7.8, maxZ: -6.2 },
+  { minX: 14.8, maxX: 16.2, minZ: -14.0, maxZ: -12.8 },
+  { minX: 18.1, maxX: 19.5, minZ: -14.0, maxZ: -12.8 },
+  { minX: 8.3, maxX: 11.7, minZ: 12.6, maxZ: 17.0 },
+  { minX: 7.3, maxX: 8.1, minZ: 16.2, maxZ: 17.0 },
+  { minX: 11.9, maxX: 12.7, minZ: 16.2, maxZ: 17.0 },
+  { minX: 29.3, maxX: 31.7, minZ: 9.5, maxZ: 12.9 },
+  { minX: 26.0, maxX: 30.0, minZ: -13.7, maxZ: -12.3 },
+  { minX: 25.4, maxX: 26.6, minZ: -8.6, maxZ: -7.4 },
+  { minX: 29.4, maxX: 30.6, minZ: -8.6, maxZ: -7.4 },
+  { minX: 27.4, maxX: 28.6, minZ: -9.6, maxZ: -8.4 },
+  { minX: 15.5, maxX: 16.9, minZ: 17.8, maxZ: 19.2 },
+  { minX: 1.3, maxX: 13.8, minZ: 16.86, maxZ: 17.4 },
+  { minX: 17.7, maxX: 32.4, minZ: 16.86, maxZ: 17.4 }
+);
+three.polish = { glows: [], bulbs: [] };
+three.polishTick = function (t) { pulses.forEach(g => { g.s.material.opacity = g.b * (0.78 + 0.22 * Math.sin(t * 1.9 + g.ph)); }); };
+window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenCorners: window.__lmScreenCorners };
+/* Đăng ký mái vào hệ mờ mái của làng: __lmRoomRoofs do script ComplexB khởi tạo
+   (gán mới mảng) nên phải chờ ComplexB dựng xong (three.bcomplex) mới nạp, tối đa 20 s. */
+(function regHouseRoof() {
+  var t0 = Date.now();
+  var iv = setInterval(function () {
+    if (Array.isArray(window.__lmRoomRoofs) && (three.bcomplex || Date.now() - t0 > 20000)) {
+      clearInterval(iv);
+      HouseRoof.children.slice().forEach(function (mm) {
+        if (!mm.isMesh) return;
+        mm.material = mm.material.clone();
+        mm.material.transparent = true;
+        mm.material.depthWrite = true;
+        window.__lmRoomRoofs.push({ mesh: mm, minX: -32.4, maxX: 32.4, minZ: -17.4, maxZ: 24.3 });
+      });
+    }
+  }, 500);
+  setTimeout(function () { clearInterval(iv); }, 90000);
+})();
+
+      }
+
 
       /* ============ CHAU CHUỐT (Studio Ikaros): phào chỉ, đèn tường, dây đèn, thảm, cây, tranh, rèm, kệ sách, tia nắng ============ */
       function artTexture(kind) {
@@ -10167,269 +10149,11 @@
         g.fillText(["Mèo Cam", "Mèo Sage", "Mèo Kem"][kind % 3], 128, 300);
         return new THREE.CanvasTexture(cv);
       }
-      function polishRugTexture() {
-        const cv = document.createElement("canvas");
-        cv.width = 512;
-        cv.height = 256;
-        const g = cv.getContext("2d");
-        g.fillStyle = "#A9704B";
-        g.fillRect(0, 0, 512, 256);
-        g.fillStyle = "#F2E7D8";
-        g.fillRect(14, 14, 484, 228);
-        g.fillStyle = "#BECFBD";
-        g.fillRect(30, 30, 452, 196);
-        g.strokeStyle = "#B56A3A";
-        g.lineWidth = 3;
-        g.strokeRect(44, 44, 424, 168);
-        g.fillStyle = "rgba(116,139,111,.55)";
-        for (let i = 0; i < 9; i++) {
-          g.beginPath();
-          g.moveTo(70 + i * 46, 128);
-          g.lineTo(93 + i * 46, 80);
-          g.lineTo(116 + i * 46, 128);
-          g.lineTo(93 + i * 46, 176);
-          g.fill();
-        }
-        g.fillStyle = "rgba(0,0,0,.05)";
-        for (let i = 0; i < 700; i++) g.fillRect(Math.random() * 512, Math.random() * 256, 2, 2);
-        const t = new THREE.CanvasTexture(cv);
-        t.anisotropy = 8;
-        return t;
-      }
-      function buildPolish() {
-        const S = three.scene,
-          DARK = 0x8b4a2b,
-          MID = 0xb98a5a;
-        three.polish = { glows: [], bulbs: [] };
-        const glow = (c, sc, op, x, y, z) => {
-          const s = makeGlowSprite(c, sc, op);
-          s.position.set(x, y, z);
-          S.add(s);
-          return s;
-        };
-        // tường nhám nhẹ
-        if (three.wallMat) {
-          three.wallMat.map = plasterTexture();
-          three.wallMat.needsUpdate = true;
-        }
-        // chỉ chân tường / ray ghế / phào trần
-        box(48, 0.09, 0.06, DARK, 0, 1.12, -16.93);
-        box(48, 0.2, 0.08, MID, 0, 8.45, -16.93);
-        box(48, 0.2, 0.08, MID, 0, 8.45, 16.93);
-        box(0.06, 0.09, 34, DARK, -23.93, 1.12, 0);
-        box(0.08, 0.2, 34, MID, -23.93, 8.45, 0);
-        box(0.06, 0.09, 34, DARK, 23.93, 1.12, 0);
-        box(0.08, 0.2, 34, MID, 23.93, 8.45, 0);
-        box(48, 0.16, 0.08, DARK, 0, 0.1, 16.93);
-        box(0.08, 0.16, 34, DARK, -23.93, 0.1, 0);
-        box(0.08, 0.16, 34, DARK, 23.93, 0.1, 0);
-        // thảm khu xem phim
-        const cr = new THREE.Mesh(
-          new THREE.CircleGeometry(10.4, 64),
-          new THREE.MeshLambertMaterial({ map: polishRugTexture() }),
-        );
-        cr.rotation.x = -Math.PI / 2;
-        cr.scale.set(1, 0.58, 1);
-        cr.position.set(0, 0.016, -10.8);
-        S.add(cr);
-        // đèn tường ấm
-        [
-          [-13, -16.82, 0],
-          [13, -16.82, 0],
-          [-23.82, -13, Math.PI / 2],
-          [-23.82, 2, Math.PI / 2],
-        ].forEach((p) => {
-          const grp = new THREE.Group();
-          grp.position.set(p[0], 3.5, p[1]);
-          grp.rotation.y = p[2];
-          S.add(grp);
-          box(0.3, 0.46, 0.08, DARK, 0, 0, 0, grp);
-          const lamp = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.14, 0.2, 0.34, 14, 1, true),
-            new THREE.MeshBasicMaterial({ color: 0xffc37a, side: THREE.DoubleSide }),
-          );
-          lamp.position.set(0, 0.05, 0.2);
-          grp.add(lamp);
-          const gl = makeGlowSprite(0xffb36b, 2.4, 0.5);
-          gl.position.set(0, 0.05, 0.26);
-          grp.add(gl);
-          three.polish.glows.push({ s: gl, base: 0.5, ph: Math.random() * 6 });
-        });
-        // dây đèn: tường trước + tường trái
-        const bulbGeo = new THREE.SphereGeometry(0.075, 8, 6);
-        function strand(x0, y0, z0, x1, y1, z1, n, sag) {
-          const im = new THREE.InstancedMesh(
-            bulbGeo,
-            new THREE.MeshBasicMaterial({ color: 0xffd9a8 }),
-            n,
-          );
-          const m = new THREE.Matrix4();
-          for (let i = 0; i < n; i++) {
-            const u = i / (n - 1);
-            m.setPosition(
-              x0 + (x1 - x0) * u,
-              y0 + (y1 - y0) * u - Math.sin(u * Math.PI) * sag,
-              z0 + (z1 - z0) * u,
-            );
-            im.setMatrixAt(i, m);
-            if (i % 3 === 1) {
-              const gg = glow(
-                0xffb36b,
-                0.9,
-                0.55,
-                x0 + (x1 - x0) * u,
-                y0 + (y1 - y0) * u - Math.sin(u * Math.PI) * sag,
-                z0 + (z1 - z0) * u,
-              );
-              three.polish.glows.push({ s: gg, base: 0.55, ph: Math.random() * 6 });
-            }
-          }
-          S.add(im);
-        }
-        strand(-23, 7.7, 16.7, 23, 7.7, 16.7, 44, 0.7);
-        strand(-23.7, 7.7, -16, -23.7, 7.7, 16, 44, 0.6);
-        // cây xanh trong chậu đất nung
-        function plant(x, z, s) {
-          const g = new THREE.Group();
-          g.position.set(x, 0, z);
-          g.scale.setScalar(s);
-          S.add(g);
-          const pot = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.42, 0.3, 0.6, 16),
-            new THREE.MeshLambertMaterial({ color: 0xa9704b }),
-          );
-          pot.position.y = 0.3;
-          g.add(pot);
-          const rim = new THREE.Mesh(
-            new THREE.TorusGeometry(0.42, 0.05, 6, 16),
-            new THREE.MeshLambertMaterial({ color: 0x8b4a2b }),
-          );
-          rim.rotation.x = Math.PI / 2;
-          rim.position.y = 0.6;
-          g.add(rim);
-          const cols = [0x748b6f, 0x5f7a5e, 0x8fa487];
-          for (let i = 0; i < 9; i++) {
-            const a = (i / 9) * Math.PI * 2,
-              h = 0.9 + (i % 3) * 0.28;
-            const leaf = new THREE.Mesh(
-              new THREE.SphereGeometry(0.2, 8, 6),
-              new THREE.MeshLambertMaterial({ color: cols[i % 3] }),
-            );
-            leaf.scale.set(0.55, 1.7 + (i % 2) * 0.5, 0.3);
-            leaf.position.set(Math.cos(a) * 0.3, 0.6 + h / 2, Math.sin(a) * 0.3);
-            leaf.rotation.set(Math.sin(a) * 0.5, -a, Math.cos(a) * -0.5);
-            g.add(leaf);
-          }
-        }
-        plant(-19.5, -16.1, 1.1);
-        plant(-12.5, -16.05, 1.0);
-        plant(-17.8, -16.05, 0.85);
-        // đèn cây hai bên sofa — kẹp hai đầu, lọt khe giữa hai hàng sofa (P1: trước đứng giữa lối đi ở x -9.4)
-        function floorLamp(x, z) {
-          cyl(0.2, 0.24, 0.07, DARK, x, 0.04, z);
-          cyl(0.025, 0.025, 1.9, 0x2f2420, x, 1.0, z, null, 8);
-          const sh = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.3, 0.42, 0.5, 16, 1, true),
-            new THREE.MeshBasicMaterial({ color: 0xffd9a8, side: THREE.DoubleSide }),
-          );
-          sh.position.set(x, 2.1, z);
-          S.add(sh);
-          const gl = glow(0xffb36b, 3.4, 0.4, x, 2.1, z);
-          three.polish.glows.push({ s: gl, base: 0.4, ph: Math.random() * 6 });
-          const gf = glow(0xffb36b, 2.6, 0.22, x, 0.05, z);
-          gf.material.opacity = 0.22;
-        }
-        floorLamp(-10.8, -9.2);
-        floorLamp(10.8, -9.2);
-        // tranh mèo có khung
-        [
-          [-23.9, 4.3, -14.6, 0, 1.25, 1.55],
-          [-23.9, 4.1, -16.0, 1, 1.0, 1.25],
-          [-20.5, 4.5, -16.86, 2, 1.1, 1.4],
-        ].forEach((a) => {
-          const side = a[0] < -23;
-          const grp = new THREE.Group();
-          grp.position.set(a[0], a[1], a[2]);
-          if (side) grp.rotation.y = Math.PI / 2;
-          S.add(grp);
-          box(a[4] + 0.2, a[5] + 0.2, 0.07, DARK, 0, 0, 0.02, grp);
-          const pic = new THREE.Mesh(
-            new THREE.PlaneGeometry(a[4], a[5]),
-            new THREE.MeshLambertMaterial({ map: artTexture(a[3]) }),
-          );
-          pic.position.z = 0.06;
-          grp.add(pic);
-        });
-        // (rèm + cửa sổ tường tây đã bỏ: che khung fanart — cửa sổ chuyển sang tường trước)
-        // kệ sách tường trái — đoạn bắc (z -14.5), dưới tranh mèo, không che khung fanart
-        const shelfX = -23.5;
-        box(0.5, 2.5, 3.2, DARK, shelfX, 1.25, -14.5);
-        for (let r = 0; r < 4; r++) {
-          box(0.46, 0.05, 3.0, MID, shelfX + 0.03, 0.35 + r * 0.6, -14.5);
-          let zz = -1.2;
-          while (zz < 1.4) {
-            const w = 0.12 + Math.random() * 0.1,
-              h = 0.35 + Math.random() * 0.15;
-            const cols = [0xb56a3a, 0x748b6f, 0xe9c9a6, 0xa9704b, 0xbecfbd];
-            box(
-              0.3,
-              h,
-              w,
-              cols[Math.floor(Math.random() * 5)],
-              shelfX + 0.05,
-              0.38 + r * 0.6 + h / 2,
-              -14.5 + zz,
-            );
-            zz += w + 0.015;
-          }
-        }
-        // tia nắng từ cửa sổ
-        const rc = document.createElement("canvas");
-        rc.width = 64;
-        rc.height = 256;
-        const rg = rc.getContext("2d");
-        const gr = rg.createLinearGradient(0, 0, 0, 256);
-        gr.addColorStop(0, "rgba(255,225,170,.55)");
-        gr.addColorStop(1, "rgba(255,225,170,0)");
-        rg.fillStyle = gr;
-        rg.fillRect(0, 0, 64, 256);
-        const rt = new THREE.CanvasTexture(rc);
-        [].forEach((zOff, i) => {
-          const ray = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.0, 8.4),
-            new THREE.MeshBasicMaterial({
-              map: rt,
-              transparent: true,
-              opacity: 0.2,
-              blending: THREE.AdditiveBlending,
-              depthWrite: false,
-              side: THREE.DoubleSide,
-            }),
-          );
-          ray.position.set(-13.2, 2.9, zOff);
-          ray.rotation.set(0, Math.PI / 2, -0.75);
-          S.add(ray);
-          three.polish.glows.push({ s: ray, base: 0.2, ph: i * 2 });
-        });
-        three.polishTick = function (t) {
-          three.polish.glows.forEach((o) => {
-            o.s.material.opacity = o.base * (0.88 + 0.12 * Math.sin(t * 1.7 + o.ph));
-          });
-        };
-        /* Bóng tiếp xúc mờ (P4): sofa, bàn lớn, cây cảnh chính hết cảm giác "lơ lửng" */
-        for (let i = 1; i <= 5; i++) {
-          addContactShadow(SEAT_POS["F" + i].x, 0.024, SEAT_POS["F" + i].z, 3.4, 2.2, 0.34);
-          addContactShadow(SEAT_POS["B" + i].x, 0.024, SEAT_POS["B" + i].z, 4.4, 2.2, 0.34);
-        }
-        addContactShadow(-19.5, 0.014, -16.1, 1.35, 1.35, 0.3);
-        addContactShadow(-12.5, 0.014, -16.05, 1.25, 1.25, 0.3);
-        addContactShadow(-17.8, 0.014, -16.05, 1.1, 1.1, 0.3);
-        addContactShadow(-10.8, 0.026, -9.2, 0.85, 0.85, 0.3);
-        addContactShadow(10.8, 0.026, -9.2, 0.85, 0.85, 0.3);
-        addContactShadow(-22.5, 0.014, -15.5, 1.6, 1.6, 0.3);
-        addContactShadow(23.2, 0.014, 16.2, 1.15, 1.15, 0.28);
-        addContactShadow(-23.2, 0.014, 16.2, 1.15, 1.15, 0.28);
-      }
+      /* GHÉP V2: polishRugTexture đã gỡ cùng buildPolish (thảm phòng chiếu do v2 dựng). */
+      
+      /* GHÉP V2: buildPolish đã gỡ — trang trí/phào/đèn nhà cũ thay bằng nội thất v2;
+           three.polish + three.polishTick do buildHouseV2 cung cấp (nhịp glow của v2). */
+      
       /* ---------- SÂN SAU LỬA TRẠI (ngoài trời, qua cửa tường trước) ---------- */
       function buildCampfireYard() {
         const S = three.scene;
@@ -10944,7 +10668,7 @@
       }
 
       /* ============ MẶT NGOÀI NHÀ CHÍNH: mái ngói, ống khói, cửa sổ ấm, hiên, bảng hiệu, lối đá ============ */
-      function buildExterior() {
+            function buildExterior() {
         const S = three.scene;
         const DARK = 0x8b4a2b,
           CREAM = 0xf2e7d8,
@@ -10954,200 +10678,8 @@
           m.userData.noCast = true;
           return m;
         };
-        /* ---- Mái dốc ngói đất nung (gờ chạy đông–tây, hai mái xuôi nam/bắc) ---- */
-        const tc = document.createElement("canvas");
-        tc.width = tc.height = 256;
-        const tg = tc.getContext("2d");
-        tg.fillStyle = "#B25A41";
-        tg.fillRect(0, 0, 256, 256);
-        for (let r = 0; r < 8; r++) {
-          tg.fillStyle = r % 2 ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.04)";
-          tg.fillRect(0, r * 32, 256, 32);
-          tg.fillStyle = "rgba(70,25,10,0.55)";
-          tg.fillRect(0, r * 32 + 29, 256, 3);
-          tg.fillStyle = "rgba(70,25,10,0.35)";
-          for (let cx = (r % 2) * 32; cx < 256; cx += 64) tg.fillRect(cx, r * 32, 2, 30);
-        }
-        const tileTex = new THREE.CanvasTexture(tc);
-        tileTex.wrapS = tileTex.wrapT = THREE.RepeatWrapping;
-        tileTex.repeat.set(22, 7);
-        const roofMat = new THREE.MeshLambertMaterial({ map: tileTex });
-        const slopeLen = Math.hypot(17.9, 3.42),
-          slopeAng = Math.atan2(3.42, 17.9);
-        const slabS = new THREE.Mesh(new THREE.BoxGeometry(50.6, 0.18, slopeLen), roofMat);
-        slabS.position.set(0, 10.31, 8.95);
-        slabS.rotation.x = slopeAng;
-        S.add(noCast(slabS));
-        const slabN = new THREE.Mesh(new THREE.BoxGeometry(50.6, 0.18, slopeLen), roofMat);
-        slabN.position.set(0, 10.31, -8.95);
-        slabN.rotation.x = -slopeAng;
-        S.add(noCast(slabN));
-        noCast(box(50.6, 0.24, 0.34, 0x8a4433, 0, 12.02, 0)); // thanh nóc
-        noCast(box(50.4, 0.34, 0.2, 0x8a4433, 0, 8.52, 17.92)); // viền mái nam
-        noCast(box(50.4, 0.34, 0.2, 0x8a4433, 0, 8.52, -17.92)); // viền mái bắc
-        const gableShape = new THREE.Shape();
-        gableShape.moveTo(-17.4, 8.6);
-        gableShape.lineTo(17.4, 8.6);
-        gableShape.lineTo(0, 11.85);
-        gableShape.closePath();
-        [-24, 24].forEach((x) => {
-          const gm = new THREE.Mesh(
-            new THREE.ShapeGeometry(gableShape),
-            new THREE.MeshLambertMaterial({ color: CREAM, side: THREE.DoubleSide }),
-          );
-          gm.rotation.y = Math.PI / 2;
-          gm.position.x = x + (x > 0 ? 0.06 : -0.06);
-          S.add(noCast(gm)); // lệch 0.06 khỏi mặt tường, tránh đồng phẳng
-        });
-        /* ---- Ống khói gạch ---- */
-        noCast(box(0.95, 2.4, 0.95, 0x9a5a48, 14.5, 11.9, -6));
-        noCast(box(1.2, 0.2, 1.2, 0x7a4638, 14.5, 13.15, -6));
-        box(0.6, 0.25, 0.6, 0x2f2420, 14.5, 13.32, -6);
-        /* ---- Cửa sổ có khung, kính ấm hắt sáng ---- */
-        three.winGlowMats = [];
-        function winUnit(w, h) {
-          const grp = new THREE.Group();
-          grp.add(
-            new THREE.Mesh(
-              new THREE.BoxGeometry(w + 0.24, h + 0.24, 0.12),
-              new THREE.MeshLambertMaterial({ color: 0x6e4423 }),
-            ),
-          );
-          const gm = new THREE.MeshBasicMaterial({ color: 0xffc37a });
-          const gl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), gm);
-          gl.position.z = 0.07;
-          grp.add(gl);
-          three.winGlowMats.push(gm);
-          const barMat = new THREE.MeshLambertMaterial({ color: 0x6e4423 });
-          const barV = new THREE.Mesh(new THREE.BoxGeometry(0.07, h, 0.05), barMat);
-          barV.position.z = 0.09;
-          grp.add(barV);
-          const barH = new THREE.Mesh(new THREE.BoxGeometry(w, 0.07, 0.05), barMat);
-          barH.position.z = 0.09;
-          grp.add(barH);
-          const sill = new THREE.Mesh(
-            new THREE.BoxGeometry(w + 0.4, 0.12, 0.24),
-            new THREE.MeshLambertMaterial({ color: CREAM }),
-          );
-          sill.position.set(0, -h / 2 - 0.16, 0.04);
-          grp.add(sill);
-          return grp;
-        }
-        /* CHỖ GÂY "Ô VUÔNG CARO" TRÊN TƯỜNG: hộp khung cửa sổ dày 0.12 đặt tâm ở
-     ±24.06 / 17.06 thì mặt sau của hộp NẰM TRÙNG MẶT PHẲNG TƯỜNG (x=±24,
-     z=17) → hai mặt đồng phẳng đánh nhau z-fighting, tạo các mảng caro
-     nâu/trắng loang trên tường trong nhà. Đẩy hẳn cụm cửa sổ ra ngoài 0.14
-     để không còn mặt nào đồng phẳng với tường. */
-        [-19, -12, 12, 19].forEach((x) => {
-          const u = winUnit(1.5, 1.9);
-          u.position.set(x, 2.3, 17.2);
-          S.add(u);
-        });
-        [-19, -12, -5, 5, 12, 19].forEach((x) => {
-          const u = winUnit(1.5, 1.9);
-          u.position.set(x, 6.4, 17.2);
-          S.add(u);
-        });
-        [
-          [24.2, -9, Math.PI / 2],
-          [24.2, 7, Math.PI / 2],
-          [-24.2, -9, -Math.PI / 2],
-          [-24.2, 7, -Math.PI / 2],
-        ].forEach((cfg) => {
-          [2.3, 6.4].forEach((y) => {
-            const u = winUnit(1.5, 1.9);
-            u.position.set(cfg[0], y, cfg[1]);
-            u.rotation.y = cfg[2];
-            S.add(u);
-          });
-        });
-        /* ---- Mái hiên + bậc thềm cửa ra vườn ---- */
-        noCast(box(2.9, 0.12, 0.8, STONE, 0, 0.05, 18.62));
-        [-1.95, 1.95].forEach((x) => box(0.16, 3.3, 0.16, DARK, x, 1.65, 18.7));
-        const porchRoof = noCast(box(4.7, 0.14, 2.1, TERRA, 0, 3.62, 18.15));
-        porchRoof.rotation.x = 0.16;
-        OBSTACLES.push(
-          { minX: -2.1, maxX: -1.8, minZ: 18.55, maxZ: 18.85 },
-          { minX: 1.8, maxX: 2.1, minZ: 18.55, maxZ: 18.85 },
-        );
-        /* ---- Bảng hiệu Làng Mèo trên cửa ---- */
-        const sc = document.createElement("canvas");
-        sc.width = 512;
-        sc.height = 128;
-        const sg2 = sc.getContext("2d");
-        sg2.fillStyle = "#8B4A2B";
-        sg2.fillRect(0, 0, 512, 128);
-        sg2.strokeStyle = "rgba(255,220,180,.6)";
-        sg2.lineWidth = 6;
-        sg2.strokeRect(8, 8, 496, 112);
-        sg2.font = '800 58px "Baloo 2", sans-serif';
-        sg2.textAlign = "center";
-        sg2.textBaseline = "middle";
-        sg2.fillStyle = "#FFE9C9";
-        sg2.fillText("🐾 LÀNG MÈO", 256, 68);
-        const signM = new THREE.Mesh(
-          new THREE.PlaneGeometry(4.4, 1.1),
-          new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc) }),
-        );
-        signM.position.set(0, 4.75, 17.12);
-        S.add(signM);
-        /* ---- Chậu hoa + dây leo hai bên cửa ---- */
-        [-2.6, 2.6].forEach((x) => {
-          cyl(0.3, 0.24, 0.5, TERRA, x, 0.25, 17.9, S, 12);
-          const bush = new THREE.Mesh(
-            new THREE.SphereGeometry(0.42, 10, 8),
-            new THREE.MeshLambertMaterial({ color: 0x5f7a5e }),
-          );
-          bush.position.set(x, 0.72, 17.9);
-          bush.scale.y = 0.8;
-          S.add(bush);
-          [0xe77fb0, 0xf2b705, 0xe4572e].forEach((c, i) => {
-            const fl = new THREE.Mesh(
-              new THREE.SphereGeometry(0.07, 8, 6),
-              new THREE.MeshBasicMaterial({ color: c }),
-            );
-            fl.position.set(
-              x + Math.cos(i * 2.2) * 0.3,
-              0.88 + (i % 2) * 0.1,
-              17.9 + Math.sin(i * 2.2) * 0.3,
-            );
-            S.add(fl);
-          });
-        });
-        OBSTACLES.push(
-          { minX: -2.95, maxX: -2.25, minZ: 17.55, maxZ: 18.25 },
-          { minX: 2.25, maxX: 2.95, minZ: 17.55, maxZ: 18.25 },
-        );
-        for (let i = 0; i < 9; i++) {
-          const lf = new THREE.Mesh(
-            new THREE.SphereGeometry(0.16 + (i % 3) * 0.04, 8, 6),
-            new THREE.MeshLambertMaterial({ color: i % 2 ? 0x5f7a5e : 0x748b6f }),
-          );
-          lf.position.set(2.35 + Math.sin(i * 1.4) * 0.22, 0.6 + i * 0.42, 17.14);
-          lf.scale.set(1, 0.75, 0.5);
-          S.add(lf);
-        }
-        /* ---- Dây đèn viền mái mặt nam ---- */
-        const eaveMat = new THREE.MeshBasicMaterial({ color: 0xffd9a8 });
-        three.eaveBulbMat = eaveMat;
-        const eave = new THREE.InstancedMesh(new THREE.SphereGeometry(0.07, 8, 6), eaveMat, 40);
-        const mtx = new THREE.Matrix4();
-        for (let i = 0; i < 40; i++) {
-          mtx.setPosition(
-            -23.4 + i * (46.8 / 39),
-            8.3 - Math.sin(((i % 5) / 4) * Math.PI) * 0.07,
-            18.02,
-          );
-          eave.setMatrixAt(i, mtx);
-        }
-        S.add(eave);
-        three.eaveGlows = [];
-        for (let i = 0; i < 8; i++) {
-          const gl = makeGlowSprite(0xffb36b, 2.2, 0.3);
-          gl.position.set(-21 + i * 6, 8.3, 18.05);
-          S.add(gl);
-          three.eaveGlows.push(gl);
-        }
+        /* GHÉP V2: mái/cửa sổ/hiên/bảng hiệu/dây đèn mái của nhà chính do nhà v2
+           dựng; hàm này chỉ giữ phần NGOÀI nhà: cổng vườn + lối đá — nguyên văn. */
         /* ---- Cổng vườn cuối sân + lối đá từ cổng vào cửa ---- */
         [-1.5, 1.5].forEach((x) => box(0.22, 2.6, 0.22, DARK, x, 1.3, 65.4));
         noCast(box(3.6, 0.24, 0.3, DARK, 0, 2.65, 65.4));
@@ -11161,432 +10693,24 @@
         });
       }
 
+
       /* ============ LÀM LẠI NHÀ CHÍNH: tường TV, tủ, bàn, quầy trà, gác lửng + ban công ============ */
-      function makePlantProp(x, y, z, sc) {
-        const g = new THREE.Group();
-        g.position.set(x, y, z);
-        g.scale.set(sc, sc, sc);
-        three.scene.add(g);
-        const pot = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.4, 0.3, 0.55, 14),
-          new THREE.MeshLambertMaterial({ color: 0xa9704b }),
-        );
-        pot.position.y = 0.28;
-        g.add(pot);
-        for (let i = 0; i < 7; i++) {
-          const leaf = new THREE.Mesh(
-            new THREE.ConeGeometry(0.18, 1.3, 6),
-            new THREE.MeshLambertMaterial({ color: i % 2 ? 0x5f7a5e : 0x3f9e4d }),
-          );
-          const a = (i / 7) * Math.PI * 2;
-          leaf.position.set(Math.cos(a) * 0.22, 1.1, Math.sin(a) * 0.22);
-          leaf.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
-          g.add(leaf);
-        }
-        return g;
-      }
-      function buildLoftFurniture(S, woodDark, woodMid, caramel) {
-        const Y = LOFT_Y;
-        const lam = (c) => new THREE.MeshLambertMaterial({ color: c });
-        const basic = (c) => new THREE.MeshBasicMaterial({ color: c });
-        const UO = UPPER_OBSTACLES;
-        // --- Kệ sách dọc tường sau ---
-        const bookCols = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xb56a3a, 0x748b6f];
-        [10.4, 13.2, 16.0, 18.8].forEach((sx, si) => {
-          box(2.6, 2.7, 0.4, woodDark, sx, Y + 1.35, -16.72);
-          [0.55, 1.3, 2.05].forEach((sy, ri) => {
-            box(2.4, 0.06, 0.34, woodMid, sx, Y + sy, -16.66);
-            for (let bi = 0; bi < 6; bi++) {
-              const bh = 0.45 + ((bi * 7 + ri * 3 + si) % 4) * 0.08;
-              box(0.26, bh, 0.22, bookCols[(bi + ri + si) % 7], sx - 0.95 + bi * 0.38, Y + sy + 0.03 + bh / 2, -16.64);
-            }
-          });
-        });
-        UO.push({ minX: 9.0, maxX: 20.2, minZ: -17.1, maxZ: -16.2 });
-        makePlantProp(8.0, Y, -16.0, 1.0);
-        // --- Hố sofa U + bàn tròn + thảm ---
-        const rug1 = new THREE.Mesh(new THREE.CircleGeometry(3.6, 48), lam(0xe8c9a0));
-        rug1.rotation.x = -Math.PI / 2;
-        rug1.position.set(12.2, Y + 0.015, -7.0);
-        S.add(rug1);
-        const rug2 = new THREE.Mesh(new THREE.CircleGeometry(2.7, 48), lam(0xf2e7d8));
-        rug2.rotation.x = -Math.PI / 2;
-        rug2.position.set(12.2, Y + 0.02, -7.0);
-        S.add(rug2);
-        const rug3 = new THREE.Mesh(new THREE.CircleGeometry(1.2, 40), lam(0xe77fb0));
-        rug3.rotation.x = -Math.PI / 2;
-        rug3.position.set(12.2, Y + 0.025, -7.0);
-        S.add(rug3);
-        [
-          [12.2, -10.4, Math.PI, 4.4, 0xb56a3a],
-          [8.6, -7.0, -Math.PI / 2, 3.6, 0x748b6f],
-          [15.8, -7.0, Math.PI / 2, 3.6, 0x748b6f],
-        ].forEach((q) => {
-          const sg = makeSofaSeg(q[4], q[0], q[1], q[2], q[3]);
-          sg.position.y = Y;
-        });
-        UO.push({ minX: 10.0, maxX: 14.4, minZ: -11.1, maxZ: -9.7 });
-        UO.push({ minX: 7.9, maxX: 9.3, minZ: -8.9, maxZ: -5.1 });
-        UO.push({ minX: 15.1, maxX: 16.5, minZ: -8.9, maxZ: -5.1 });
-        cyl(0.7, 0.7, 0.07, 0xa9704b, 12.2, Y + 0.46, -7.0);
-        cyl(0.1, 0.1, 0.42, 0x5a3a24, 12.2, Y + 0.22, -7.0);
-        cyl(0.4, 0.4, 0.04, 0x5a3a24, 12.2, Y + 0.03, -7.0);
-        cyl(0.09, 0.07, 0.14, 0xffffff, 11.9, Y + 0.57, -6.8);
-        box(0.5, 0.06, 0.36, 0xa34d7c, 12.5, Y + 0.52, -7.2);
-        UO.push({ minX: 11.4, maxX: 13.0, minZ: -7.8, maxZ: -6.2 });
-        [[10.4, -8.6, 0xe77fb0], [14.0, -8.6, 0xf2b705]].forEach((c) => {
-          const pf = cyl(0.42, 0.45, 0.2, c[2], c[0], Y + 0.1, c[1]);
-          pf.scale.z = 0.9;
-        });
-        // đèn thả giấy trên hố sofa
-        [[10.6, -8.0], [13.8, -8.0]].forEach((l) => {
-          cyl(0.012, 0.012, 2.6, 0x2f2420, l[0], 7.1, l[1], null, 4);
-          const sh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 12), basic(0xffd9a8));
-          sh.scale.y = 0.85;
-          sh.position.set(l[0], 5.65, l[1]);
-          sh.userData.noCast = true;
-          S.add(sh);
-          const gl = makeGlowSprite(0xffb36b, 3.2, 0.4);
-          gl.position.copy(sh.position);
-          S.add(gl);
-        });
-        // --- Góc đọc sách: 2 ghế bành + bàn nhỏ + đèn cây ---
-        [15.5, 18.8].forEach((ax) => {
-          const ar = makeArmchair(ax, -13.4, 0);
-          ar.position.y = Y;
-          UO.push({ minX: ax - 0.7, maxX: ax + 0.7, minZ: -14.0, maxZ: -12.8 });
-        });
-        cyl(0.4, 0.4, 0.05, 0x7a4526, 17.15, Y + 0.6, -14.0);
-        cyl(0.05, 0.05, 0.58, 0x5a3a24, 17.15, Y + 0.3, -14.0);
-        // --- Giường + đầu giường tai mèo + 2 tủ đầu giường ---
-        const bedRug = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.2), lam(0xd9c7a8));
-        bedRug.rotation.x = -Math.PI / 2;
-        bedRug.position.set(10.0, Y + 0.012, 13.8);
-        S.add(bedRug);
-        box(3.3, 0.4, 4.2, woodDark, 10.0, Y + 0.2, 14.8);
-        box(3.1, 0.3, 4.0, 0xf2e7d8, 10.0, Y + 0.55, 14.8);
-        box(3.12, 0.12, 2.3, 0xb56a3a, 10.0, Y + 0.76, 14.0);
-        [9.2, 10.8].forEach((px) => box(1.2, 0.22, 0.6, 0xffffff, px, Y + 0.8, 16.4));
-        box(3.6, 1.5, 0.2, woodDark, 10.0, Y + 0.75, 16.85);
-        [-1.4, 1.4].forEach((ex, i) => {
-          const e = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.55, 4), lam(woodDark));
-          e.position.set(10.0 + ex, Y + 1.78, 16.85);
-          e.rotation.z = i ? -0.15 : 0.15;
-          S.add(e);
-        });
-        const plush = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), lam(0xf2b705));
-        plush.scale.set(1, 0.85, 1.1);
-        plush.position.set(10.9, Y + 1.0, 14.6);
-        S.add(plush);
-        [7.7, 12.3].forEach((tx) => {
-          box(0.7, 0.62, 0.6, woodMid, tx, Y + 0.31, 16.55);
-          cyl(0.04, 0.04, 0.4, 0x2f2420, tx, Y + 0.82, 16.55, null, 6);
-          const sh = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.3, 14, 1, true), basic(0xffd9a8));
-          sh.material.side = THREE.DoubleSide;
-          sh.position.set(tx, Y + 1.12, 16.55);
-          S.add(sh);
-          const gl = makeGlowSprite(0xffb36b, 2.2, 0.4);
-          gl.position.set(tx, Y + 1.1, 16.55);
-          S.add(gl);
-        });
-        UO.push({ minX: 8.3, maxX: 11.7, minZ: 12.6, maxZ: 17.0 });
-        UO.push({ minX: 7.3, maxX: 8.1, minZ: 16.2, maxZ: 17.0 });
-        UO.push({ minX: 11.9, maxX: 12.7, minZ: 16.2, maxZ: 17.0 });
-        // --- Bàn làm việc sát tường đông + ghế + màn hình ---
-        box(1.3, 0.08, 3.4, woodMid, 23.2, Y + 0.78, 11.2);
-        [[22.7, 9.7], [22.7, 12.7], [23.8, 9.7], [23.8, 12.7]].forEach((l) => box(0.08, 0.76, 0.08, woodDark, l[0], Y + 0.38, l[1]));
-        box(0.06, 0.72, 1.3, 0x1c1c21, 23.8, Y + 1.3, 11.2);
-        const mon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.64), basic(0x8fd0ff));
-        mon.rotation.y = -Math.PI / 2;
-        mon.position.set(23.76, Y + 1.32, 11.2);
-        S.add(mon);
-        box(0.3, 0.03, 0.8, 0x2f2420, 23.0, Y + 0.83, 11.2);
-        cyl(0.26, 0.26, 0.1, 0xe77fb0, 21.9, Y + 0.5, 11.2);
-        cyl(0.04, 0.04, 0.5, 0x2f2420, 21.9, Y + 0.25, 11.2, null, 6);
-        box(0.5, 0.1, 0.5, 0xb56a3a, 21.7, Y + 0.55, 11.2);
-        box(0.12, 0.9, 0.5, 0xb56a3a, 21.4, Y + 1.0, 11.2);
-        UO.push({ minX: 22.4, maxX: 24.1, minZ: 9.4, maxZ: 13.0 });
-        makePlantProp(22.9, Y, 7.0, 0.9);
-        makePlantProp(7.6, Y, 5.0, 0.8);
-        // dây đèn dọc tường sau gác
-        for (let i = 0; i < 18; i++) {
-          const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), basic([0xffd9a8, 0xf2b705, 0xe77fb0, 0xffd9a8][i % 4]));
-          bulb.position.set(8 + i * 0.95, Y + 3.7 - Math.sin((i / 17) * Math.PI) * 0.35, -16.85);
-          S.add(bulb);
-        }
-        const ll = new THREE.PointLight(0xffd9a8, 1.0, 10);
-        ll.position.set(12, Y + 2.8, 6);
-        S.add(ll);
-        // --- Cửa kính ra ban công ---
-        const dcx = 15.75,
-          dw = 3.9;
-        [13.8, 17.7, dcx].forEach((dx) => box(0.12, 3.0, 0.14, woodDark, dx, Y + 1.5, 17.0));
-        box(dw + 0.12, 0.14, 0.14, woodDark, dcx, Y + 3.0, 17.0);
-        box(dw, 0.08, 0.34, woodMid, dcx, Y + 0.04, 17.1);
-        [dcx - 0.95, dcx + 0.95].forEach((gx) => {
-          const gp = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.8, 2.9),
-            new THREE.MeshLambertMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }),
-          );
-          gp.position.set(gx, Y + 1.5, 17.02);
-          S.add(gp);
-        });
-        [13.4, 18.1].forEach((cx) => box(0.55, 3.1, 0.1, 0xf2e7d8, cx, Y + 1.55, 16.82));
-        // --- Ban công ---
-        const bx0 = 11.5,
-          bx1 = 20.5,
-          bz1 = 19.8,
-          bcx = 16,
-          bcz = 18.4;
-        box(9, 0.2, 2.8, woodMid, bcx, Y - 0.1, bcz);
-        const btex = woodTexture();
-        btex.repeat.set(3, 1);
-        const btop = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.8), new THREE.MeshLambertMaterial({ map: btex }));
-        btop.rotation.x = -Math.PI / 2;
-        btop.position.set(bcx, Y + 0.005, bcz);
-        S.add(btop);
-        box(9, 0.08, 0.08, caramel, bcx, Y + 1.0, bz1 - 0.05);
-        box(0.08, 0.08, 2.8, caramel, bx0 + 0.05, Y + 1.0, bcz);
-        box(0.08, 0.08, 2.8, caramel, bx1 - 0.05, Y + 1.0, bcz);
-        for (let i = 0; i <= 12; i++) box(0.05, 0.95, 0.05, woodDark, bx0 + 0.1 + i * (8.8 / 12), Y + 0.5, bz1 - 0.05);
-        [0, 1, 2, 3].forEach((i) => {
-          box(0.05, 0.95, 0.05, woodDark, bx0 + 0.05, Y + 0.5, 17.4 + i * 0.8);
-          box(0.05, 0.95, 0.05, woodDark, bx1 - 0.05, Y + 0.5, 17.4 + i * 0.8);
-        });
-        [bx0 + 0.2, bx1 - 0.2].forEach((px) => {
-          box(0.2, Y, 0.2, woodDark, px, Y / 2, bz1 - 0.2);
-          box(0.12, 2.6, 0.12, woodDark, px, Y + 1.3, bz1 - 0.2);
-        });
-        OBSTACLES.push({ minX: 11.5, maxX: 11.9, minZ: 19.4, maxZ: 19.8 }, { minX: 20.1, maxX: 20.5, minZ: 19.4, maxZ: 19.8 });
-        [13.2, 19.0].forEach((px) => {
-          box(1.8, 0.4, 0.4, 0x7a4526, px, Y + 0.2, bz1 - 0.4);
-          [-0.5, 0, 0.5].forEach((o) => {
-            const bu = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), lam(o ? 0x5f7a5e : 0x3f9e4d));
-            bu.position.set(px + o * 1.3, Y + 0.6, bz1 - 0.4);
-            S.add(bu);
-          });
-        });
-        cyl(0.55, 0.55, 0.06, 0xf2e7d8, 16.2, Y + 0.75, 18.5);
-        cyl(0.06, 0.06, 0.72, 0x5a3a24, 16.2, Y + 0.38, 18.5, null, 6);
-        [15.1, 17.3].forEach((cx) => {
-          box(0.5, 0.07, 0.5, 0xb56a3a, cx, Y + 0.45, 18.5);
-          box(0.5, 0.5, 0.07, 0xb56a3a, cx, Y + 0.75, cx < 16 ? 18.28 : 18.72);
-          [[-.2, -.2], [.2, -.2], [-.2, .2], [.2, .2]].forEach((l) => box(0.05, 0.43, 0.05, woodDark, cx + l[0], Y + 0.22, 18.5 + l[1]));
-        });
-        UO.push({ minX: 15.5, maxX: 16.9, minZ: 17.8, maxZ: 19.2 });
-        for (let i = 0; i < 14; i++) {
-          const t = i / 13;
-          const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), basic(i % 2 ? 0xffd9a8 : 0xf2b705));
-          bulb.position.set(bx0 + 0.2 + t * (bx1 - bx0 - 0.4), Y + 2.55 - Math.sin(t * Math.PI) * 0.45, bz1 - 0.2);
-          S.add(bulb);
-        }
-        const bg = makeGlowSprite(0xffb36b, 5, 0.3);
-        bg.position.set(bcx, Y + 2.2, bz1 - 0.2);
-        S.add(bg);
-        const bl = new THREE.PointLight(0xffd9a8, 1.1, 9);
-        bl.position.set(15.8, Y + 2.4, 17.8);
-        S.add(bl);
-        // tường sau/đông gác lửng: không cần vật cản thêm (tường đã có); chặn tường trước lúc ở trên lầu, chừa cửa
-        UO.push({ minX: 1.32, maxX: 13.8, minZ: 16.86, maxZ: 17.14 }, { minX: 17.7, maxX: 25, minZ: 16.86, maxZ: 17.14 });
-      }
-      function buildMainMakeover() {
-        const S = three.scene;
-        const DARK = 0x8b4a2b,
-          MID = 0xb98a5a,
-          WOOD = 0x7a4526;
-        const basic = (c) => new THREE.MeshBasicMaterial({ color: c });
-        // --- Tường ốp lam gỗ sau TV + quầng sáng ambilight ---
-        const slats = new THREE.InstancedMesh(
-          new THREE.BoxGeometry(0.16, 7.6, 0.1),
-          new THREE.MeshLambertMaterial({ color: 0x9a6a42 }),
-          50,
-        );
-        const m4 = new THREE.Matrix4();
-        for (let i = 0; i < 50; i++) {
-          m4.setPosition(-9.8 + i * 0.4, 4.75, -16.94);
-          slats.setMatrixAt(i, m4);
-        }
-        slats.instanceMatrix.needsUpdate = true;
-        S.add(slats);
-        const halo = makeGlowSprite(0xffb36b, 15, 0.33);
-        halo.position.set(0, 4.5, -16.97);
-        S.add(halo);
-        // dải LED viền dưới TV
-        const led = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.05, 0.05), basic(0xffd9a8));
-        led.position.set(0, 0.98, -16.72);
-        S.add(led);
-        // --- Tủ TV (kệ truyền thông) + loa + cây ---
-        box(10, 0.62, 0.72, WOOD, 0, 0.5, -16.4);
-        box(10.3, 0.07, 0.8, 0x5a3a24, 0, 0.85, -16.4);
-        [-4.7, 4.7].forEach((lx) => box(0.12, 0.2, 0.12, 0x2f2420, lx, 0.1, -16.4));
-        [-4, -2, 0, 2, 4].forEach((dx) => {
-          box(1.86, 0.46, 0.04, 0x8b4a2b, dx, 0.5, -16.02);
-          box(0.1, 0.1, 0.05, 0xf2b705, dx + 0.7, 0.5, -15.99);
-        });
-        box(5, 0.12, 0.22, 0x1c1c21, 0, 0.95, -16.55);
-        [-6.9, 6.9].forEach((sx) => {
-          box(0.75, 1.7, 0.6, 0x2a1f1a, sx, 0.85, -16.4);
-          const wf = cyl(0.26, 0.26, 0.06, 0x3a3a42, sx, 0.55, -16.08);
-          wf.rotation.x = Math.PI / 2;
-          const tw = cyl(0.12, 0.12, 0.06, 0x3a3a42, sx, 1.2, -16.08);
-          tw.rotation.x = Math.PI / 2;
-        });
-        makePlantProp(-8.4, 0, -16.0, 1.15);
-        makePlantProp(8.4, 0, -16.0, 1.15);
-        // tranh treo hai bên tường TV
-        [-11.2, 11.2].forEach((fx, i) => {
-          box(1.4, 1.8, 0.07, DARK, fx, 4.4, -16.9);
-          const pic = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.2, 1.6),
-            new THREE.MeshLambertMaterial({ map: artTexture(i ? 2 : 1) }),
-          );
-          pic.position.set(fx, 4.4, -16.85);
-          S.add(pic);
-        });
-        // --- Bàn trà thấp giữa vòng cung (bỏng ngô + trà) — nằm giữa hàng ghế bệt (r6.4) và sofa trước (r10.5) ---
-        [-30, 0, 30].forEach((deg) => {
-          const pt = arcPt(8.4, deg);
-          cyl(0.58, 0.58, 0.07, 0xa9704b, pt.x, 0.44, pt.z);
-          cyl(0.09, 0.09, 0.4, 0x5a3a24, pt.x, 0.22, pt.z);
-          cyl(0.34, 0.34, 0.04, 0x5a3a24, pt.x, 0.03, pt.z);
-          cyl(0.2, 0.14, 0.14, 0xe9dcc2, pt.x - 0.15, 0.55, pt.z + 0.05);
-          for (let k = 0; k < 4; k++) {
-            const pc = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), basic(0xfff3c4));
-            pc.position.set(pt.x - 0.15 + (k % 2) * 0.1 - 0.05, 0.66, pt.z + 0.05 + (k > 1 ? 0.06 : -0.04));
-            S.add(pc);
-          }
-          cyl(0.07, 0.06, 0.1, 0xffffff, pt.x + 0.22, 0.52, pt.z - 0.1);
-          OBSTACLES.push({ minX: pt.x - 0.6, maxX: pt.x + 0.6, minZ: pt.z - 0.6, maxZ: pt.z + 0.6 });
-        });
-        // --- Đèn lồng giấy treo trên vòng cung ---
-        [-40, -20, 0, 20, 40].forEach((deg) => {
-          const pt = arcPt(12.4, deg);
-          cyl(0.012, 0.012, 2.6, 0x2f2420, pt.x, 7.2, pt.z, null, 4);
-          const sh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 12), basic(0xffd9a8));
-          sh.scale.y = 0.85;
-          sh.position.set(pt.x, 5.8, pt.z);
-          sh.userData.noCast = true;
-          S.add(sh);
-          const gl = makeGlowSprite(0xffb36b, 3.2, 0.38);
-          gl.position.copy(sh.position);
-          S.add(gl);
-        });
-        // --- Quầy trà / cà phê dọc tường tây ---
-        box(1.2, 1.0, 6.4, DARK, -23.2, 0.5, -2.8);
-        box(1.45, 0.08, 6.7, 0x5a3a24, -23.1, 1.04, -2.8);
-        box(0.6, 0.55, 0.45, 0x2a1f1a, -23.3, 1.35, -4.8);
-        cyl(0.12, 0.14, 0.3, 0xe77fb0, -23.0, 1.23, -3.4);
-        [-2.6, -2.1, -1.6].forEach((cz, i) => cyl(0.08, 0.06, 0.12, i % 2 ? 0xf2e7d8 : 0xffffff, -23.0, 1.14, cz));
-        box(0.3, 0.06, 5.8, MID, -23.8, 2.5, -2.8);
-        for (let i = 0; i < 6; i++) cyl(0.14, 0.14, 0.38, [0xe77fb0, 0xf2b705, 0x748b6f][i % 3], -23.75, 2.72, -5.3 + i * 0.95);
-        [-5.2, -2.8, -0.4].forEach((sz) => {
-          cyl(0.3, 0.3, 0.08, 0xb56a3a, -21.4, 0.78, sz);
-          cyl(0.04, 0.04, 0.76, 0x2f2420, -21.4, 0.38, sz, null, 6);
-          cyl(0.22, 0.22, 0.03, 0x2f2420, -21.4, 0.3, sz);
-          OBSTACLES.push({ minX: -21.7, maxX: -21.1, minZ: sz - 0.3, maxZ: sz + 0.3 });
-          cyl(0.012, 0.012, 5.0, 0x2f2420, -22.4, 5.9, sz, null, 4);
-          const lp = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.4, 14, 1, true), basic(0xf0aa45));
-          lp.material.side = THREE.DoubleSide;
-          lp.position.set(-22.4, 3.2, sz);
-          S.add(lp);
-          const gl = makeGlowSprite(0xffb36b, 2.4, 0.4);
-          gl.position.set(-22.4, 3.1, sz);
-          S.add(gl);
-        });
-        OBSTACLES.push({ minX: -23.95, maxX: -22.4, minZ: -6.2, maxZ: 0.6 });
-        // --- Thảm dưới gầm gác + đèn cây + cây xanh cạnh cầu thang ---
-        const ur = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 11), new THREE.MeshLambertMaterial({ color: 0xc9a97f }));
-        ur.rotation.x = -Math.PI / 2;
-        ur.position.set(13.2, 0.014, -10.5);
-        S.add(ur);
-        /* ĐÃ BỎ 2 chậu cây đứng giữa lối đi ở (±10, 6.2): chúng án ngữ ngay trục
-           đi từ khu xem phim xuống sảnh nghỉ và trùng với cặp chậu cây sẵn có ở
-           góc thảm sảnh (±10.5, 7.2) — cây cảnh trong nhà chỉ đặt áp tường/góc. */
-      }
+      /* GHÉP V2: makePlantProp đã gỡ cùng buildLoftFurniture/buildMainMakeover (cây cảnh do plant() của v2 dựng). */
+      
+      /* GHÉP V2: buildLoftFurniture đã gỡ — nội thất gác do loft() của v2 dựng; vật cản tầng 2 suy từ hộp v2, nạp ở cuối buildHouseV2. */
+      
+      /* GHÉP V2: buildMainMakeover đã gỡ — tường lam TV/tủ TV/bàn trà/quầy trà do v2 dựng (cinema/westWing). */
+      
 
       /* ---------- TẦNG 2: CẦU THANG + PHÒNG HỌP ---------- */
-      function buildSecondFloor() {
+            function buildSecondFloor() {
         const S = three.scene;
         const woodDark = 0x8b4a2b,
           woodMid = 0xb98a5a,
           caramel = 0xb56a3a;
-        /* ===== GÁC LỬNG mới: sàn chừa giếng thang, mép tây nhìn xuống phòng chiếu ===== */
-        const ftex = woodTexture();
-        ftex.repeat.set(4, 5);
-        function loftSlab(x0, x1, z0, z1) {
-          const w = x1 - x0,
-            d = z1 - z0,
-            cx = (x0 + x1) / 2,
-            cz = (z0 + z1) / 2;
-          const sl = box(w, 0.2, d, woodDark, cx, LOFT_Y - 0.1, cz);
-          if (three.occluders) three.occluders.push(sl);
-          const tp = new THREE.Mesh(
-            new THREE.PlaneGeometry(w, d),
-            new THREE.MeshLambertMaterial({ map: ftex }),
-          );
-          tp.rotation.x = -Math.PI / 2;
-          tp.position.set(cx, LOFT_Y + 0.005, cz);
-          S.add(tp);
-        }
-        loftSlab(6.8, 20.6, -16.95, 17);
-        loftSlab(20.6, 24.2, -16.95, -7.5);
-        loftSlab(20.6, 24.2, 5, 17);
-        box(0.12, 0.34, 33.9, caramel, 6.86, LOFT_Y - 0.17, 0.02);
-        [-16.4, -8, 0, 8, 16.4].forEach((pz) => box(0.3, LOFT_Y, 0.3, woodDark, 7.0, LOFT_Y / 2, pz));
-        const underGlow = new THREE.Mesh(
-          new THREE.BoxGeometry(0.07, 0.07, 33),
-          new THREE.MeshBasicMaterial({ color: 0xffd9a8 }),
-        );
-        underGlow.position.set(6.7, LOFT_Y - 0.38, 0);
-        S.add(underGlow);
-
-        /* Cầu thang: 14 bậc trang trí dọc tường phải (rộng 3.4), đi trên ramp vô hình (stairYAt) */
-        for (let i = 0; i < 14; i++) {
-          const stepTopY = (i + 1) * (LOFT_Y / 14);
-          box(
-            3.4,
-            0.14,
-            0.85,
-            i % 2 ? woodMid : 0xc99a68,
-            22.4,
-            stepTopY - 0.07,
-            4.6 - i * 0.87 - 0.42,
-          );
-        }
-        const slope = Math.atan2(LOFT_Y, 12.5);
-        const boardLen = Math.hypot(12.5, LOFT_Y);
-        const board = box(0.08, 0.5, boardLen, woodDark, 20.75, LOFT_Y / 2 - 0.1, -1.25);
-        board.rotation.x = slope;
-        const sRail = box(0.07, 0.07, boardLen, caramel, 20.75, LOFT_Y / 2 + 0.95, -1.25);
-        sRail.rotation.x = slope;
-        for (let i = 0; i < 6; i++) {
-          const pz = 4.2 - i * 2.2;
-          box(0.07, 0.95, 0.07, woodDark, 20.75, stairYAt(pz) + 0.47, pz);
-        }
-        /* Lan can tầng 2: cạnh nam (chừa giếng thang) + cạnh tây nhìn xuống tầng 1 */
-        function railing(x0, z0, x1, z1) {
-          const len = Math.hypot(x1 - x0, z1 - z0);
-          const ang = Math.atan2(-(z1 - z0), x1 - x0);
-          const topR = box(len, 0.08, 0.08, caramel, (x0 + x1) / 2, LOFT_Y + 0.95, (z0 + z1) / 2);
-          topR.rotation.y = ang;
-          const midR = box(len, 0.05, 0.05, woodMid, (x0 + x1) / 2, LOFT_Y + 0.5, (z0 + z1) / 2);
-          midR.rotation.y = ang;
-          const n = Math.max(2, Math.round(len / 1.7));
-          for (let i = 0; i <= n; i++) {
-            const tt = i / n;
-            box(
-              0.07,
-              0.95,
-              0.07,
-              woodDark,
-              x0 + (x1 - x0) * tt,
-              LOFT_Y + 0.47,
-              z0 + (z1 - z0) * tt,
-            );
-          }
-        }
-        railing(6.95, -16.85, 6.95, 16.9);
-        buildLoftFurniture(S, woodDark, woodMid, caramel);
+        /* GHÉP V2: gác lửng + cầu thang + ban công của hàm này đã thay bằng loft()
+           của nhà v2 (trong buildHouseV2); phần dưới đây CHỈ còn nội thất tòa họp
+           riêng ở MEET_POS — giữ nguyên từng dòng. */
         /* ĐỢT B: Phòng họp ở TÒA RIÊNG mặt đất (MEET_POS mới) — dựng y=0, vỏ tòa do ComplexB xây */
         const mrug = new THREE.Mesh(
           new THREE.PlaneGeometry(8.6, 4.6),
@@ -11743,6 +10867,7 @@
         S.add(bush2);
         addContactShadow(MEET_POS.x, 0.02, MEET_POS.z, 7.1, 2.4, 0.3);
       }
+
 
       /* ---------- Hạt bụi bay trong nắng (trong nhà) ---------- */
       function buildDustMotes() {
