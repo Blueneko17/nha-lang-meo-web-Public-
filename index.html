@@ -4319,6 +4319,62 @@
           window.__lmEco = eco();
         }
         sync();
+        /* ===== ĐỢT G (5): ĐỘ PHÂN GIẢI THÍCH ỨNG — CHỈ nấc Tự động =====
+           FPS trung bình trượt ~1 giây: dưới 45 fps trong 2 cửa sổ liên tiếp
+           thì hạ pixelRatio một nấc theo thang (eco: 1.25 → 1.1 → 1.0; máy
+           tính: 1.75 → 1.5 → 1.25 → 1.1 → 1.0); trên 57 fps trong 4 cửa sổ
+           thì nâng lại một nấc. Trễ chống dao động: tối thiểu 3 giây giữa
+           hai lần đổi. Nấc Nhẹ / Đầy đủ thủ công KHÔNG bị ghi đè (thang chỉ
+           được đọc khi mode === "auto"; đổi nấc tay là đặt lại adaptIdx). */
+        var adaptIdx = 0;
+        var adaptFps = 0;
+        var adaptLastChange = 0;
+        function adaptLadder() {
+          return eco() ? [1.25, 1.1, 1.0] : [1.75, 1.5, 1.25, 1.1, 1.0];
+        }
+        (function adaptLoop() {
+          var frames = 0,
+            lowStreak = 0,
+            highStreak = 0,
+            last = performance.now();
+          function tick(now) {
+            requestAnimationFrame(tick);
+            frames++;
+            if (now - last < 1000) return;
+            var fps = frames / ((now - last) / 1000);
+            frames = 0;
+            last = now;
+            adaptFps = Math.round(fps * 10) / 10;
+            if (mode !== "auto" || document.hidden) {
+              lowStreak = 0;
+              highStreak = 0;
+              return;
+            }
+            if (fps < 45) {
+              lowStreak++;
+              highStreak = 0;
+            } else if (fps > 57) {
+              highStreak++;
+              lowStreak = 0;
+            } else {
+              lowStreak = 0;
+              highStreak = 0;
+            }
+            var ladder = adaptLadder();
+            var want = -1;
+            if (lowStreak >= 2 && adaptIdx < ladder.length - 1) want = adaptIdx + 1;
+            else if (highStreak >= 4 && adaptIdx > 0) want = adaptIdx - 1;
+            if (want >= 0 && now - adaptLastChange >= 3000) {
+              adaptIdx = want;
+              adaptLastChange = now;
+              lowStreak = 0;
+              highStreak = 0;
+              if (typeof window.__lmApplyQuality === "function")
+                window.__lmApplyQuality();
+            }
+          }
+          requestAnimationFrame(tick);
+        })();
         /* Cổng khoảng cách dùng chung: chỉ chặn khi tầng tiết kiệm hiệu lực
            (máy tính/Đầy đủ giữ nguyên như cũ). Vị trí người chơi do vòng lặp
            chính công bố mỗi khung hình qua window.__lmPP ({x, z}); chưa có
@@ -4344,9 +4400,16 @@
           get eco() {
             return eco();
           },
+          get adaptLevel() {
+            return adaptIdx;
+          },
+          get adaptFps() {
+            return adaptFps;
+          },
           setMode: function (m) {
             if (m !== "lite" && m !== "full") m = "auto";
             mode = m;
+            adaptIdx = 0; /* ĐỢT G: đổi nấc tay → thang thích ứng bắt đầu lại */
             try {
               localStorage.setItem(KEY, m);
             } catch (e) {}
@@ -4358,7 +4421,14 @@
           applyTo: function (renderer, spot) {
             if (!renderer) return;
             var L = lite();
-            var cap = L ? 1.0 : eco() ? 1.25 : 1.75;
+            /* ĐỢT G: nấc Tự động dùng nấc thang thích ứng theo FPS; Nhẹ ép
+               1.0 và Đầy đủ giữ 1.75 như cũ, không bị thích ứng ghi đè. */
+            var cap =
+              mode === "auto"
+                ? adaptLadder()[Math.min(adaptIdx, adaptLadder().length - 1)]
+                : L
+                  ? 1.0
+                  : 1.75;
             renderer.setPixelRatio(
               Math.min(window.devicePixelRatio || 1, cap),
             );
@@ -4378,15 +4448,15 @@
              tắt toàn cục theo thiết kế cũ — quy tắc đó không đổi. */
           applyDecorShadows: function (scene) {
             if (!scene || !window.THREE) return;
-            var L = eco();
             scene.traverse(function (o) {
               if (!o.isMesh) return;
               if (o.userData.__lmCs0 === undefined)
                 o.userData.__lmCs0 = o.castShadow;
-              if (!L) {
-                o.castShadow = o.userData.__lmCs0;
-                return;
-              }
+              /* ĐỢT G (2): vật NHỎ (bán kính bao < 0.9 m — sách, đồ trang trí
+                 nhỏ, đồ lặt vặt trong nhà) tắt castShadow ở MỌI nấc chất
+                 lượng, không chỉ eco như trước: bóng của chúng không ai nhìn
+                 rõ nhưng tốn lượt vẽ vào shadow map như vật lớn. Vật lớn
+                 giữ nguyên cờ gốc ở mọi nấc. */
               var small = false;
               try {
                 if (o.geometry) {
@@ -11000,7 +11070,10 @@ const HouseRoof = new th.Group(); HouseRoof.name = "HouseRoof"; scene.add(HouseR
   // kệ sách tường trước
   bx(6.2, 2.6, 0.38, 0x7a4526, -14, 1.3, 16.68); [0.75, 1.55, 2.35].forEach(y => bx(5.8, 0.07, 0.3, DARK, -14, y, 16.66)); OB(-17.1, -10.9, 16.4, 16.95);
   const bc = [0xe0393e, 0xf2b705, 0x2ea44f, 0x2470c7, 0xe77fb0, 0xb56a3a];
-  for (let i = 0; i < 24; i++) { const h = 0.42 + (i % 3) * 0.07; bx(0.24, h, 0.2, bc[i % 6], -16.6 + (i % 8) * 0.68, [0.75, 1.55, 2.35][Math.floor(i / 8)] + 0.04 + h / 2, 16.64); }
+  /* ĐỢT G (4): 24 cuốn sách kệ sảnh → MỘT InstancedMesh (màu theo instance,
+     kích thước theo ma trận instance) — vị trí/màu/chiều cao y hệt từng cuốn
+     cũ; kệ + vật cản không đổi. */
+  (function () { const im = new th.InstancedMesh(new th.BoxGeometry(1, 1, 1), new th.MeshLambertMaterial({ color: 0xffffff }), 24); const m4 = new th.Matrix4(), pv = new th.Vector3(), q = new th.Quaternion(), sv = new th.Vector3(), col = new th.Color(); for (let i = 0; i < 24; i++) { const h = 0.42 + (i % 3) * 0.07; pv.set(-16.6 + (i % 8) * 0.68, [0.75, 1.55, 2.35][Math.floor(i / 8)] + 0.04 + h / 2, 16.64); sv.set(0.24, h, 0.2); m4.compose(pv, q, sv); im.setMatrixAt(i, m4); im.setColorAt(i, col.setHex(bc[i % 6])); } im.frustumCulled = false; scene.add(im); })();
   plant(-10.5, 0, 7.2, 1.1); plant(10.5, 0, 7.2, 1.1); plant(-22, 0, 16, 1.3); plant(22, 0, 16, 1.3);
   [-5, 5].forEach(x => { bx(0.6, 0.6, 0.6, TRIM, x, 0.3, 16.5); });
   pn(1.4, 1.8, artTex(0), -22, 4.4, 16.9, Math.PI); pn(1.4, 1.8, artTex(2), 22, 4.4, 16.9, Math.PI);
@@ -11011,10 +11084,16 @@ const HouseRoof = new th.Group(); HouseRoof.name = "HouseRoof"; scene.add(HouseR
   bx(1.4, 1.2, 3.6, STONE, -31.2, 0.6, 0); bx(0.1, 0.9, 1.8, 0x1a1210, -30.5, 0.55, 0); bx(1.8, 0.18, 4, DARK, -30.95, 1.5, 0); bx(1.0, 7.6, 2.6, STONE, -31.45, 5.3, 0);
   glow(0xff8a2a, 3.2, 0.7, -30.4, 0.6, 0); glow(0xffd070, 1.6, 0.8, -30.4, 0.4, 0); pn(2.2, 2.8, artTex(1), -30.9, 4, 0, Math.PI / 2); bx(2.4, 3.0, 0.07, TRIM, -30.93, 4, 0).rotation.y = Math.PI / 2;
   OB(-32, -30.4, -1.9, 1.9);
+  /* ĐỢT G (4): 150 cuốn sách thư viện (6 kệ × 5 tầng × 5 cuốn) → MỘT
+     InstancedMesh màu theo instance. Thứ tự gọi rnd() giữ nguyên từng cuốn
+     (h rồi đến sâu) nên chiều cao/độ sâu từng cuốn y hệt bản cũ; thân kệ,
+     tấm tầng và vật cản OB giữ nguyên. */
+  const __libBooks = [];
   [-13, -9.4, -5.6, 5.6, 9.4, 13].forEach(z => {
-    bx(0.5, 6.6, 3.4, DARK, -31.75, 3.6, z); [0.7, 2.1, 3.5, 4.9, 6.2].forEach((y, r) => { bx(0.46, 0.06, 3.3, MID, -31.7, y, z); for (let k = 0; k < 5; k++) { const h = 0.7 + rnd() * 0.4; bx(0.3, h, 0.4 + rnd() * 0.25, bc2[(k + r + Math.floor(Math.abs(z))) % 7], -31.62, y + 0.05 + h / 2, z - 1.3 + k * 0.62); } });
+    bx(0.5, 6.6, 3.4, DARK, -31.75, 3.6, z); [0.7, 2.1, 3.5, 4.9, 6.2].forEach((y, r) => { bx(0.46, 0.06, 3.3, MID, -31.7, y, z); for (let k = 0; k < 5; k++) { const h = 0.7 + rnd() * 0.4; const d = 0.4 + rnd() * 0.25; __libBooks.push([0.3, h, d, bc2[(k + r + Math.floor(Math.abs(z))) % 7], -31.62, y + 0.05 + h / 2, z - 1.3 + k * 0.62]); } });
     OB(-32, -31.4, z - 1.7, z + 1.7);
   });
+  (function () { const im = new th.InstancedMesh(new th.BoxGeometry(1, 1, 1), new th.MeshLambertMaterial({ color: 0xffffff }), __libBooks.length); const m4 = new th.Matrix4(), pv = new th.Vector3(), q = new th.Quaternion(), sv = new th.Vector3(), col = new th.Color(); __libBooks.forEach((b, i) => { pv.set(b[4], b[5], b[6]); sv.set(b[0], b[1], b[2]); m4.compose(pv, q, sv); im.setMatrixAt(i, m4); im.setColorAt(i, col.setHex(b[3])); }); im.frustumCulled = false; scene.add(im); })();
   bx(0.1, 6, 0.1, TRIM, -31.2, 3.4, -7.5); bx(0.1, 6, 0.1, TRIM, -31.2, 3.4, -7.9); [1, 2, 3, 4, 5].forEach(r => bx(0.08, 0.06, 0.5, TRIM, -31.2, r * 1.1, -7.7));
   cy(3.4, 3.4, 0.03, 0xa34d7c, -26.5, 0.035, 0, null, 40); cy(3.0, 3.0, 0.03, 0xe9dcc2, -26.5, 0.045, 0, null, 40);
   armchair(-28.6, -2.6, -Math.PI / 2 + 0.5, 0, 0x748b6f); armchair(-28.6, 2.6, -Math.PI / 2 - 0.5, 0, 0x748b6f); OB(-29.4, -27.8, -3.4, -1.8); OB(-29.4, -27.8, 1.8, 3.4);
@@ -11079,8 +11158,12 @@ const HouseRoof = new th.Group(); HouseRoof.name = "HouseRoof"; scene.add(HouseR
      vệt ngang chắn tầm nhìn tầng trệt. Áp cho cả 2 đoạn rail() gọi dưới đây
      (mép gác x 6.95 dài 33.75 m + mép giếng thang dài 3.35 m). */
   rail(6.95, -16.85, 6.95, 16.9); rail(20.75, 5.1, 24.1, 5.1);
-  // kệ sách gác
-  [10.4, 13.2, 16, 18.8].forEach((x, si) => { bx(2.6, 2.7, 0.4, TRIM, x, Y + 1.35, -16.72); [0.55, 1.3, 2.05].forEach((y, r) => { bx(2.4, 0.06, 0.34, MID, x, Y + y, -16.66); for (let b = 0; b < 6; b++) { const h = 0.45 + ((b * 7 + r * 3 + si) % 4) * 0.08; bx(0.26, h, 0.22, bc[(b + r + si) % 6], x - 0.95 + b * 0.38, Y + y + 0.03 + h / 2, -16.64); } }); });
+  // kệ sách gác — ĐỢT G (4): 72 cuốn sách (4 kệ × 3 tầng × 6 cuốn) → MỘT
+  // InstancedMesh màu theo instance, số đo từng cuốn y hệt; thân kệ + tấm
+  // tầng giữ nguyên.
+  const __loftBooks = [];
+  [10.4, 13.2, 16, 18.8].forEach((x, si) => { bx(2.6, 2.7, 0.4, TRIM, x, Y + 1.35, -16.72); [0.55, 1.3, 2.05].forEach((y, r) => { bx(2.4, 0.06, 0.34, MID, x, Y + y, -16.66); for (let b = 0; b < 6; b++) { const h = 0.45 + ((b * 7 + r * 3 + si) % 4) * 0.08; __loftBooks.push([0.26, h, 0.22, bc[(b + r + si) % 6], x - 0.95 + b * 0.38, Y + y + 0.03 + h / 2, -16.64]); } }); });
+  (function () { const im = new th.InstancedMesh(new th.BoxGeometry(1, 1, 1), new th.MeshLambertMaterial({ color: 0xffffff }), __loftBooks.length); const m4 = new th.Matrix4(), pv = new th.Vector3(), q = new th.Quaternion(), sv = new th.Vector3(), col = new th.Color(); __loftBooks.forEach((b, i) => { pv.set(b[4], b[5], b[6]); sv.set(b[0], b[1], b[2]); m4.compose(pv, q, sv); im.setMatrixAt(i, m4); im.setColorAt(i, col.setHex(b[3])); }); im.frustumCulled = false; scene.add(im); })();
   // hố sofa U
   cy(3.6, 3.6, 0.03, 0xe8c9a0, 12.2, Y + 0.015, -7, null, 40); cy(2.7, 2.7, 0.03, 0xf2e7d8, 12.2, Y + 0.025, -7, null, 40); cy(1.2, 1.2, 0.03, 0xe77fb0, 12.2, Y + 0.03, -7, null, 28);
   sofa(0xb56a3a, 12.2, -10.4, Math.PI, 4.4, Y); sofa(0x748b6f, 8.6, -7, -Math.PI / 2, 3.6, Y); sofa(0x748b6f, 15.8, -7, Math.PI / 2, 3.6, Y);
@@ -11278,6 +11361,17 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       /* ============ BẦU TRỜI: vòm chuyển sắc + mây trôi + sao + mặt trời/trăng ============ */
       function buildSkyDome() {
         const S = three.scene;
+        /* ĐỢT G (1): toàn bộ bầu trời (vòm + mây + sao + mặt trời/trăng) gom
+           vào MỘT group BÁM THEO CAMERA (skyTick căn lại tâm theo camera mỗi
+           khung) — nhờ vậy bán kính vòm hạ 340 → 190 và camera.far hạ
+           720 → 220 ở mọi nấc mà trời không bao giờ bị cắt: vòm luôn ở quanh
+           người nhìn. Tọa độ cục bộ trong group giữ nguyên như cũ (vòm tâm
+           z 55, sao tâm z 24...), group chỉ tịnh tiến theo camera. */
+        const skyG = new THREE.Group();
+        S.add(skyG);
+        three.skyGroup = skyG;
+        if (three.camera)
+          skyG.position.set(three.camera.position.x, 0, three.camera.position.z - 24);
         const skyMat = new THREE.ShaderMaterial({
           side: THREE.BackSide,
           depthWrite: false,
@@ -11298,9 +11392,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             " vec3 col = h >= 0.0 ? mix(horizonColor, topColor, pow(h, exponent)) : mix(horizonColor, bottomColor, pow(-h, 0.6));" +
             " gl_FragColor = vec4(col, 1.0); }",
         });
-        const dome = new THREE.Mesh(new THREE.SphereGeometry(340, 28, 14), skyMat); /* vòm trời: r165 cũ → r340 (ĐỢT A) — điểm xa nhất của map mới (±172, 248) cách tâm vòm (0,0,55) ≈ 258 nên người chơi đứng ở mép xa nhất (x ±168, mọi z) vẫn ở TRONG vòm, trời không vỡ; vật liệu vòm fog:false nên sương FogExp2 không phủ lên trời. (Đợt trước: r88 → r165 vì vòng quay công viên chọc ra ngoài vòm.) */
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(190, 28, 14), skyMat); /* ĐỢT G: r340 → r190 vì vòm nay bám theo camera (trong skyGroup) — người chơi luôn ở gần tâm vòm nên 190 thừa đủ và luôn < far 220; vật liệu fog:false nên sương không phủ lên trời. */
         dome.position.set(0, 0, 55);
-        S.add(dome);
+        dome.frustumCulled = false;
+        skyG.add(dome);
+        three.skyDome = dome;
         three.skyMat = skyMat;
         /* Mây: sprite từ canvas, trôi chậm ngang trời */
         const cv = document.createElement("canvas");
@@ -11336,7 +11432,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const sc = 17 + Math.random() * 15;
           sp.scale.set(sc, sc * 0.42, 1);
           sp.userData.speed = 0.14 + Math.random() * 0.22;
-          S.add(sp);
+          skyG.add(sp);
           three.clouds.push(sp);
         }
         /* Sao khắp vòm trời */
@@ -11362,7 +11458,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             depthWrite: false,
           }),
         );
-        S.add(skyStars);
+        skyStars.frustumCulled = false;
+        skyG.add(skyStars);
         three.skyStars = skyStars;
         /* Mặt trời / mặt trăng — vị trí và độ hiện do applyEnvironment đặt theo giờ */
         const sun = new THREE.Mesh(
@@ -11371,11 +11468,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         );
         sun.position.set(-52, 40, 62);
         sun.lookAt(0, 2, 24);
-        S.add(sun);
+        skyG.add(sun);
         three.sunDisc = sun;
         const sunGlow = makeGlowSprite(0xffc36b, 20, 0.55);
         sunGlow.position.copy(sun.position);
-        S.add(sunGlow);
+        skyG.add(sunGlow);
         three.sunGlow = sunGlow;
         const moonD = new THREE.Mesh(
           new THREE.CircleGeometry(2.5, 28),
@@ -11383,13 +11480,21 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         );
         moonD.position.set(-46, 40, 62);
         moonD.lookAt(0, 2, 24);
-        S.add(moonD);
+        skyG.add(moonD);
         three.moonDisc = moonD;
         const moonGlow2 = makeGlowSprite(0xdce8ff, 11, 0.4);
         moonGlow2.position.copy(moonD.position);
-        S.add(moonGlow2);
+        skyG.add(moonGlow2);
         three.moonGlow = moonGlow2;
         three.skyTick = function (dt) {
+          /* ĐỢT G (1): vòm trời bám theo camera — căn tâm group theo camera
+             mỗi khung (trừ 24 theo z cho khớp tâm sao/mây cục bộ). */
+          if (three.skyGroup && three.camera)
+            three.skyGroup.position.set(
+              three.camera.position.x,
+              0,
+              three.camera.position.z - 24,
+            );
           if (three.clouds)
             three.clouds.forEach((c) => {
               c.position.x += c.userData.speed * dt;
@@ -11760,6 +11865,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           cat.timer = 1.5 + Math.random() * 3;
         }
       }
+      const CAT_LEGS = ["legFL", "legFR", "legBL", "legBR"]; /* ĐỢT G (6): hằng dùng chung — trước đây tạo mảng mới cho mỗi mèo mỗi khung */
       function updateCats(dt, t) {
         if (!three || !three.cats) return;
         const yb = three.yarnBall;
@@ -11772,7 +11878,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           cat.moving = false;
           const p = cat.grp.position;
           // Tư thế mặc định: chân duỗi thẳng, các trò sẽ ghi đè bên dưới
-          ["legFL", "legFR", "legBL", "legBR"].forEach((k) => {
+          CAT_LEGS.forEach((k) => {
             cat[k].rotation.x += (0 - cat[k].rotation.x) * Math.min(1, dt * 8);
           });
           let bScaleY = 1,
@@ -11781,9 +11887,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             headRotZ = 0;
           cat.zzz.visible = false;
           if (cat.state === "walk" || cat.state === "gotoWatch" || cat.state === "chase") {
-            const tgt = cat.state === "chase" && yb ? yb.position : { x: cat.tx, z: cat.tz };
-            const dx = tgt.x - p.x,
-              dz = tgt.z - p.z;
+            /* ĐỢT G (6): đọc thẳng tọa độ đích bằng số vô hướng — trước đây
+               tạo object {x, z} mới cho mỗi mèo mỗi khung. */
+            const tgtX = cat.state === "chase" && yb ? yb.position.x : cat.tx,
+              tgtZ = cat.state === "chase" && yb ? yb.position.z : cat.tz;
+            const dx = tgtX - p.x,
+              dz = tgtZ - p.z;
             const dist = Math.hypot(dx, dz);
             const step = cat.speed * (cat.state === "chase" ? 2.0 : 1) * dt;
             if (cat.state === "chase" && cat.timer <= 0) {
@@ -11837,7 +11946,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             // cuộn tròn ngủ, có Zzz bay
             bScaleY = 0.7;
             headDy = -0.15;
-            ["legFL", "legFR", "legBL", "legBR"].forEach((k) => {
+            CAT_LEGS.forEach((k) => {
               cat[k].rotation.x = 1.25;
             });
             cat.zzz.visible = true;
@@ -14717,12 +14826,22 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         } catch (e) {}
         if (!muted && window.vlVolume) window.vlVolume();
       }
+      /* ĐỢT G (6): vector đệm dùng chung cho cổng màn hình/chiếu góc — các
+         hàm này chạy MỖI KHUNG cho 3 màn hình, trước đây cấp phát 5–6
+         Vector3 mới mỗi khung. Chỉ dùng trong luồng đồng bộ, không đệ quy
+         lồng nhau nên dùng chung an toàn, hành vi không đổi. */
+      const _sgFwd = new THREE.Vector3(),
+        _sgTo = new THREE.Vector3(),
+        _pcV = new THREE.Vector3(),
+        _pcDir = new THREE.Vector3(),
+        _pcTo = new THREE.Vector3(),
+        _pcPts = [];
       function screenGate(center, zoneOk, skipRay) {
         if (!zoneOk || !three) return false;
         const cam = three.camera;
-        const fwd = new THREE.Vector3();
+        const fwd = _sgFwd;
         cam.getWorldDirection(fwd);
-        const to = new THREE.Vector3().subVectors(center, cam.position);
+        const to = _sgTo.subVectors(center, cam.position);
         const dist = to.length();
         to.normalize();
         if (fwd.dot(to) < 0.3) return false; // camera không hướng về màn hình
@@ -14747,16 +14866,17 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         const wrap = $("#stage3d");
         const W = wrap.clientWidth,
           H = wrap.clientHeight;
-        const v = new THREE.Vector3();
-        const camDir = new THREE.Vector3();
+        const v = _pcV;
+        const camDir = _pcDir;
         three.camera.getWorldDirection(camDir);
-        const pts = [];
+        const pts = _pcPts;
+        pts.length = 0;
         let minX = 1e9,
           maxX = -1e9,
           minY = 1e9,
           maxY = -1e9;
         for (const corner of corners) {
-          const to = new THREE.Vector3().subVectors(corner, three.camera.position);
+          const to = _pcTo.subVectors(corner, three.camera.position);
           if (to.dot(camDir) <= 0.05) return false; // có góc nằm sau camera → không chiếu được
           v.copy(corner).project(three.camera);
           if (v.z > 1) return false;
@@ -14794,6 +14914,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         fitIframe(ov, 1280, 720);
         return true;
       }
+      const _tvCenter = new THREE.Vector3(0, 4.5, -51.72); /* ĐỢT G (6): tâm TV cố định — cấp phát một lần thay vì mỗi khung */
       function positionYtOverlay() {
         const ov = $("#ytOverlay");
         if (!three || !ov.classList.contains("on")) return;
@@ -14822,7 +14943,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           myPos.z < -28.5 &&
           Math.abs(myPos.x) < 24.6 &&
           three.camera.position.z > -51.4;
-        if (!gateOverlay(ov, $("#ytFrame"), screenGate(new THREE.Vector3(0, 4.5, -51.72), zoneOk, true)))
+        if (!gateOverlay(ov, $("#ytFrame"), screenGate(_tvCenter, zoneOk, true)))
           return;
         if (!projectCorners(ov, three.screenCorners)) gateOverlay(ov, $("#ytFrame"), false);
       }
@@ -15263,7 +15384,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         const zoneOk =
           (myPos.z > -18.6 || myY > 2.6) && Math.hypot(myPos.x - V.SCR.x, myPos.z - V.SCR.z) < 60;
         if (
-          !gateOverlay(ov, frame, screenGate(new THREE.Vector3(V.SCR.x, V.SCR.y, V.SCR.z), zoneOk))
+          !gateOverlay(
+            ov,
+            frame,
+            screenGate((window.__lmBarCenter = window.__lmBarCenter || new THREE.Vector3(V.SCR.x, V.SCR.y, V.SCR.z)), zoneOk),
+          )
         )
           return;
         if (!projectCorners(ov, V.corners)) gateOverlay(ov, frame, false);
@@ -15502,6 +15627,24 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         updateCats(dt, t);
         updateCamera(dt);
         window.__lmPP = myPos; /* vị trí người chơi cho cổng khoảng cách __lmNear (giảm lag) */
+        /* ĐỢT G (2): hộp bóng nắng ±35 m bám theo người chơi, bám Ô LƯỚI
+           4 m — chỉ khi người chơi sang ô khác mới dời đèn/đích (bóng không
+           rung theo từng bước). Hướng nắng lấy từ TOD (three.__sunDir do
+           applyEnvironment công bố); tính bằng số vô hướng, không cấp phát. */
+        if (three.sunShadow) {
+          const gx = Math.round(myPos.x / 4) * 4,
+            gz = Math.round(myPos.z / 4) * 4;
+          if (three.__shGX !== gx || three.__shGZ !== gz) {
+            three.__shGX = gx;
+            three.__shGZ = gz;
+            const sd = three.__sunDir || [36, 44, -16];
+            const sl = Math.hypot(sd[0], sd[1], sd[2]) || 1;
+            const k = 80 / sl;
+            three.sunShadow.position.set(gx + sd[0] * k, sd[1] * k, gz + sd[2] * k);
+            three.sunShadow.target.position.set(gx, 0, gz);
+            three.sunShadow.target.updateMatrixWorld();
+          }
+        }
         /* GIẢM LAG: lửa trại + đom đóm ở đồi (-33, 4) chỉ cập nhật khi người
            chơi trong ~45 m — ở xa không ai nhìn thấy hạt lửa/đom đóm. */
         if (window.__lmNear(-33, 4, 45)) updateFire(dt, t);
@@ -15566,23 +15709,22 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           renderer.outputEncoding = THREE.sRGBEncoding;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
           renderer.toneMappingExposure = 1.14;
-          /* ĐỔ BÓNG TRONG NHÀ ĐÃ TẮT HẲN theo yêu cầu: spot chính trên trần hắt
-             bóng lan can/cầu thang/nội thất thành vệt chéo xấu khắp tường và sàn
-             phòng chính. Tắt shadow map toàn cục (đèn vẫn chiếu sáng bình thường,
-             chỉ không đổ bóng nữa) — trong nhà sáng đều, sạch mắt, lại nhẹ máy. */
-          renderer.shadowMap.enabled = false;
+          /* ĐỢT G (2): shadow map BẬT LẠI nhưng chỉ MỘT đèn directional (nắng,
+             tạo ngay dưới đây) được đổ bóng, trong hộp ~70 m bám theo người
+             chơi — mọi đèn point/spot giữ castShadow = false. Trong nhà vẫn
+             sạch bóng nhờ luật cũ giữ nguyên: dấu chân nhà chính bị gỡ cờ
+             đổ/nhận bóng toàn bộ (khối traverse cuối init) + spot trần nhà
+             không đổ bóng. */
+          renderer.shadowMap.enabled = true;
           renderer.shadowMap.type = THREE.PCFSoftShadowMap;
           const scene = new THREE.Scene();
           scene.background = new THREE.Color(0x1d130c);
-          scene.fog = new THREE.FogExp2(0x1d130c, 0.0032); /* CÔNG VIÊN: mật độ sương đêm hạ hẳn — trước đây 0.0075 khiến khu công viên ở xa (z 68–120) bị một màn sương nâu-đen phủ kín, tối hơn hẳn các khu gần; nay công viên trong rõ như các khu khác cả ngày lẫn đêm (màu sương/giờ giấc giữ nguyên) */
-          const camera = new THREE.PerspectiveCamera(55, 1.5, 0.1, 720);
-          /* Tầm nhìn xa cố định 720 (ĐỢT A): vòm trời nới lên r340 quanh tâm
-             (0,0,55) — đứng ở góc xa nhất của map (x ±171.6, z 247.6, cách
-             tâm vòm ≈ 258) thì mặt vòm phía đối diện cách ≈ 258 + 340 =
-             598 nên far phải > 600 ở MỌI nấc chất lượng, nếu không vòm bị
-             cắt và trời "vỡ" ở mép map. Trước đây eco rút far 240 → 200:
-             bỏ rút đó (sương FogExp2 vẫn phủ mờ vật ở xa như cũ, chi phí
-             far lớn không đáng kể vì cảnh chính nằm trong ~350 m). */
+          scene.fog = new THREE.Fog(0x1d130c, 55, 205); /* ĐỢT G (1): sương TUYẾN TÍNH 55 → 205 m thay FogExp2 — thế giới mờ dần và tan hẳn TRƯỚC mép far 220 nên đường chân trời mờ tự nhiên, không thấy vết cắt; màu sương vẫn do applyEnvironment đặt theo giờ như cũ. */
+          const camera = new THREE.PerspectiveCamera(55, 1.5, 0.1, 220);
+          /* ĐỢT G (1): far 720 → 220 ở MỌI nấc chất lượng (lệnh chủ nhân:
+             không cần cho mọi người nhìn xa). An toàn vì vòm trời r190 nay
+             BÁM THEO CAMERA trong skyGroup nên luôn nằm trọn trong 220;
+             vật tĩnh ngoài ~205 m đã tan trong sương trước khi tới mép cắt. */
           camera.position.set(7.5, 5.4, -24.5);
           /* Ánh sáng theo brief: hemisphere ấm nhẹ + spot chính ấm đổ bóng mềm + các point ấm cục bộ */
           const hemi = new THREE.HemisphereLight(0xffe9c4, 0x3a2a1c, 0.44);
@@ -15605,6 +15747,28 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           spot.shadow.camera.far = 32;
           scene.add(spot);
           scene.add(spot.target);
+          /* ĐỢT G (2): ĐÈN NẮNG DIRECTIONAL — đèn đổ bóng DUY NHẤT của làng.
+             Camera bóng là hộp orthographic ±35 m (rộng ~70 m) BÁM THEO
+             NGƯỜI CHƠI, bám theo Ô LƯỚI 4 m (căn trong animate3D) để bóng
+             không bơi/rung khi đi từng bước nhỏ. Ngoài hộp 70 m không có
+             bóng — đổi lại bóng gần nét và shadow map chỉ vẽ quanh người
+             chơi thay vì cả map 344 m. Màu/cường độ do applyEnvironment
+             đặt theo giờ (cùng TOD với spot). */
+          const sunShadow = new THREE.DirectionalLight(0xe6dcc8, 0.85);
+          sunShadow.castShadow = true;
+          sunShadow.shadow.mapSize.set(window.__lmLite || window.__lmEco ? 512 : 1024, window.__lmLite || window.__lmEco ? 512 : 1024);
+          sunShadow.shadow.camera.left = -35;
+          sunShadow.shadow.camera.right = 35;
+          sunShadow.shadow.camera.top = 35;
+          sunShadow.shadow.camera.bottom = -35;
+          sunShadow.shadow.camera.near = 1;
+          sunShadow.shadow.camera.far = 180;
+          sunShadow.shadow.bias = -0.0005;
+          sunShadow.shadow.normalBias = 0.03;
+          sunShadow.position.set(30, 60, -10);
+          sunShadow.target.position.set(0, 0, -35);
+          scene.add(sunShadow);
+          scene.add(sunShadow.target);
           const lampLight = new THREE.PointLight(0xffc37a, 2.1, 15);
           lampLight.position.set(22, 1.9, -19); /* căn theo chậu cây thật ở góc đông-nam sảnh nghỉ của nhà v2: plant(22, 0, -19) — đã dời -35 theo nhà */
           scene.add(lampLight);
@@ -15646,6 +15810,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             clock: new THREE.Clock(),
             hemi,
             spot,
+            sunShadow,
             lampLight,
             warmLights: [
               { l: lampLight, base: 2.1 },
@@ -15686,8 +15851,19 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             if (!three || !window.LMQuality) return;
             window.LMQuality.applyTo(three.renderer, three.spot);
             window.LMQuality.applyDecorShadows(three.scene);
+            /* ĐỢT G (2): cỡ shadow map của đèn nắng theo nấc như spot. */
+            if (three.sunShadow && three.sunShadow.shadow && three.sunShadow.shadow.mapSize) {
+              var ss = window.LMQuality.lite || window.LMQuality.eco ? 512 : 1024;
+              if (three.sunShadow.shadow.mapSize.x !== ss) {
+                three.sunShadow.shadow.mapSize.set(ss, ss);
+                if (three.sunShadow.shadow.map) {
+                  three.sunShadow.shadow.map.dispose();
+                  three.sunShadow.shadow.map = null;
+                }
+              }
+            }
             if (three.camera) {
-              var f = 720; /* ĐỢT A: far cố định 720 cho vòm trời r340 — xem ghi chú ở chỗ tạo camera */
+              var f = 220; /* ĐỢT G: far cố định 220 cho vòm trời bám camera — xem ghi chú ở chỗ tạo camera */
               if (three.camera.far !== f) {
                 three.camera.far = f;
                 three.camera.updateProjectionMatrix();
@@ -15732,16 +15908,56 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
              nắng ngoài trời không bao giờ làm tối/làm xấu nội thất. Shadow
              map toàn cục hiện đang tắt nên đây là lớp khóa cấu trúc: sau
              này có bật lại bóng ngoài trời thì trong nhà vẫn sạch bóng. */
+          const _wpTmp = new THREE.Vector3(); /* ĐỢT G (6): vector đệm dùng chung, khỏi cấp phát mỗi mesh */
           scene.traverse((o) => {
             if (o.isMesh) {
-              const wp = new THREE.Vector3();
-              o.getWorldPosition(wp);
-              if (wp.x >= -33 && wp.x <= 33 && wp.z >= -53.5 && wp.z <= -17) {
+              o.getWorldPosition(_wpTmp);
+              if (_wpTmp.x >= -33 && _wpTmp.x <= 33 && _wpTmp.z >= -53.5 && _wpTmp.z <= -17) {
                 o.castShadow = false;
                 o.receiveShadow = false;
               }
             }
+            /* ĐỢT G (2): chỉ đèn nắng directional đổ bóng — mọi đèn
+               point/spot trong cảnh chính tắt castShadow tường minh. */
+            if (o.isPointLight || o.isSpotLight) o.castShadow = false;
           });
+          /* ĐỢT G (3): ĐÓNG BĂNG MA TRẬN TĨNH — mesh con TRỰC TIẾP của scene
+             thuộc kiến trúc/đồ tĩnh (tường, sàn, kệ, mái mờ chỉ đổi opacity,
+             màn hình chỉ đổi vật liệu...) thì tính ma trận MỘT lần rồi tắt
+             matrixAutoUpdate: mỗi khung three khỏi nhân lại ma trận cho
+             hàng nghìn nút bất động. LOẠI TRỪ theo thiết kế:
+             - skyGroup (bám theo camera mỗi khung);
+             - bóng len (mèo vờn, di chuyển), cá trong bể + mèo NPC (nằm
+               trong Group riêng — con của group không bị đóng băng);
+             - MỌI con của Group (đu quay, vòng quay ngựa, cabin, cá koi,
+               cửa quay... đều sống trong group) — không đụng tới;
+             - người chơi: avatar dựng SAU bước này (syncAvatars3D) nên
+               luôn giữ matrixAutoUpdate = true.
+             Đồ do các script khu vực dựng sau init cũng không bị đóng băng. */
+          window.__lmFrozenCount = (function () {
+            var dyn = new Set();
+            function mark(o) {
+              if (!o) return;
+              dyn.add(o);
+              (o.children || []).forEach(mark);
+            }
+            mark(three.skyGroup);
+            mark(three.yarnBall);
+            (three.cats || []).forEach(function (c) {
+              mark(c.group || c.grp || c);
+            });
+            (three.fish || []).forEach(function (f) {
+              dyn.add(f);
+            });
+            var n = 0;
+            scene.children.forEach(function (o) {
+              if (!o.isMesh || dyn.has(o)) return;
+              o.updateMatrix();
+              o.matrixAutoUpdate = false;
+              n++;
+            });
+            return n;
+          })();
           sizeRenderer();
           window.addEventListener("resize", sizeRenderer);
           bindCameraControls();
@@ -16382,6 +16598,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           three.spot.color.setHex(amb.sunC);
           three.spot.intensity = off ? 0.22 : amb.sunI;
           three.spot.position.set(amb.sunPos[0], amb.sunPos[1], amb.sunPos[2]);
+        }
+        /* ĐỢT G (2): đèn nắng directional ăn theo cùng TOD + công bố hướng
+           nắng cho animate3D bám hộp bóng theo người chơi. */
+        three.__sunDir = amb.sunPos;
+        if (three.sunShadow) {
+          three.sunShadow.color.setHex(amb.sunC);
+          three.sunShadow.intensity = off ? 0.15 : amb.sunI * 0.8;
+          three.__shGX = null; /* buộc animate3D đặt lại vị trí theo hướng mới */
         }
         if (three.warmLights)
           three.warmLights.forEach((w) => {
@@ -25378,14 +25602,31 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             bx(344, 1.0, 0.35, fc, 0, 0.5, 247.8); // rào nam: z 248, x −172..172
             bx(0.35, 1.0, 313, fc, -171.8, 0.5, 91.5); // rào tây: x −172, z −65..248
             bx(0.35, 1.0, 313, fc, 171.8, 0.5, 91.5); // rào đông: x 172, z −65..248
+            /* ĐỢT G (4): 328 cọc rào chu vi (87×2 + 77×2, cách 4 m, y hệt vị
+               trí cũ) → MỘT InstancedMesh cùng hình hộp 0.18×1.35×0.18 và
+               cùng vật liệu WOOD — 328 lượt vẽ còn 1. Tấm rào dài giữ nguyên
+               (4 mesh riêng như cũ). */
+            var __postPts = [];
             for (var fx = -172; fx <= 172; fx += 4) {
-              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, -64.8);
-              bx(0.18, 1.35, 0.18, WOOD, fx, 0.67, 247.8);
+              __postPts.push([fx, -64.8]);
+              __postPts.push([fx, 247.8]);
             }
             for (var fz = -60; fz <= 244; fz += 4) {
-              bx(0.18, 1.35, 0.18, WOOD, -171.8, 0.67, fz);
-              bx(0.18, 1.35, 0.18, WOOD, 171.8, 0.67, fz);
+              __postPts.push([-171.8, fz]);
+              __postPts.push([171.8, fz]);
             }
+            var __posts = new th.InstancedMesh(
+              new th.BoxGeometry(0.18, 1.35, 0.18),
+              M(WOOD),
+              __postPts.length,
+            );
+            var __pm4 = new th.Matrix4();
+            __postPts.forEach(function (pp, i) {
+              __pm4.makeTranslation(pp[0], 0.67, pp[1]);
+              __posts.setMatrixAt(i, __pm4);
+            });
+            __posts.frustumCulled = false; /* r128 cắt InstancedMesh theo hình cầu hình gốc — tắt để cọc ở xa tâm vẫn vẽ */
+            G.add(__posts);
           })();
 
           buildPark(th, { bx: bx, cy: cy, sp: sp, pl: pl, sign: sign, glow: glow, M: M, G: G });
