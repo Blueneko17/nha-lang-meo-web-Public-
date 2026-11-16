@@ -4829,6 +4829,226 @@
         }
       }
     </style>
+    <style>
+      /* ===== Bida 8 Bi 3D: TOÀN MÀN HÌNH khi chơi + HUD tối ưu điện thoại =====
+         Khi mở một ván, lớp phủ bi-a chiếm 100% viewport (không còn khung nổi
+         lộ làng phía sau); script đi kèm (cuối khối Bida) xin quyền fullscreen
+         + gợi ý khóa ngang trên điện thoại và nhả ra khi thoát ván. */
+      #poolOverlay {
+        --bsat: env(safe-area-inset-top, 0px);
+        --bsar: env(safe-area-inset-right, 0px);
+        --bsab: env(safe-area-inset-bottom, 0px);
+        --bsal: env(safe-area-inset-left, 0px);
+      }
+      #poolOverlay.open {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        height: var(--app-h, 100dvh);
+        padding: 0;
+        background: #05080c;
+        z-index: 110;
+        display: flex;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+      #poolOverlay .pool-modal {
+        margin: 0;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        max-height: none;
+        padding: 0;
+        border-radius: 0;
+        background: #05080c;
+        box-shadow: none;
+        overflow: hidden;
+        animation: none;
+      }
+      #poolOverlay .pool-modal::before {
+        display: none; /* bỏ tay nắm bottom-sheet của bản điện thoại */
+      }
+      /* Toàn màn hình: bỏ tiêu đề/mô tả/nút ✕ của modal — rời ván bằng nút
+         "Thoát về phòng" luôn hiện rõ trong HUD của game */
+      #poolOverlay .pool-modal > h2,
+      #poolOverlay .pool-modal > .desc,
+      #poolOverlay .pool-modal > .x {
+        display: none;
+      }
+      #poolOverlay #bidaApp {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* --- HUD: chừa vùng an toàn (tai thỏ/cằm máy), mục tiêu chạm ≥ 44px --- */
+      #poolOverlay #bidaPlayers {
+        top: calc(var(--bsat) + 10px);
+        left: calc(var(--bsal) + 12px);
+      }
+      #poolOverlay #bidaBar {
+        top: calc(var(--bsat) + 10px);
+        right: calc(var(--bsar) + 12px);
+        bottom: auto;
+        flex-direction: row;
+      }
+      #poolOverlay .bida-btn {
+        min-height: 44px;
+        padding: 10px 13px;
+      }
+      #poolOverlay #bidaDiffQuick {
+        min-height: 44px;
+      }
+      #poolOverlay #bidaExit {
+        background: var(--baccent);
+        border-color: transparent;
+        color: #1b1303;
+        font-weight: 800;
+      }
+      #poolOverlay #bidaStatus {
+        top: calc(var(--bsat) + 66px);
+      }
+      #poolOverlay #bidaPower {
+        right: calc(var(--bsar) + 14px);
+      }
+      #poolOverlay #bidaPtrack {
+        width: 44px;
+      }
+      #poolOverlay #bidaSpinBox {
+        left: calc(var(--bsal) + 14px);
+        bottom: calc(var(--bsab) + 12px);
+      }
+      #poolOverlay #bidaFine {
+        top: auto;
+        bottom: calc(var(--bsab) + 12px);
+      }
+      #poolOverlay #bidaFine .bida-btn {
+        width: 52px;
+        height: 52px;
+        min-height: 52px;
+      }
+      #poolOverlay #bidaStart {
+        padding: calc(var(--bsat) + 12px) calc(var(--bsar) + 12px) calc(var(--bsab) + 12px)
+          calc(var(--bsal) + 12px);
+      }
+      #poolOverlay .bida-seg button {
+        min-height: 48px;
+      }
+      #poolOverlay .bida-primary {
+        min-height: 52px;
+      }
+      /* --- Màn nhỏ: thẻ người chơi thu gọn, nút trên không chồng nhau --- */
+      @media (max-width: 700px) {
+        #poolOverlay .bida-pl {
+          min-width: 0;
+          max-width: 40vw;
+          padding: 6px 9px 7px;
+          border-radius: 9px;
+        }
+        #poolOverlay .bida-pl .nm {
+          font-size: 14px;
+          max-width: 34vw;
+        }
+        #poolOverlay .bida-pl .gp {
+          font-size: 11px;
+          margin: 1px 0 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        #poolOverlay .bida-chips {
+          max-width: 108px;
+          gap: 2px;
+          min-height: 11px;
+        }
+        #poolOverlay .bida-chip {
+          width: 11px;
+          height: 11px;
+        }
+        #poolOverlay #bidaBar {
+          max-width: 56vw;
+          gap: 5px;
+        }
+        #poolOverlay .bida-btn {
+          font-size: 12.5px;
+          padding: 9px 10px;
+          border-radius: 9px;
+        }
+        #poolOverlay #bidaStatus {
+          top: calc(var(--bsat) + 118px);
+          font-size: 12.5px;
+          padding: 6px 13px;
+          max-width: min(88vw, 480px);
+        }
+        #poolOverlay #bidaSpin {
+          width: 96px;
+          height: 96px;
+        }
+        #poolOverlay #bidaPtrack {
+          height: min(32dvh, 230px);
+        }
+        #poolOverlay .bida-panel {
+          padding: 16px 16px 12px;
+        }
+        #poolOverlay .bida-panel h1 {
+          font-size: 30px;
+        }
+        #poolOverlay .bida-panel ul {
+          font-size: 12.5px;
+        }
+      }
+      /* Dọc hẹp: XOÁY trái, ngắm chậm phải — không giành nhau giữa đáy */
+      @media (max-width: 700px) and (orientation: portrait) {
+        #poolOverlay #bidaFine {
+          left: auto;
+          right: calc(var(--bsar) + 12px);
+          transform: none;
+        }
+        #poolOverlay #bidaFine span {
+          display: none;
+        }
+      }
+      /* Ngang thấp (điện thoại xoay ngang): HUD nén gọn, bàn vẫn trọn khung */
+      @media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 540px) {
+        #poolOverlay .bida-pl {
+          padding: 5px 8px 6px;
+        }
+        #poolOverlay .bida-pl .gp {
+          display: none;
+        }
+        #poolOverlay .bida-chips {
+          min-height: 10px;
+        }
+        #poolOverlay .bida-chip {
+          width: 10px;
+          height: 10px;
+        }
+        #poolOverlay #bidaStatus {
+          top: calc(var(--bsat) + 56px);
+        }
+        #poolOverlay #bidaSpin {
+          width: 84px;
+          height: 84px;
+        }
+        #poolOverlay #bidaPtrack {
+          height: min(36dvh, 180px);
+        }
+        #poolOverlay #bidaFine .bida-btn {
+          width: 48px;
+          height: 48px;
+          min-height: 48px;
+        }
+        #poolOverlay .bida-panel {
+          max-width: 560px;
+        }
+        #poolOverlay .bida-panel h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
     <!-- Làng Mèo | visual/performance upgrade V3, 2026-11-15 -->
   </head>
   <body>
@@ -18755,6 +18975,109 @@
         syncSegs();
         updateSpinUI();
         requestAnimationFrame(frame);
+      })();
+    </script>
+    <script>
+      "use strict";
+      /* ===== Bida: TOÀN MÀN HÌNH khi mở ván, nhả ra khi thoát =====
+         Theo dõi lớp .open của #poolOverlay nên mọi đường mở ván đều được
+         hưởng: trạm trong phòng Bi-a, nút "Chơi bi-a", sảnh nhiều người.
+         Mở → xin fullscreen (cả máy tính lẫn điện thoại) + thử khóa hướng
+         ngang trên cảm ứng; đóng (Thoát về phòng / ✕ / Esc / chạm nền) →
+         nhả fullscreen nếu chính ván này đã xin. Trình duyệt từ chối thì
+         lớp phủ CSS vẫn chiếm 100% viewport, không lỗi, chơi bình thường.
+         Nếu làng đã ở fullscreen từ trước (nút vào làng) thì giữ nguyên,
+         thoát ván không đá người chơi khỏi fullscreen của làng. */
+      (function bidaFullscreen() {
+        var ov = document.getElementById("poolOverlay");
+        if (!ov) return;
+        var app = document.getElementById("bidaApp");
+        var wasOpen = false,
+          weFs = false,
+          weLock = false;
+        function coarseTouch() {
+          return (
+            window.matchMedia("(hover:none) and (pointer:coarse)").matches ||
+            ("ontouchstart" in window &&
+              !window.matchMedia("(hover:hover) and (pointer:fine)").matches)
+          );
+        }
+        function tryLockLandscape() {
+          try {
+            var q = screen.orientation.lock("landscape");
+            weLock = true;
+            if (q && typeof q.catch === "function")
+              q.catch(function () {
+                weLock = false;
+              });
+          } catch (e) {}
+        }
+        function enterFS() {
+          try {
+            var el = document.documentElement;
+            if (el.requestFullscreen && !document.fullscreenElement) {
+              weFs = true;
+              var p = el.requestFullscreen({ navigationUI: "hide" });
+              if (p && typeof p.catch === "function")
+                p.catch(function () {
+                  try {
+                    el.requestFullscreen();
+                  } catch (e) {}
+                });
+            }
+            if (coarseTouch() && screen.orientation && screen.orientation.lock) {
+              /* Khóa hướng chỉ chạy khi đã fullscreen (Chrome/Android);
+                 nếu fullscreen đang trên đường vào thì thử lại ngay sau */
+              if (document.fullscreenElement) tryLockLandscape();
+              else setTimeout(tryLockLandscape, 150);
+            }
+          } catch (e) {}
+        }
+        function exitFS() {
+          try {
+            if (weLock && screen.orientation && screen.orientation.unlock) {
+              try {
+                screen.orientation.unlock();
+              } catch (e) {}
+            }
+            if (weFs && document.fullscreenElement && document.exitFullscreen) {
+              var p = document.exitFullscreen();
+              if (p && typeof p.catch === "function") p.catch(function () {});
+            }
+          } catch (e) {}
+          weFs = false;
+          weLock = false;
+        }
+        function syncFS() {
+          var open = ov.classList.contains("open");
+          if (open && !wasOpen) enterFS();
+          else if (!open && wasOpen) exitFS();
+          wasOpen = open;
+        }
+        if (window.MutationObserver)
+          new MutationObserver(syncFS).observe(ov, {
+            attributes: true,
+            attributeFilter: ["class"],
+          });
+        document.addEventListener("fullscreenchange", function () {
+          /* Người chơi tự thoát fullscreen (Esc/gesture) giữa ván: ván vẫn
+             mở ở lớp phủ 100% viewport; lúc thoát ván không gọi exit nữa */
+          if (!document.fullscreenElement) weFs = false;
+        });
+        /* Chặn trình duyệt cướp cử chỉ khi chơi (cuộn trang / kéo-làm-mới /
+           zoom): canvas đã có touch-action:none, chặn thêm touchmove trên
+           toàn khung game — trừ panel bắt đầu vốn cần cuộn dọc */
+        if (app)
+          app.addEventListener(
+            "touchmove",
+            function (e) {
+              var st = document.getElementById("bidaStart");
+              if (st && st.classList.contains("show") && st.contains(e.target)) return;
+              e.preventDefault();
+            },
+            { passive: false },
+          );
+        syncFS();
       })();
     </script>
     <script>
