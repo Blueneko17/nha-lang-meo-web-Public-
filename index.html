@@ -1450,56 +1450,425 @@
         display: block;
       }
 
-      /* Pool */
+      /* Bida 8 Bi 3D (thay toàn bộ bi-a cũ: một game duy nhất trong overlay phòng Bi-a) */
       .pool-modal {
-        max-width: 900px;
+        max-width: 960px;
       }
-      .pool-wrap {
+      #bidaApp {
+        --bpanel: rgba(14, 20, 28, 0.82);
+        --bline: rgba(255, 255, 255, 0.16);
+        --bfg: #eaeff4;
+        --bmuted: #9aa8b6;
+        --baccent: #ffbf3c;
+        --bgood: #4ade80;
+        --bbad: #ff6b5e;
         position: relative;
         width: 100%;
+        height: min(74vh, 660px);
+        min-height: 430px;
         border-radius: 14px;
         overflow: hidden;
+        background: #0a0d12;
+        color: var(--bfg);
         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-        background: #8b4a2b;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
       }
-      canvas#poolCanvas {
-        display: block;
+      #bidaCanvas {
+        position: absolute;
+        inset: 0;
         width: 100%;
-        height: auto;
+        height: 100%;
+        display: block;
         touch-action: none;
       }
-      .pool-hud {
+      #bidaHud {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #bidaPlayers {
+        position: absolute;
+        top: 10px;
+        left: 12px;
+        display: flex;
+        gap: 8px;
+        max-width: calc(100% - 24px);
+      }
+      .bida-pl {
+        background: var(--bpanel);
+        border: 1px solid var(--bline);
+        border-radius: 10px;
+        padding: 7px 10px 8px;
+        min-width: 108px;
+        backdrop-filter: blur(6px);
+        transition: border-color 0.2s;
+      }
+      .bida-pl.on {
+        border-color: var(--baccent);
+        box-shadow: 0 0 0 1px var(--baccent);
+      }
+      .bida-pl .nm {
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 1.1;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+      }
+      .bida-pl .gp {
+        font-size: 12px;
+        color: var(--bmuted);
+        margin: 2px 0 5px;
+      }
+      .bida-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 3px;
+        max-width: 132px;
+        min-height: 13px;
+      }
+      .bida-chip {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-sizing: border-box;
+      }
+      .bida-chip.out {
+        opacity: 0.22;
+      }
+      #bidaBar {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .bida-btn {
+        pointer-events: auto;
+        font-family: "Be Vietnam Pro", sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--bfg);
+        background: var(--bpanel);
+        border: 1px solid var(--bline);
+        border-radius: 8px;
+        padding: 8px 11px;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+      }
+      .bida-btn:hover {
+        border-color: var(--baccent);
+      }
+      .bida-btn:focus-visible,
+      #bidaSpin:focus-visible,
+      #bidaDiffQuick:focus-visible {
+        outline: 2px solid var(--baccent);
+        outline-offset: 2px;
+      }
+      #bidaDiffQuick {
+        pointer-events: auto;
+        font-family: "Be Vietnam Pro", sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--bfg);
+        background: var(--bpanel);
+        border: 1px solid var(--bline);
+        border-radius: 8px;
+        padding: 7px 8px;
+        cursor: pointer;
+      }
+      #bidaDiffQuick option {
+        color: #111;
+      }
+      #bidaStatus {
+        position: absolute;
+        top: 86px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: min(92%, 560px);
+        text-align: center;
+        background: var(--bpanel);
+        border: 1px solid var(--bline);
+        border-radius: 999px;
+        padding: 7px 16px;
+        font-weight: 600;
+        font-size: 13.5px;
+        backdrop-filter: blur(6px);
+        transition: border-color 0.2s;
+      }
+      #bidaStatus.foul {
+        border-color: var(--bbad);
+        color: #ffd9d4;
+      }
+      #bidaStatus.good {
+        border-color: var(--bgood);
+      }
+      #bidaStatus:empty {
+        display: none;
+      }
+      #bidaPower {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        margin-top: 12px;
+        gap: 6px;
       }
-      .pool-hud .score {
+      .bida-lbl {
+        font-family: "Baloo 2", sans-serif;
         font-weight: 700;
-        background: var(--bg);
-        border: 1.5px solid var(--line);
-        border-radius: 10px;
-        padding: 7px 13px;
-        font-size: 0.92rem;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: var(--bmuted);
       }
-      .pool-hud .score.turn {
-        border-color: var(--gold);
-        background: color-mix(in srgb, var(--gold) 15%, var(--bg));
-      }
-      .power-wrap {
-        flex: 1 1 140px;
-        height: 14px;
-        background: var(--bg);
-        border: 1.5px solid var(--line);
-        border-radius: 99px;
+      #bidaPtrack {
+        width: 40px;
+        height: min(38vh, 280px);
+        background: var(--bpanel);
+        border: 1px solid var(--bline);
+        border-radius: 20px;
+        position: relative;
         overflow: hidden;
       }
-      .power-fill {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #57b25e, #e9a13b, #d43a2f);
-        transition: width 0.05s;
+      #bidaPfill {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 0;
+        background: linear-gradient(#4ade80, #ffbf3c 55%, #ff6b5e);
+      }
+      #bidaPknob {
+        position: absolute;
+        left: 3px;
+        right: 3px;
+        height: 8px;
+        border-radius: 4px;
+        background: #fff;
+        top: 0;
+      }
+      #bidaPval {
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        min-width: 40px;
+        text-align: center;
+      }
+      #bidaSpinBox {
+        position: absolute;
+        left: 14px;
+        bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+      }
+      #bidaSpin {
+        pointer-events: auto;
+        touch-action: none;
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #ffffff, #d6d2c6 72%);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        position: relative;
+        cursor: crosshair;
+      }
+      #bidaSpin::before,
+      #bidaSpin::after {
+        content: "";
+        position: absolute;
+        background: rgba(0, 0, 0, 0.18);
+      }
+      #bidaSpin::before {
+        left: 50%;
+        top: 8px;
+        bottom: 8px;
+        width: 1px;
+      }
+      #bidaSpin::after {
+        top: 50%;
+        left: 8px;
+        right: 8px;
+        height: 1px;
+      }
+      #bidaSdot {
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #d62d20;
+        border: 2px solid #fff;
+        box-sizing: border-box;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #bidaFine {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #bidaFine .bida-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 18px;
+        padding: 0;
+      }
+      #bidaFine span {
+        font-size: 12px;
+        color: var(--bmuted);
+      }
+      #bidaStart {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(5, 8, 12, 0.66);
+        backdrop-filter: blur(3px);
+        padding: 14px;
+        box-sizing: border-box;
+        overflow: auto;
+        touch-action: pan-y;
+        z-index: 5;
+      }
+      #bidaStart.show {
+        display: flex;
+      }
+      .bida-panel {
+        width: 100%;
+        max-width: 470px;
+        background: #111a23;
+        border: 1px solid var(--bline);
+        border-radius: 14px;
+        padding: 20px 22px 16px;
+        margin: auto;
+        color: var(--bfg);
+      }
+      .bida-panel h1 {
+        margin: 0;
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 800;
+        font-size: 40px;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .bida-panel .bida-sub {
+        margin: 6px 0 14px;
+        color: var(--bmuted);
+      }
+      .bida-seg {
+        display: flex;
+        gap: 6px;
+        margin: 0 0 10px;
+      }
+      .bida-seg button {
+        flex: 1;
+        font-family: "Be Vietnam Pro", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--bfg);
+        background: #18232f;
+        border: 1px solid var(--bline);
+        border-radius: 8px;
+        padding: 10px 8px;
+        cursor: pointer;
+      }
+      .bida-seg button.sel {
+        border-color: var(--baccent);
+        background: #2a2412;
+        color: var(--baccent);
+      }
+      .bida-seg button:focus-visible,
+      .bida-primary:focus-visible {
+        outline: 2px solid var(--baccent);
+        outline-offset: 2px;
+      }
+      .bida-primary {
+        width: 100%;
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #1b1303;
+        background: var(--baccent);
+        border: 0;
+        border-radius: 8px;
+        padding: 11px;
+        cursor: pointer;
+        margin-top: 4px;
+      }
+      .bida-panel ul {
+        margin: 14px 0 0;
+        padding-left: 18px;
+        color: var(--bmuted);
+        font-size: 13px;
+      }
+      .bida-panel li {
+        margin: 3px 0;
+      }
+      .bida-panel li b {
+        color: var(--bfg);
+        font-weight: 600;
+      }
+      @media (max-width: 620px) {
+        #bidaApp {
+          height: 68vh;
+          min-height: 400px;
+        }
+        #bidaBar {
+          top: auto;
+          bottom: 12px;
+          right: 12px;
+          flex-direction: column;
+          align-items: stretch;
+          max-width: 42vw;
+        }
+        #bidaStatus {
+          top: 92px;
+          font-size: 12.5px;
+        }
+        .bida-pl {
+          min-width: 96px;
+          padding: 6px 8px 7px;
+        }
+        .bida-chips {
+          max-width: 100px;
+        }
+        #bidaPtrack {
+          height: min(30vh, 220px);
+        }
+        #bidaFine {
+          bottom: auto;
+          top: 150px;
+        }
+        .bida-panel h1 {
+          font-size: 32px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bida-pl,
+        #bidaStatus {
+          transition: none;
+        }
       }
       .pool-msg {
         font-weight: 600;
@@ -4666,7 +5035,7 @@
               <span class="k">Cờ cá ngựa</span><span class="v" id="stLudo">Chưa mở ván</span>
             </div>
             <div class="kv">
-              <span class="k">Bi-a</span><span class="v" id="stPool">Chưa mở ván</span>
+              <span class="k">Bida 8 Bi</span><span class="v" id="stPool">Chưa mở ván</span>
             </div>
             <div class="kv">
               <span class="k">Audition</span><span class="v" id="stAud">Chưa mở ván</span>
@@ -4739,10 +5108,10 @@
           <article class="game-card">
             <div class="game-art pool-art" aria-hidden="true"></div>
             <div class="game-body">
-              <h3 class="font-disp">Bi-a lỗ</h3>
+              <h3 class="font-disp">Bida 8 Bi 3D</h3>
               <p>
-                Bàn bi-a 10 bi màu, chơi 1 mình hoặc 2 người luân phiên. Kéo để ngắm và lấy lực, thả
-                ra để đánh — đưa bi vào lỗ ghi điểm, bi trắng vào lỗ là mất lượt.
+                Bida 8 bi 3D đầy đủ luật: phá bi, chốt nhóm tròn/sọc, dọn hết nhóm mới đánh bi 8.
+                Đấu với Máy 3 mức khó, 2 người cùng máy, hoặc vào sảnh đấu người–người trong làng.
               </p>
               <button class="btn teal" type="button" data-open="poolOverlay">Chơi bi-a</button>
             </div>
@@ -5061,32 +5430,94 @@
       </div>
     </div>
 
-    <!-- ======= Pool modal ======= -->
+    <!-- ======= Bida 8 Bi 3D modal ======= -->
     <div class="overlay" id="poolOverlay">
       <div class="modal pool-modal">
         <button class="x" type="button" data-close="poolOverlay" aria-label="Đóng">✕</button>
-        <h2 class="font-disp">🎱 Bi-a lỗ</h2>
+        <h2 class="font-disp">🎱 Bida 8 Bi 3D</h2>
         <p class="desc">
-          Kéo ra phía sau bi trắng để ngắm hướng và lấy lực, thả tay để đánh. Bi màu vào lỗ thì được
-          đánh tiếp; không vào lỗ nào thì đổi lượt, bi trắng vào lỗ là phạm luật.
+          Luật 8 bi đầy đủ: phá bi mở đầu, vào bi hợp lệ mới chốt nhóm (tròn 1–7 / sọc 9–15), dọn hết
+          nhóm mới được đánh bi 8. Phạm lỗi (bi cái rơi lỗ, không chạm bi, chạm sai bi trước, không bi
+          nào chạm băng) thì đối thủ được đặt bi cái tự do. Kéo ngang để ngắm, kéo xuống lùi gậy rồi
+          đẩy nhanh lên để đánh; chạm vòng XOÁY để chọn điểm đánh trên bi cái.
         </p>
-        <div class="pool-wrap"><canvas id="poolCanvas" width="920" height="460"></canvas></div>
-        <div class="pool-hud">
-          <span class="score" id="poolScore1">Người 1: 0 bi</span>
-          <span class="score" id="poolScore2">Người 2: 0 bi</span>
-          <div class="seg" id="poolModeSeg" role="group" aria-label="Số người chơi">
-            <button type="button" data-mode="1">1 người</button>
-            <button type="button" data-mode="2" class="sel">2 người</button>
+        <div id="bidaApp">
+          <canvas id="bidaCanvas"></canvas>
+          <div id="bidaHud">
+            <div id="bidaPlayers"></div>
+            <div id="bidaBar">
+              <select id="bidaDiffQuick" aria-label="Độ khó của Máy" style="display: none">
+                <option value="0">Máy: Dễ</option>
+                <option value="1" selected>Máy: Vừa</option>
+                <option value="2">Máy: Khó</option>
+              </select>
+              <button class="bida-btn" id="bidaTop" type="button">Nhìn từ trên</button>
+              <button class="bida-btn" id="bidaSnd" type="button">Âm thanh: bật</button>
+              <button class="bida-btn" id="bidaNew" type="button">Ván mới</button>
+              <button class="bida-btn" id="bidaExit" type="button">Thoát về phòng</button>
+            </div>
+            <div id="bidaStatus" role="status" aria-live="polite"></div>
+            <div id="bidaPower">
+              <div class="bida-lbl">LỰC</div>
+              <div
+                id="bidaPtrack"
+                role="meter"
+                aria-label="Lực đánh"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <div id="bidaPfill"></div>
+                <div id="bidaPknob"></div>
+              </div>
+              <div id="bidaPval">0%</div>
+            </div>
+            <div id="bidaSpinBox">
+              <div id="bidaSpin" tabindex="0" role="application" aria-label="Điểm chạm trên bi cái (xoáy)">
+                <div id="bidaSdot"></div>
+              </div>
+              <div class="bida-lbl">XOÁY</div>
+            </div>
+            <div id="bidaFine">
+              <button class="bida-btn" id="bidaFl" type="button" aria-label="Xoay ngắm sang trái">◀</button
+              ><span>Ngắm chậm</span
+              ><button class="bida-btn" id="bidaFr" type="button" aria-label="Xoay ngắm sang phải">▶</button>
+            </div>
           </div>
-          <div class="power-wrap" aria-hidden="true">
-            <div class="power-fill" id="powerFill"></div>
+          <div id="bidaStart" class="show">
+            <div class="bida-panel">
+              <h1 id="bidaOvTitle">Bida 8 Bi 3D</h1>
+              <p class="bida-sub" id="bidaOvSub">Phá bi, chọn nhóm, đưa bi 8 xuống lỗ sau cùng.</p>
+              <div class="bida-seg" id="bidaModeSel">
+                <button type="button" data-mode="ai" class="sel">Đấu với máy</button
+                ><button type="button" data-mode="pvp">2 người (cùng máy)</button>
+              </div>
+              <div class="bida-seg" id="bidaDiffSel">
+                <button type="button" data-diff="0">Dễ</button
+                ><button type="button" data-diff="1" class="sel">Vừa</button
+                ><button type="button" data-diff="2">Khó</button>
+              </div>
+              <button class="bida-primary" id="bidaStartBtn" type="button">Bắt đầu</button>
+              <ul>
+                <li>
+                  <b>Kéo ngang</b> (chuột hoặc ngón tay) để xoay hướng ngắm. Sau khi kéo ngang, kéo
+                  thêm lên xuống để đổi độ cao camera. Cuộn chuột / pinch để zoom.
+                </li>
+                <li>
+                  <b>Đánh như ngoài đời:</b> nhấn giữ rồi <b>kéo xuống</b> để lùi gậy (càng xa lực
+                  càng mạnh), sau đó <b>đẩy nhanh lên</b> để gậy bật vào bi cái. Đẩy chậm thì lực yếu
+                  đi. Thả tay giữa chừng hoặc kéo gậy về từ từ để huỷ cú đánh.
+                </li>
+                <li>Cách khác: giữ <b>Space</b> để tích lực, thả để đánh.</li>
+                <li><b>Chạm vòng XOÁY</b> để đánh cao, thấp, trái, phải trên bi cái (chạm hai lần về giữa).</li>
+                <li><b>◀ ▶ hoặc phím mũi tên</b> để ngắm chậm. <b>T</b> nhìn từ trên.</li>
+                <li>Bi tròn 1–7, bi sọc 9–15, bi 8 đánh cuối cùng. Phạm lỗi thì đối thủ được đặt bi cái tự do.</li>
+              </ul>
+            </div>
           </div>
-          <button class="btn ghost" type="button" id="poolReset">Xếp lại bàn</button>
         </div>
-        <p class="pool-msg" id="poolMsg" role="status"></p>
       </div>
     </div>
-
     <!-- ======= TV control panel (mở khi tới gần TV) ======= -->
     <div class="overlay" id="tvOverlay">
       <div class="modal tv-modal">
@@ -9165,21 +9596,49 @@
           pk.position.set(p[0], 1.0, p[1]);
           pool.add(pk);
         });
-        [
-          [-1.1, 0, 0xf8f5ee],
-          [0.5, -0.3, 0xe0393e],
-          [0.75, 0.15, 0xf2b705],
-          [0.95, -0.45, 0x2470c7],
-          [0.62, 0.5, 0xb56a3a],
-        ].forEach((b) => {
-          const ball = new THREE.Mesh(
+        // 16 bi của bàn Bida 8 Bi trong phòng — gương theo trạng thái ván trong
+        // sảnh (cập nhật sau mỗi cú đánh qua window.__poolWorld.setState) để
+        // người đứng xem trong phòng thấy bàn thay đổi theo ván đấu.
+        const WB_COLS = [
+          0xf8f5ee, 0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e, 0x111111,
+          0xf2c200, 0x1d4fd7, 0xd62d20, 0x5b2a86, 0xf26b0f, 0x0b8043, 0x7b1e1e,
+        ];
+        const wbMeshes = [];
+        for (let wbi = 0; wbi < 16; wbi++) {
+          const wball = new THREE.Mesh(
             new THREE.SphereGeometry(0.09, 14, 12),
-            new THREE.MeshLambertMaterial({ color: b[2] }),
+            new THREE.MeshLambertMaterial({ color: WB_COLS[wbi] }),
           );
-          ball.position.set(b[0], 1.06, b[1]);
-          pool.add(ball);
-        });
-        stationSign("🎱 BI-A", "#8B4A2B", POOL_POS.x, 2.5, POOL_POS.z - 1.2);
+          wball.position.set(-0.83, 1.06, 0);
+          wball.visible = false;
+          pool.add(wball);
+          wbMeshes.push(wball);
+        }
+        window.__poolWorld = {
+          setState: function (snap) {
+            if (!snap || !snap.balls) return;
+            snap.balls.forEach((sb) => {
+              const m = wbMeshes[sb.id];
+              if (!m) return;
+              if (sb.out) {
+                m.visible = false;
+                return;
+              }
+              m.visible = true;
+              m.position.set(sb.x * 0.1307, 1.06, sb.z * 0.1433);
+            });
+          },
+        };
+        (function wbRack() {
+          const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 6, 13, 14, 7, 15];
+          const st = [{ id: 0, x: -6.35, z: 0, out: false }];
+          let idx = 0;
+          for (let r = 0; r < 5; r++)
+            for (let c = 0; c <= r; c++)
+              st.push({ id: order[idx++], x: 6.35 + r * 0.501, z: (c - r / 2) * 0.576, out: false });
+          window.__poolWorld.setState({ balls: st });
+        })();
+        stationSign("🎱 BIDA 8 BI", "#8B4A2B", POOL_POS.x, 2.5, POOL_POS.z - 1.2);
         // Máy nhảy Audition + thảm nhảy
         const aud = new THREE.Group();
         aud.position.set(AUD_POS.x, 0, AUD_POS.z);
@@ -16894,397 +17353,1788 @@
       ludoBuildSetup();
       ludoSetDice(6);
     </script>
-    <script>
+        <script>
       "use strict";
-      /* ================= BI-A LỖ ================= */
-      const PW = 920,
-        PH = 460,
-        CUSH = 36,
-        BALL_R = 11,
-        POCKET_R = 19;
-      const poolCanvas = $("#poolCanvas");
-      const pctx = poolCanvas.getContext("2d");
-      const POCKETS = [
-        [CUSH, CUSH],
-        [PW / 2, CUSH - 8],
-        [PW - CUSH, CUSH],
-        [CUSH, PH - CUSH],
-        [PW / 2, PH - CUSH + 8],
-        [PW - CUSH, PH - CUSH],
-      ];
-      const BALL_COLORS = [
-        "#f7c948",
-        "#2456c8",
-        "#e0393e",
-        "#B56A3A",
-        "#f07f13",
-        "#1d9e6c",
-        "#A9704B",
-        "#232323",
-        "#e77fb0",
-        "#3fa7c9",
-      ];
-      let pool = null;
-      let poolMode = 2;
-      let poolDrag = null;
-
-      function poolReset() {
-        const balls = [
-          { x: PW * 0.27, y: PH / 2, vx: 0, vy: 0, cue: true, color: "#f8f5ee", num: 0, in: false },
-        ];
-        let n = 0;
-        for (let row = 0; row < 4; row++) {
-          for (let j = 0; j <= row; j++) {
-            balls.push({
-              x: PW * 0.66 + row * (BALL_R * 1.78),
-              y: PH / 2 + (j - row / 2) * (BALL_R * 2 + 1.5),
-              vx: 0,
-              vy: 0,
-              cue: false,
-              color: BALL_COLORS[n % BALL_COLORS.length],
-              num: n + 1,
-              in: false,
-            });
-            n++;
-          }
-        }
-        pool = {
-          balls: balls,
-          turn: 0,
-          score: [0, 0],
-          shots: 0,
-          shotPocketed: 0,
-          shotCueIn: false,
-          over: false,
-          started: false,
-        };
-        poolMsg(
-          poolMode === 2
-            ? "Người 1 đánh trước — kéo ra sau bi trắng để ngắm và thả tay để đánh"
-            : "Kéo ra sau bi trắng để ngắm, thả tay để đánh",
-        );
-        poolHud();
-        publishGameStatus(
-          "pool",
-          poolMode === 2 ? "Đang chơi — lượt Người 1" : "Đang chơi (1 người)",
-        );
-      }
+      /* ================= BIDA 8 BI 3D =================
+         Game bi-a DUY NHẤT của làng (thay cả bản 2D cũ lẫn bản 3D đợt B):
+         luật 8 bi đầy đủ, vật lý bước cố định 1/300s, xoáy dọc/ngang, đánh
+         kiểu kéo–đẩy như ngoài đời. Chế độ: đấu với Máy (3 mức), 2 người
+         cùng máy, hoặc đấu người–người / người–Máy qua sảnh (đồng bộ theo
+         cú đánh + ảnh chụp trạng thái của chủ bàn sau mỗi cú). */
+      var poolMode = 2; // biến tương thích cũ: bi-a trong sảnh luôn là 2 ghế
+      var poolWasMoving = false;
       function poolMsg(t) {
-        $("#poolMsg").textContent = t;
+        if (window.__bida) window.__bida.setStatus(t, "");
       }
       function poolHud() {
-        $("#poolScore1").textContent = "Người 1: " + pool.score[0] + " bi";
-        $("#poolScore2").textContent =
-          poolMode === 2 ? "Người 2: " + pool.score[1] + " bi" : "Tổng số cú đánh: " + pool.shots;
-        $("#poolScore1").classList.toggle("turn", poolMode === 2 && pool.turn === 0 && !pool.over);
-        $("#poolScore2").classList.toggle("turn", poolMode === 2 && pool.turn === 1 && !pool.over);
+        if (window.__bida) window.__bida.renderPlayers();
       }
-      function poolBallsMoving() {
-        return pool.balls.some((b) => !b.in && (Math.abs(b.vx) > 0.02 || Math.abs(b.vy) > 0.02));
+      function poolReset() {
+        if (window.__bida) window.__bida.reset();
       }
-      function poolStep() {
-        const balls = pool.balls;
-        balls.forEach((b) => {
-          if (b.in) return;
-          let speed = Math.hypot(b.vx, b.vy);
-          const steps = Math.max(1, Math.min(5, Math.ceil(speed / (BALL_R * 0.9))));
-          for (let s = 0; s < steps; s++) {
-            b.x += b.vx / steps;
-            b.y += b.vy / steps;
-            for (const [px, py] of POCKETS) {
-              if (Math.hypot(b.x - px, b.y - py) < POCKET_R) {
-                poolPocketBall(b);
+      function poolOnShotEnd() {}
+      (function Bida8() {
+        //#PHYS-START
+        var R = 0.286,
+          D = R * 2,
+          HL = 12.7,
+          HW = 6.35,
+          LX = HL - R,
+          LZ = HW - R;
+        var VMAX = 50,
+          FRIC = 3.6,
+          VISC = 0.2,
+          E_BALL = 0.95,
+          E_WALL = 0.78;
+        var POCKETS = [
+          { x: -HL, z: -HW, r: 0.9 },
+          { x: HL, z: -HW, r: 0.9 },
+          { x: -HL, z: HW, r: 0.9 },
+          { x: HL, z: HW, r: 0.9 },
+          { x: 0, z: -HW - 0.1, r: 0.82 },
+          { x: 0, z: HW + 0.1, r: 0.82 },
+        ];
+        function newBall(id) {
+          return {
+            id: id, x: 0, z: 0, vx: 0, vz: 0, out: false, top: 0, side: 0,
+            mesh: null, px: 0, pz: 0, dropT: 0, pk: null,
+          };
+        }
+        function groupOf(id) {
+          return id === 0 ? null : id === 8 ? "eight" : id < 8 ? "solid" : "stripe";
+        }
+        // Advances every ball by dt. Returns true while anything is still moving.
+        function stepPhysics(balls, dt, ev) {
+          var n = balls.length, i, j, k, b, a, c, sp, ns, f, p, dx, dz;
+          for (i = 0; i < n; i++) {
+            b = balls[i];
+            if (b.out) continue;
+            sp = Math.hypot(b.vx, b.vz);
+            if (sp > 0) {
+              ns = sp - (FRIC + VISC * sp) * dt;
+              if (ns <= 0.12) {
+                b.vx = 0;
+                b.vz = 0;
+              } else {
+                f = ns / sp;
+                b.vx *= f;
+                b.vz *= f;
+              }
+            }
+            b.x += b.vx * dt;
+            b.z += b.vz * dt;
+            b.top *= Math.max(0, 1 - 1.5 * dt);
+            for (k = 0; k < POCKETS.length; k++) {
+              p = POCKETS[k];
+              dx = b.x - p.x;
+              dz = b.z - p.z;
+              if (dx * dx + dz * dz < p.r * p.r) {
+                b.out = true;
+                b.vx = 0;
+                b.vz = 0;
+                b.pk = p;
+                b.dropT = 0;
+                ev.pocket(b, p);
                 break;
               }
             }
-            if (b.in) break;
-            if (b.x < CUSH + BALL_R) {
-              b.x = CUSH + BALL_R;
-              b.vx = Math.abs(b.vx) * 0.92;
+            if (b.out) continue;
+            var vn;
+            if (b.x > LX) {
+              b.x = LX;
+              if (b.vx > 0) {
+                vn = b.vx;
+                b.vx = -vn * E_WALL;
+                b.vz += b.side * vn * 0.2;
+                b.side *= 0.5;
+                ev.cushion(b, vn);
+              }
+            } else if (b.x < -LX) {
+              b.x = -LX;
+              if (b.vx < 0) {
+                vn = -b.vx;
+                b.vx = vn * E_WALL;
+                b.vz -= b.side * vn * 0.2;
+                b.side *= 0.5;
+                ev.cushion(b, vn);
+              }
             }
-            if (b.x > PW - CUSH - BALL_R) {
-              b.x = PW - CUSH - BALL_R;
-              b.vx = -Math.abs(b.vx) * 0.92;
-            }
-            if (b.y < CUSH + BALL_R) {
-              b.y = CUSH + BALL_R;
-              b.vy = Math.abs(b.vy) * 0.92;
-            }
-            if (b.y > PH - CUSH - BALL_R) {
-              b.y = PH - CUSH - BALL_R;
-              b.vy = -Math.abs(b.vy) * 0.92;
-            }
-          }
-          b.vx *= 0.988;
-          b.vy *= 0.988;
-          if (Math.hypot(b.vx, b.vy) < 0.06) {
-            b.vx = 0;
-            b.vy = 0;
-          }
-        });
-        for (let i = 0; i < balls.length; i++)
-          for (let j = i + 1; j < balls.length; j++) {
-            const a = balls[i],
-              b = balls[j];
-            if (a.in || b.in) continue;
-            const dx = b.x - a.x,
-              dy = b.y - a.y,
-              d = Math.hypot(dx, dy);
-            if (d > 0 && d < BALL_R * 2) {
-              const nx = dx / d,
-                ny = dy / d,
-                overlap = (BALL_R * 2 - d) / 2;
-              a.x -= nx * overlap;
-              a.y -= ny * overlap;
-              b.x += nx * overlap;
-              b.y += ny * overlap;
-              const dvx = b.vx - a.vx,
-                dvy = b.vy - a.vy;
-              const rel = dvx * nx + dvy * ny;
-              if (rel < 0) {
-                a.vx += rel * nx;
-                a.vy += rel * ny;
-                b.vx -= rel * nx;
-                b.vy -= rel * ny;
+            if (b.z > LZ) {
+              b.z = LZ;
+              if (b.vz > 0) {
+                vn = b.vz;
+                b.vz = -vn * E_WALL;
+                b.vx -= b.side * vn * 0.2;
+                b.side *= 0.5;
+                ev.cushion(b, vn);
+              }
+            } else if (b.z < -LZ) {
+              b.z = -LZ;
+              if (b.vz < 0) {
+                vn = -b.vz;
+                b.vz = vn * E_WALL;
+                b.vx += b.side * vn * 0.2;
+                b.side *= 0.5;
+                ev.cushion(b, vn);
               }
             }
           }
-      }
-      function poolPocketBall(b) {
-        b.in = true;
-        b.vx = 0;
-        b.vy = 0;
-        if (b.cue) {
-          pool.shotCueIn = true;
-          return;
-        }
-        pool.shotPocketed++;
-        if (poolMode === 2) pool.score[pool.turn]++;
-        else pool.score[0]++;
-      }
-      function poolRespotCue() {
-        const cue = pool.balls[0];
-        cue.in = false;
-        cue.vx = 0;
-        cue.vy = 0;
-        let x = PW * 0.27,
-          y = PH / 2,
-          tries = 0;
-        const clash = () =>
-          pool.balls.some((b) => b !== cue && !b.in && Math.hypot(b.x - x, b.y - y) < BALL_R * 2.2);
-        while (clash() && tries < 24) {
-          y = PH / 2 + (tries % 2 ? 1 : -1) * Math.ceil(tries / 2) * 26;
-          tries++;
-        }
-        cue.x = x;
-        cue.y = y;
-      }
-      function poolOnShotEnd() {
-        const remaining = pool.balls.filter((b) => !b.cue && !b.in).length;
-        if (pool.shotCueIn) {
-          poolRespotCue();
-          if (poolMode === 2) {
-            pool.turn = 1 - pool.turn;
-            poolMsg("Bi trắng vào lỗ — phạm luật! Đổi lượt cho Người " + (pool.turn + 1));
-          } else poolMsg("Bi trắng vào lỗ — đã đặt lại bi trắng, đánh tiếp đi");
-        } else if (poolMode === 2 && pool.shotPocketed === 0 && !pool.over) {
-          pool.turn = 1 - pool.turn;
-          poolMsg("Không vào lỗ nào — đổi lượt cho Người " + (pool.turn + 1));
-        } else if (poolMode === 2 && pool.shotPocketed > 0) {
-          poolMsg(
-            "Người " +
-              (pool.turn + 1) +
-              " đưa được " +
-              pool.shotPocketed +
-              " bi vào lỗ — được đánh tiếp!",
-          );
-        } else if (poolMode === 1) {
-          poolMsg(
-            pool.shotPocketed > 0
-              ? "Vào lỗ " + pool.shotPocketed + " bi — đẹp!"
-              : "Chưa vào lỗ nào, thử góc khác nhé",
-          );
-        }
-        pool.shotPocketed = 0;
-        pool.shotCueIn = false;
-        if (remaining === 0 && !pool.over) {
-          pool.over = true;
-          if (poolMode === 2) {
-            const w =
-              pool.score[0] === pool.score[1] ? null : pool.score[0] > pool.score[1] ? 1 : 2;
-            poolMsg(
-              w
-                ? "🏆 Hết bi! Người " +
-                    w +
-                    " thắng " +
-                    pool.score[0] +
-                    "–" +
-                    pool.score[1] +
-                    '. Bấm "Xếp lại bàn" để chơi ván mới.'
-                : "🤝 Hòa " +
-                    pool.score[0] +
-                    "–" +
-                    pool.score[1] +
-                    '! Bấm "Xếp lại bàn" để chơi lại.',
-            );
-            publishGameStatus(
-              "pool",
-              w
-                ? "Vừa kết thúc — 🏆 Người " + w + " thắng " + pool.score[0] + "–" + pool.score[1]
-                : "Vừa kết thúc — hòa " + pool.score[0] + "–" + pool.score[1],
-            );
-          } else {
-            poolMsg(
-              "🎉 Dọn sạch bàn sau " + pool.shots + ' cú đánh! Bấm "Xếp lại bàn" để chơi lại.',
-            );
-            publishGameStatus("pool", "Vừa dọn sạch bàn sau " + pool.shots + " cú đánh");
+          for (i = 0; i < n; i++) {
+            a = balls[i];
+            if (a.out) continue;
+            for (j = i + 1; j < n; j++) {
+              c = balls[j];
+              if (c.out) continue;
+              dx = c.x - a.x;
+              dz = c.z - a.z;
+              var d2 = dx * dx + dz * dz;
+              if (d2 < D * D && d2 > 1e-9) {
+                var d = Math.sqrt(d2),
+                  nx = dx / d,
+                  nz = dz / d,
+                  ov = (D - d) / 2;
+                a.x -= nx * ov;
+                a.z -= nz * ov;
+                c.x += nx * ov;
+                c.z += nz * ov;
+                var rvn = (a.vx - c.vx) * nx + (a.vz - c.vz) * nz;
+                if (rvn > 0) {
+                  var cue = a.id === 0 ? a : c.id === 0 ? c : null,
+                    pre = null;
+                  if (cue) {
+                    var s0 = Math.hypot(cue.vx, cue.vz);
+                    if (s0 > 0.01) pre = { x: cue.vx / s0, z: cue.vz / s0 };
+                  }
+                  var jm = ((1 + E_BALL) / 2) * rvn;
+                  a.vx -= jm * nx;
+                  a.vz -= jm * nz;
+                  c.vx += jm * nx;
+                  c.vz += jm * nz;
+                  if (cue && pre && Math.abs(cue.top) > 0.01) {
+                    var dv = cue.top * 0.55 * rvn;
+                    cue.vx += pre.x * dv;
+                    cue.vz += pre.z * dv;
+                    cue.top = 0;
+                  }
+                  ev.hit(a, c, rvn);
+                }
+              }
+            }
           }
-        } else if (!pool.over) {
-          publishGameStatus(
-            "pool",
-            poolMode === 2
-              ? "Đang chơi — lượt Người " +
-                  (pool.turn + 1) +
-                  " (" +
-                  pool.score[0] +
-                  "–" +
-                  pool.score[1] +
-                  ")"
-              : "Đang chơi (1 người) — đã vào lỗ " + pool.score[0] + " bi",
-          );
-        }
-        poolHud();
-      }
-      function poolDraw() {
-        pctx.clearRect(0, 0, PW, PH);
-        pctx.fillStyle = "#8B4A2B";
-        pctx.fillRect(0, 0, PW, PH);
-        pctx.fillStyle = "#177a4c";
-        pctx.fillRect(CUSH - 12, CUSH - 12, PW - (CUSH - 12) * 2, PH - (CUSH - 12) * 2);
-        pctx.strokeStyle = "rgba(255,255,255,.16)";
-        pctx.beginPath();
-        pctx.moveTo(PW * 0.27, CUSH);
-        pctx.lineTo(PW * 0.27, PH - CUSH);
-        pctx.stroke();
-        pctx.fillStyle = "#0d0d0d";
-        POCKETS.forEach(([px, py]) => {
-          pctx.beginPath();
-          pctx.arc(px, py, POCKET_R + 3, 0, Math.PI * 2);
-          pctx.fill();
-        });
-        const cue = pool.balls[0];
-        const moving = poolBallsMoving();
-        if (poolDrag && !moving && !cue.in && !pool.over) {
-          const dx = cue.x - poolDrag.x,
-            dy = cue.y - poolDrag.y;
-          const d = Math.hypot(dx, dy);
-          if (d > 4) {
-            const nx = dx / d,
-              ny = dy / d;
-            pctx.strokeStyle = "rgba(255,255,255,.75)";
-            pctx.setLineDash([7, 7]);
-            pctx.beginPath();
-            pctx.moveTo(cue.x + nx * (BALL_R + 3), cue.y + ny * (BALL_R + 3));
-            pctx.lineTo(cue.x + nx * 130, cue.y + ny * 130);
-            pctx.stroke();
-            pctx.setLineDash([]);
-            pctx.strokeStyle = "#caa06a";
-            pctx.lineWidth = 5;
-            pctx.beginPath();
-            pctx.moveTo(poolDrag.x, poolDrag.y);
-            pctx.lineTo(cue.x - nx * (BALL_R + 2), cue.y - ny * (BALL_R + 2));
-            pctx.stroke();
-            pctx.lineWidth = 1;
+          var moving = false;
+          for (i = 0; i < n; i++) {
+            b = balls[i];
+            if (!b.out && (b.vx !== 0 || b.vz !== 0)) {
+              moving = true;
+              break;
+            }
           }
+          return moving;
         }
-        pool.balls.forEach((b) => {
-          if (b.in) return;
-          pctx.beginPath();
-          pctx.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
-          pctx.fillStyle = b.color;
-          pctx.fill();
-          pctx.beginPath();
-          pctx.arc(b.x - 3.5, b.y - 3.5, 3.4, 0, Math.PI * 2);
-          pctx.fillStyle = "rgba(255,255,255,.5)";
-          pctx.fill();
-          if (!b.cue) {
-            pctx.beginPath();
-            pctx.arc(b.x, b.y, 5.6, 0, Math.PI * 2);
-            pctx.fillStyle = "#fdfdf8";
-            pctx.fill();
-            pctx.fillStyle = "#222";
-            pctx.font = "bold 7.5px sans-serif";
-            pctx.textAlign = "center";
-            pctx.textBaseline = "middle";
-            pctx.fillText(String(b.num), b.x, b.y + 0.5);
-          }
-        });
-      }
-      let poolWasMoving = false;
-      function poolLoop() {
-        if ($("#poolOverlay").classList.contains("open") && pool) {
-          poolStep();
-          const moving = poolBallsMoving();
-          if (poolWasMoving && !moving && pool.started) poolOnShotEnd();
-          poolWasMoving = moving;
-          poolDraw();
-        }
-        requestAnimationFrame(poolLoop);
-      }
-      function poolPointerPos(e) {
-        const r = poolCanvas.getBoundingClientRect();
-        return {
-          x: ((e.clientX - r.left) * PW) / r.width,
-          y: ((e.clientY - r.top) * PH) / r.height,
+        //#PHYS-END
+
+        var B$ = function (id) {
+          return document.getElementById(id);
         };
-      }
-      poolCanvas.addEventListener("pointerdown", (e) => {
-        if (!pool || pool.over || poolBallsMoving()) return;
-        poolDrag = poolPointerPos(e);
-        poolCanvas.setPointerCapture(e.pointerId);
-      });
-      poolCanvas.addEventListener("pointermove", (e) => {
-        if (!poolDrag) return;
-        const p = poolPointerPos(e);
-        const cue = pool.balls[0];
-        const power = Math.min(100, Math.hypot(p.x - cue.x, p.y - cue.y) / 2.6);
-        poolDrag.x = p.x;
-        poolDrag.y = p.y;
-        $("#powerFill").style.width = power + "%";
-      });
-      poolCanvas.addEventListener("pointerup", (e) => {
-        if (!poolDrag) return;
-        const cue = pool.balls[0];
-        const p = poolPointerPos(e);
-        const dx = cue.x - p.x,
-          dy = cue.y - p.y;
-        const d = Math.hypot(dx, dy);
-        poolDrag = null;
-        $("#powerFill").style.width = "0%";
-        if (d < 14 || poolBallsMoving() || cue.in) return;
-        const power = Math.min(26, d / 11);
-        cue.vx = (dx / d) * power;
-        cue.vy = (dy / d) * power;
-        pool.shots++;
-        pool.started = true;
-        poolWasMoving = true;
-        poolHud();
-      });
-      poolCanvas.addEventListener("pointercancel", () => {
-        poolDrag = null;
-        $("#powerFill").style.width = "0%";
-      });
-      $("#poolReset").addEventListener("click", poolReset);
-      $$("#poolModeSeg button").forEach((b) =>
-        b.addEventListener("click", () => {
-          $$("#poolModeSeg button").forEach((x) => x.classList.remove("sel"));
-          b.classList.add("sel");
-          poolMode = parseInt(b.dataset.mode, 10);
-          poolReset();
-        }),
-      );
-      poolReset();
-      requestAnimationFrame(poolLoop);
+        var app = B$("bidaApp"),
+          canvas = B$("bidaCanvas");
+        if (!app || !canvas || typeof THREE === "undefined") return;
+        var clamp = function (v, a, b) {
+          return Math.max(a, Math.min(b, v));
+        };
+        var wrapA = function (a) {
+          return ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+        };
+        var COLORS = [null, "#f2c200", "#1d4fd7", "#d62d20", "#5b2a86", "#f26b0f", "#0b8043", "#7b1e1e", "#111111"];
+        function overlayOpen() {
+          var ov = B$("poolOverlay");
+          return !!(ov && ov.classList.contains("open"));
+        }
+        function startShown() {
+          return B$("bidaStart").classList.contains("show");
+        }
+
+        /* ---------- renderer / scene ---------- */
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        var scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0d12);
+        scene.fog = new THREE.Fog(0x0a0d12, 45, 120);
+        var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 220);
+        function resize() {
+          var w = Math.max(1, app.clientWidth),
+            h = Math.max(1, app.clientHeight);
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        }
+        window.addEventListener("resize", resize);
+        if (window.ResizeObserver) new ResizeObserver(resize).observe(app);
+        resize();
+
+        /* lights */
+        scene.add(new THREE.HemisphereLight(0xdde8ff, 0x14181d, 0.62));
+        var spot = new THREE.SpotLight(0xfff0d2, 1.15, 0, 0.8, 0.7);
+        spot.position.set(0, 24, 0);
+        spot.target.position.set(0, 0, 0);
+        spot.castShadow = true;
+        spot.shadow.mapSize.set(1024, 1024);
+        spot.shadow.camera.near = 10;
+        spot.shadow.camera.far = 45;
+        spot.shadow.bias = -0.0004;
+        scene.add(spot);
+        scene.add(spot.target);
+        var fill = new THREE.DirectionalLight(0x9fb8ff, 0.25);
+        fill.position.set(-12, 10, 14);
+        scene.add(fill);
+
+        /* ---------- table ---------- */
+        function feltTexture() {
+          var cv = document.createElement("canvas");
+          cv.width = cv.height = 256;
+          var g = cv.getContext("2d");
+          g.fillStyle = "#0e6a4e";
+          g.fillRect(0, 0, 256, 256);
+          var img = g.getImageData(0, 0, 256, 256),
+            i,
+            n;
+          for (i = 0; i < img.data.length; i += 4) {
+            n = (Math.random() - 0.5) * 20;
+            img.data[i] += n;
+            img.data[i + 1] += n;
+            img.data[i + 2] += n;
+          }
+          g.putImageData(img, 0, 0);
+          var t = new THREE.CanvasTexture(cv);
+          t.wrapS = t.wrapT = THREE.RepeatWrapping;
+          t.repeat.set(26, 13);
+          return t;
+        }
+        var table = new THREE.Group();
+        scene.add(table);
+        var woodMat = new THREE.MeshPhongMaterial({ color: 0x5b3419, shininess: 55, specular: 0x3a2a1a });
+        var darkMat = new THREE.MeshLambertMaterial({ color: 0x050607 });
+        var cushMat = new THREE.MeshLambertMaterial({ color: 0x0a5440 });
+        function box(w, h, d, mat, x, y, z, cast) {
+          var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+          m.position.set(x, y, z);
+          m.castShadow = !!cast;
+          m.receiveShadow = true;
+          table.add(m);
+          return m;
+        }
+        box(2 * HL + 4.2, 0.6, 2 * HW + 4.2, darkMat, 0, -0.31, 0);
+        var felt = new THREE.Mesh(
+          new THREE.PlaneGeometry(2 * HL, 2 * HW),
+          new THREE.MeshLambertMaterial({ map: feltTexture() }),
+        );
+        felt.rotation.x = -Math.PI / 2;
+        felt.receiveShadow = true;
+        table.add(felt);
+        (function () {
+          var segLen = HL - 2.0,
+            cx = HL / 2,
+            sx,
+            sz;
+          for (sx = -1; sx <= 1; sx += 2) {
+            for (sz = -1; sz <= 1; sz += 2) {
+              box(segLen, 0.42, 0.7, cushMat, sx * cx, 0.21, sz * (HW + 0.35), true);
+            }
+            box(0.7, 0.42, 2 * HW - 2.0, cushMat, sx * (HL + 0.35), 0.21, 0, true);
+          }
+          for (sz = -1; sz <= 1; sz += 2) {
+            box(2 * HL + 4.2, 0.5, 1.2, woodMat, 0, 0.25, sz * (HW + 1.3), true);
+          }
+          for (sx = -1; sx <= 1; sx += 2) {
+            box(1.2, 0.5, 2 * HW + 1.4, woodMat, sx * (HL + 1.3), 0.25, 0, true);
+          }
+          var hole = new THREE.MeshBasicMaterial({ color: 0x000000 });
+          POCKETS.forEach(function (p) {
+            var m = new THREE.Mesh(new THREE.CircleGeometry(p.r + 0.12, 30), hole);
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(p.x, 0.02, p.z);
+            table.add(m);
+          });
+          var dia = new THREE.MeshPhongMaterial({ color: 0xe9e2c8, shininess: 30 });
+          var dg = new THREE.CylinderGeometry(0.13, 0.13, 0.03, 16);
+          function diamond(x, z) {
+            var m = new THREE.Mesh(dg, dia);
+            m.position.set(x, 0.51, z);
+            table.add(m);
+          }
+          [-3, -2, -1, 1, 2, 3].forEach(function (i) {
+            diamond((i * HL) / 4, HW + 1.3);
+            diamond((i * HL) / 4, -HW - 1.3);
+          });
+          [-1, 0, 1].forEach(function (i) {
+            diamond(HL + 1.3, (i * HW) / 2);
+            diamond(-HL - 1.3, (i * HW) / 2);
+          });
+          var legMat = new THREE.MeshPhongMaterial({ color: 0x3b2412, shininess: 25 });
+          for (sx = -1; sx <= 1; sx += 2)
+            for (sz = -1; sz <= 1; sz += 2) {
+              box(1.7, 6, 1.7, legMat, sx * (HL + 0.9), -3.3, sz * (HW + 0.9), true);
+            }
+          var floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(260, 260),
+            new THREE.MeshLambertMaterial({ color: 0x151a21 }),
+          );
+          floor.rotation.x = -Math.PI / 2;
+          floor.position.y = -6.3;
+          floor.receiveShadow = true;
+          scene.add(floor);
+        })();
+        var lamp = new THREE.Group();
+        (function () {
+          var shade = new THREE.Mesh(
+            new THREE.BoxGeometry(19, 0.5, 4.6),
+            new THREE.MeshLambertMaterial({ color: 0x14181d }),
+          );
+          shade.position.y = 20.6;
+          lamp.add(shade);
+          var bulb = new THREE.Mesh(
+            new THREE.BoxGeometry(17, 0.2, 3.4),
+            new THREE.MeshBasicMaterial({ color: 0xfff1c9 }),
+          );
+          bulb.position.y = 20.3;
+          lamp.add(bulb);
+          [-7, 7].forEach(function (x) {
+            var w = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.04, 0.04, 12, 6),
+              new THREE.MeshBasicMaterial({ color: 0x222831 }),
+            );
+            w.position.set(x, 26.5, 0);
+            lamp.add(w);
+          });
+          scene.add(lamp);
+        })();
+
+        /* ---------- balls ---------- */
+        function ballTexture(id) {
+          var cv = document.createElement("canvas");
+          cv.width = 1024;
+          cv.height = 512;
+          var g = cv.getContext("2d");
+          var base = id === 0 ? "#f7f5ef" : COLORS[id > 8 ? id - 8 : id];
+          var stripe = id > 8;
+          g.fillStyle = stripe || id === 0 ? "#f7f5ef" : base;
+          g.fillRect(0, 0, 1024, 512);
+          if (stripe) {
+            g.fillStyle = base;
+            g.fillRect(0, 138, 1024, 236);
+          }
+          var xs = [256, 768],
+            i;
+          if (id > 0) {
+            for (i = 0; i < 2; i++) {
+              g.fillStyle = "#f7f5ef";
+              g.beginPath();
+              g.arc(xs[i], 256, 54, 0, Math.PI * 2);
+              g.fill();
+              g.fillStyle = "#111";
+              g.font = "bold 66px Arial, sans-serif";
+              g.textAlign = "center";
+              g.textBaseline = "middle";
+              g.fillText(String(id), xs[i], 262);
+            }
+          } else {
+            g.fillStyle = "#c0392b";
+            for (i = 0; i < 2; i++) {
+              g.beginPath();
+              g.arc(xs[i], 256, 16, 0, Math.PI * 2);
+              g.fill();
+            }
+          }
+          var t = new THREE.CanvasTexture(cv);
+          t.anisotropy = 4;
+          return t;
+        }
+        var balls = [],
+          sphereGeo = new THREE.SphereGeometry(R, 36, 24),
+          bi;
+        for (bi = 0; bi < 16; bi++) {
+          var bb = newBall(bi);
+          bb.mesh = new THREE.Mesh(
+            sphereGeo,
+            new THREE.MeshPhongMaterial({ map: ballTexture(bi), shininess: 95, specular: 0x777777 }),
+          );
+          bb.mesh.castShadow = true;
+          scene.add(bb.mesh);
+          balls.push(bb);
+        }
+
+        /* ---------- cue stick and guides ---------- */
+        var cueRig = new THREE.Group(),
+          cuePivot = new THREE.Group();
+        (function () {
+          function seg(rt, rb, len, x, color, shin) {
+            var m = new THREE.Mesh(
+              new THREE.CylinderGeometry(rt, rb, len, 18),
+              new THREE.MeshPhongMaterial({ color: color, shininess: shin || 40 }),
+            );
+            m.rotation.z = -Math.PI / 2;
+            m.position.x = x;
+            m.castShadow = true;
+            cuePivot.add(m);
+          }
+          seg(0.055, 0.055, 0.12, -0.06, 0x3b82c4, 5);
+          seg(0.06, 0.065, 0.35, -0.295, 0xf2efe6, 60);
+          seg(0.065, 0.115, 8.5, -0.47 - 4.25, 0xe6c28a, 70);
+          seg(0.117, 0.115, 0.12, -9.03, 0xb8892e, 90);
+          seg(0.115, 0.165, 6, -9.09 - 3, 0x2a190d, 90);
+          cueRig.add(cuePivot);
+          cueRig.rotation.z = -0.06;
+          scene.add(cueRig);
+        })();
+        var lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
+        var lineMat2 = new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.85 });
+        function thinLine(mat) {
+          var m = new THREE.Mesh(new THREE.BoxGeometry(1, 0.01, 0.04), mat);
+          m.visible = false;
+          scene.add(m);
+          return m;
+        }
+        var gLine = thinLine(lineMat),
+          gTarget = thinLine(lineMat2),
+          gDefl = thinLine(lineMat);
+        var ghost = new THREE.Mesh(
+          new THREE.RingGeometry(R * 0.88, R, 32),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, side: THREE.DoubleSide }),
+        );
+        ghost.rotation.x = -Math.PI / 2;
+        ghost.visible = false;
+        scene.add(ghost);
+        function setLine(m, x1, z1, x2, z2) {
+          var dx = x2 - x1,
+            dz = z2 - z1,
+            l = Math.hypot(dx, dz);
+          if (l < 0.02) {
+            m.visible = false;
+            return;
+          }
+          m.visible = true;
+          m.scale.x = l;
+          m.position.set((x1 + x2) / 2, 0.03, (z1 + z2) / 2);
+          m.rotation.y = -Math.atan2(dz, dx);
+        }
+
+        /* ---------- audio ---------- */
+        var AC = null,
+          muted = false,
+          lastSnd = {};
+        function audio() {
+          if (!AC) {
+            try {
+              AC = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+              AC = null;
+            }
+          }
+          if (AC && AC.state === "suspended") {
+            try {
+              AC.resume();
+            } catch (e) {}
+          }
+          return AC;
+        }
+        function tone(key, f0, f1, dur, vol, type) {
+          if (muted) return;
+          var a = audio();
+          if (!a) return;
+          var now = a.currentTime;
+          if (lastSnd[key] && now - lastSnd[key] < 0.03) return;
+          lastSnd[key] = now;
+          var o = a.createOscillator(),
+            g = a.createGain();
+          o.type = type || "sine";
+          o.frequency.setValueAtTime(f0, now);
+          o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), now + dur);
+          g.gain.setValueAtTime(Math.max(0.0002, vol), now);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+          o.connect(g);
+          g.connect(a.destination);
+          o.start(now);
+          o.stop(now + dur + 0.02);
+        }
+        var sfx = {
+          hit: function (v) {
+            var s = clamp(v / 35, 0.05, 1) * 0.5;
+            tone("hit", 2200, 700, 0.05, s, "triangle");
+            tone("hit2", 420, 200, 0.07, s * 0.7, "sine");
+          },
+          cushion: function (v) {
+            var s = clamp(v / 30, 0.05, 1) * 0.45;
+            tone("cush", 240, 110, 0.1, s, "sine");
+          },
+          pocket: function () {
+            tone("pk", 320, 80, 0.28, 0.4, "sine");
+            tone("pk2", 110, 45, 0.35, 0.35, "sine");
+          },
+          cue: function (p) {
+            tone("cue", 900, 300, 0.06, 0.25 + p * 0.3, "triangle");
+          },
+        };
+
+        /* ---------- game state ---------- */
+        var MODE = "solo-ai"; // 'solo-ai' | 'solo-pvp' | 'mp'
+        var NAMES = ["Bạn", "Máy"];
+        var G = {
+          diff: 1, turn: 0, groups: [null, null], phase: "menu", ballInHand: false,
+          breakShot: true, aim: 0, power: 0, strike: null, shot: null,
+        };
+        var spin = { x: 0, y: 0 };
+        var AI = { state: "idle", t: 0, angle: 0, power: 0, top: 0 };
+        var cam = { pitch: 0.42, dist: 10.5, cp: 0.42, cd: 10.5, cyaw: 0, tx: 0, ty: R, tz: 0, top: false };
+        var acc = 0,
+          H = 1 / 300,
+          spaceCharge = false;
+        var PULLMAX = 4.5;
+        var selMode = "ai",
+          selDiff = 1;
+        var statusKind = "";
+        var pendingPlace = null;
+
+        function mpInfo() {
+          return window.__bidaMP && window.__bidaMP.active ? window.__bidaMP : null;
+        }
+        function hooks() {
+          return window.__bidaHooks || {};
+        }
+        function seatIsBot(i) {
+          var mp = mpInfo();
+          return !!(mp && mp.seats[i] && mp.seats[i].bot);
+        }
+        function isAITurn() {
+          if (MODE === "solo-ai") return G.turn === 1;
+          if (MODE === "mp") {
+            var mp = mpInfo();
+            return !!(mp && mp.isHost && seatIsBot(G.turn));
+          }
+          return false;
+        }
+        function humanTurn() {
+          if (MODE === "mp") {
+            var mp = mpInfo();
+            if (!mp) return false;
+            if (seatIsBot(G.turn)) return false;
+            return G.turn === mp.mySeat;
+          }
+          if (MODE === "solo-ai") return G.turn === 0;
+          return true;
+        }
+        function canShoot() {
+          return G.phase === "aim" && humanTurn() && !G.strike && !startShown();
+        }
+        function pname(i) {
+          return NAMES[i] || "Người chơi " + (i + 1);
+        }
+        function ownRemaining(player) {
+          var g = G.groups[player];
+          if (!g) return 99;
+          var n = 0;
+          balls.forEach(function (b) {
+            if (!b.out && groupOf(b.id) === g) n++;
+          });
+          return n;
+        }
+
+        function setStatus(text, kind) {
+          statusKind = kind || "";
+          var el = B$("bidaStatus");
+          el.textContent = text || "";
+          el.className = statusKind;
+        }
+        function pubStatus(text) {
+          if (typeof publishGameStatus === "function") {
+            try {
+              publishGameStatus("pool", text);
+            } catch (e) {}
+          }
+        }
+        function chipStyle(id) {
+          var c = COLORS[id > 8 ? id - 8 : id];
+          return id > 8
+            ? "background:linear-gradient(#f4f1e8 0 24%," + c + " 24% 76%,#f4f1e8 76%)"
+            : "background:" + c;
+        }
+        function escHtml(s) {
+          return String(s == null ? "" : s).replace(/[<>&"']/g, "");
+        }
+        function renderPlayers() {
+          var html = "",
+            i;
+          for (i = 0; i < 2; i++) {
+            var g = G.groups[i];
+            var lbl = g === "solid" ? "Bi tròn 1–7" : g === "stripe" ? "Bi sọc 9–15" : "Chưa chọn nhóm";
+            html +=
+              '<div class="bida-pl' +
+              (G.turn === i && G.phase !== "over" && G.phase !== "menu" ? " on" : "") +
+              '"><div class="nm">' +
+              escHtml(pname(i)) +
+              '</div><div class="gp">' +
+              lbl +
+              '</div><div class="bida-chips">';
+            if (g) {
+              var ids = g === "solid" ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15];
+              ids.forEach(function (id) {
+                html += '<span class="bida-chip' + (balls[id].out ? " out" : "") + '" style="' + chipStyle(id) + '"></span>';
+              });
+              html += '<span class="bida-chip' + (balls[8].out ? " out" : "") + '" style="background:#111"></span>';
+            }
+            html += "</div></div>";
+          }
+          B$("bidaPlayers").innerHTML = html;
+          var dq = B$("bidaDiffQuick");
+          var showDiff = MODE === "solo-ai" || (MODE === "mp" && mpInfo() && mpInfo().isHost && (seatIsBot(0) || seatIsBot(1)));
+          dq.style.display = showDiff ? "" : "none";
+        }
+
+        /* ---------- setup ---------- */
+        function resetBall(b) {
+          b.out = false;
+          b.vx = b.vz = 0;
+          b.top = b.side = 0;
+          b.dropT = 0;
+          b.pk = null;
+          b.mesh.visible = true;
+          b.mesh.scale.set(1, 1, 1);
+          var qx = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+          var qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+          b.mesh.quaternion.copy(qy).multiply(qx);
+        }
+        function rack() {
+          var order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 6, 13, 14, 7, 15],
+            idx = 0,
+            r,
+            c;
+          var fx = HL / 2,
+            dx = D * 0.8660254 + 0.004,
+            dz = D + 0.004;
+          for (r = 0; r < 5; r++)
+            for (c = 0; c <= r; c++) {
+              var b = balls[order[idx++]];
+              resetBall(b);
+              b.x = fx + r * dx;
+              b.z = (c - r / 2) * dz;
+              b.px = b.x;
+              b.pz = b.z;
+            }
+          var cue = balls[0];
+          resetBall(cue);
+          cue.x = -HL / 2;
+          cue.z = 0;
+          cue.px = cue.x;
+          cue.pz = cue.z;
+        }
+        function worldMirror() {
+          if (window.__poolWorld && window.__poolWorld.setState) {
+            window.__poolWorld.setState({
+              balls: balls.map(function (b) {
+                return { id: b.id, x: b.x, z: b.z, out: b.out };
+              }),
+            });
+          }
+        }
+        function newGame(mode, diff) {
+          MODE = mode;
+          G.diff = diff;
+          G.turn = 0;
+          G.groups = [null, null];
+          G.ballInHand = false;
+          G.breakShot = true;
+          G.aim = 0;
+          G.power = 0;
+          G.strike = null;
+          G.shot = null;
+          spin.x = 0;
+          spin.y = 0;
+          updateSpinUI();
+          pendingPlace = null;
+          rack();
+          G.phase = "aim";
+          cam.top = false;
+          cam.pitch = 0.42;
+          cam.dist = 10.5;
+          B$("bidaTop").textContent = "Nhìn từ trên";
+          AI.state = "think";
+          AI.t = 0;
+          renderPlayers();
+          worldMirror();
+          setStatus(
+            pname(0) + " phá bi. Kéo ngang để ngắm, kéo xuống để lùi gậy rồi đẩy nhanh lên để đánh.",
+            "good",
+          );
+          B$("bidaStart").classList.remove("show");
+          pubStatus("🎱 Bida 8 Bi đang chơi — " + pname(0) + " phá bi");
+          var mp = mpInfo();
+          if (MODE === "mp" && mp && mp.isHost && hooks().state) {
+            var snap0 = snapshotState();
+            setTimeout(function () {
+              if (MODE === "mp" && hooks().state) hooks().state(snap0);
+            }, 350);
+          }
+        }
+
+        /* ---------- snapshots (đồng bộ sảnh + bàn trong phòng) ---------- */
+        function snapshotState() {
+          return {
+            balls: balls.map(function (b) {
+              return { id: b.id, x: +b.x.toFixed(3), z: +b.z.toFixed(3), out: b.out };
+            }),
+            turn: G.turn,
+            groups: G.groups.slice(),
+            ballInHand: G.ballInHand,
+            breakShot: G.breakShot,
+            phase: G.phase,
+            status: B$("bidaStatus").textContent,
+            statusKind: statusKind,
+          };
+        }
+        function applySnapshot(snap) {
+          if (!snap || !snap.balls) return;
+          snap.balls.forEach(function (sb) {
+            var b = balls[sb.id];
+            if (!b) return;
+            b.x = sb.x;
+            b.z = sb.z;
+            b.out = !!sb.out;
+            b.vx = b.vz = 0;
+            b.top = b.side = 0;
+            b.dropT = 0;
+            b.pk = null;
+            b.px = b.x;
+            b.pz = b.z;
+            b.mesh.visible = !b.out;
+            b.mesh.scale.set(1, 1, 1);
+            b.mesh.position.set(b.x, R, b.z);
+          });
+          G.turn = snap.turn || 0;
+          G.groups = snap.groups ? snap.groups.slice() : [null, null];
+          G.ballInHand = !!snap.ballInHand;
+          G.breakShot = !!snap.breakShot;
+          G.shot = null;
+          G.strike = null;
+          G.power = 0;
+          G.phase = snap.phase === "over" ? "over" : G.ballInHand ? "place" : "aim";
+          if (G.phase === "aim") autoAim();
+          setStatus(snap.status || "", snap.statusKind || "");
+          renderPlayers();
+          worldMirror();
+        }
+
+        /* ---------- shots and rules ---------- */
+        var EV = {
+          pocket: function (b) {
+            if (G.shot) {
+              G.shot.pocketed.push(b.id);
+              if (b.id === 0) G.shot.cuePocketed = true;
+            }
+            sfx.pocket();
+          },
+          cushion: function (b, vn) {
+            if (G.shot && G.shot.firstHit !== null) G.shot.cushionAfter = true;
+            sfx.cushion(vn);
+          },
+          hit: function (a, c, v) {
+            var s = G.shot;
+            if (s && s.firstHit === null) {
+              if (a.id === 0) s.firstHit = c.id;
+              else if (c.id === 0) s.firstHit = a.id;
+            }
+            sfx.hit(v);
+          },
+        };
+        function startStrike(p) {
+          if (G.strike) return;
+          G.power = p;
+          G.strike = { t: 0, power: p };
+          sfx.cue(p);
+        }
+        function fireShot(angle, power, remote) {
+          var cue = balls[0];
+          var v = 4 + (VMAX - 4) * Math.pow(power, 1.1);
+          cue.vx = Math.cos(angle) * v;
+          cue.vz = Math.sin(angle) * v;
+          cue.top = spin.y;
+          cue.side = spin.x;
+          G.shot = {
+            firstHit: null, pocketed: [], cuePocketed: false, cushionAfter: false,
+            own0: ownRemaining(G.turn), t: 0,
+          };
+          G.phase = "rolling";
+          G.power = 0;
+          acc = 0;
+          if (!remote && MODE === "mp" && hooks().shot) {
+            hooks().shot({
+              angle: +angle.toFixed(5),
+              power: +power.toFixed(4),
+              sx: +spin.x.toFixed(3),
+              sy: +spin.y.toFixed(3),
+              place: pendingPlace ? { x: +pendingPlace.x.toFixed(3), z: +pendingPlace.z.toFixed(3) } : null,
+            });
+          }
+          pendingPlace = null;
+          spin.x = 0;
+          spin.y = 0;
+          updateSpinUI();
+          setStatus("");
+        }
+        function placeFree(x, z, skipId) {
+          if (Math.abs(x) > LX || Math.abs(z) > LZ) return false;
+          for (var i = 0; i < balls.length; i++) {
+            var b = balls[i];
+            if (b.out || b.id === skipId) continue;
+            if (Math.hypot(b.x - x, b.z - z) < D + 0.01) return false;
+          }
+          return true;
+        }
+        function findFreeSpot(x, z) {
+          if (placeFree(x, z, 0)) return { x: x, z: z };
+          for (var r = 0.4; r < 10; r += 0.4) {
+            for (var a = 0; a < Math.PI * 2; a += 0.4) {
+              var px = x + Math.cos(a) * r,
+                pz = z + Math.sin(a) * r;
+              if (placeFree(px, pz, 0)) return { x: px, z: pz };
+            }
+          }
+          return { x: x, z: z };
+        }
+        function respot8() {
+          var b = balls[8];
+          b.out = false;
+          b.vx = b.vz = 0;
+          b.dropT = 0;
+          b.mesh.visible = true;
+          b.mesh.scale.set(1, 1, 1);
+          var x = HL / 2;
+          while (!placeFree(x, 0, 8) && x < LX) x += 0.1;
+          b.x = x;
+          b.z = 0;
+          b.px = x;
+          b.pz = 0;
+        }
+        function targetBalls(player) {
+          var g = G.groups[player],
+            out = [];
+          balls.forEach(function (b) {
+            if (b.id === 0 || b.out) return;
+            var gg = groupOf(b.id);
+            if (!g) {
+              if (gg !== "eight") out.push(b);
+            } else if (ownRemaining(player) === 0) {
+              if (gg === "eight") out.push(b);
+            } else if (gg === g) out.push(b);
+          });
+          return out;
+        }
+        function autoAim() {
+          var cue = balls[0],
+            tg = targetBalls(G.turn),
+            best = null,
+            bd = 1e9;
+          if (!tg.length)
+            tg = balls.filter(function (b) {
+              return b.id !== 0 && !b.out;
+            });
+          tg.forEach(function (b) {
+            var d = Math.hypot(b.x - cue.x, b.z - cue.z);
+            if (d < bd) {
+              bd = d;
+              best = b;
+            }
+          });
+          if (best) {
+            G.aim += wrapA(Math.atan2(best.z - cue.z, best.x - cue.x) - G.aim);
+          }
+        }
+        function gameOver(winner, reason) {
+          G.phase = "over";
+          renderPlayers();
+          worldMirror();
+          setStatus(reason, winner === 0 || MODE !== "solo-ai" ? "good" : "foul");
+          pubStatus("🎱 Bida 8 Bi — " + reason);
+          var mp = mpInfo();
+          if (MODE === "mp" && mp && mp.isHost && hooks().state) hooks().state(snapshotState());
+          if (MODE !== "mp") {
+            setTimeout(function () {
+              if (G.phase !== "over") return;
+              var title =
+                MODE === "solo-ai" ? (winner === 0 ? "Bạn thắng!" : "Máy thắng") : pname(winner) + " thắng!";
+              showStartPanel(title, reason, "Chơi lại");
+            }, 1400);
+          }
+        }
+        function endShot() {
+          var s = G.shot,
+            me = G.turn,
+            opp = 1 - me,
+            grp = G.groups[me];
+          var msgs = [],
+            foul = false;
+          var pk = s.pocketed.filter(function (id) {
+            return id !== 0;
+          });
+          var eight = pk.indexOf(8) >= 0;
+          if (G.breakShot && eight) {
+            respot8();
+            pk = pk.filter(function (id) {
+              return id !== 8;
+            });
+            eight = false;
+            msgs.push("bi 8 được đặt lại");
+          }
+          if (s.cuePocketed) {
+            foul = true;
+            msgs.push("bi cái rơi lỗ");
+          }
+          if (s.firstHit === null) {
+            foul = true;
+            msgs.push("không chạm bi nào");
+          } else if (grp) {
+            var need = s.own0 === 0 ? "eight" : grp;
+            if (groupOf(s.firstHit) !== need) {
+              foul = true;
+              msgs.push("chạm sai bi trước");
+            }
+          } else if (s.firstHit === 8) {
+            foul = true;
+            msgs.push("chạm bi 8 khi chưa chọn nhóm");
+          }
+          if (!foul && pk.length === 0 && !s.cushionAfter) {
+            foul = true;
+            msgs.push("không có bi nào chạm băng");
+          }
+          G.breakShot = false;
+          if (eight) {
+            if (!foul && grp && s.own0 === 0) {
+              gameOver(me, pname(me) + " đưa bi 8 xuống lỗ và thắng ván này.");
+              return;
+            }
+            var why = s.cuePocketed
+              ? "bi cái rơi cùng bi 8"
+              : s.own0 !== 0 || !grp
+                ? "đưa bi 8 xuống lỗ quá sớm"
+                : "phạm lỗi khi đánh bi 8";
+            gameOver(opp, pname(me) + " " + why + ".");
+            return;
+          }
+          var assigned = false;
+          if (!foul && !grp) {
+            var first = pk.filter(function (id) {
+              return id !== 8;
+            })[0];
+            if (first) {
+              var gg = groupOf(first);
+              G.groups[me] = gg;
+              G.groups[opp] = gg === "solid" ? "stripe" : "solid";
+              grp = gg;
+              assigned = true;
+            }
+          }
+          var keep =
+            !foul &&
+            grp &&
+            pk.some(function (id) {
+              return groupOf(id) === grp;
+            });
+          var text, kind;
+          if (foul) {
+            G.turn = opp;
+            G.ballInHand = true;
+            text = "Lỗi: " + msgs.join(", ") + ". " + pname(opp) + " được đặt bi cái tự do.";
+            kind = "foul";
+          } else if (keep) {
+            text =
+              (assigned ? pname(me) + " nhận " + (grp === "solid" ? "bi tròn" : "bi sọc") + ". " : "") +
+              "Vào lỗ! " +
+              pname(me) +
+              " đánh tiếp.";
+            kind = "good";
+          } else {
+            G.turn = opp;
+            text = "Đến lượt " + pname(opp) + ".";
+            kind = "";
+          }
+          if (s.cuePocketed) {
+            var cue = balls[0];
+            cue.out = false;
+            cue.vx = cue.vz = 0;
+            cue.mesh.visible = true;
+            cue.mesh.scale.set(1, 1, 1);
+            var sp = findFreeSpot(-HL / 2, 0);
+            cue.x = sp.x;
+            cue.z = sp.z;
+            cue.px = sp.x;
+            cue.pz = sp.z;
+          }
+          if (foul && !s.cuePocketed) {
+            var c0 = balls[0];
+            c0.vx = c0.vz = 0;
+          }
+          if (!G.ballInHand && ownRemaining(G.turn) === 0 && G.groups[G.turn]) text += " Hãy đánh bi 8!";
+          G.phase = G.ballInHand ? "place" : "aim";
+          AI.state = "think";
+          AI.t = 0;
+          if (G.phase === "aim") autoAim();
+          if (G.phase === "place" && humanTurn()) text += " Chạm vào bàn để đặt bi cái.";
+          setStatus(text, kind);
+          renderPlayers();
+          worldMirror();
+          pubStatus("🎱 " + text);
+          var mp = mpInfo();
+          if (MODE === "mp" && mp && mp.isHost && hooks().state) hooks().state(snapshotState());
+        }
+
+        /* ---------- AI ---------- */
+        function segDist(px, pz, ax, az, bx, bz) {
+          var abx = bx - ax,
+            abz = bz - az,
+            l2 = abx * abx + abz * abz;
+          var t = l2 ? ((px - ax) * abx + (pz - az) * abz) / l2 : 0;
+          t = clamp(t, 0, 1);
+          return Math.hypot(px - (ax + abx * t), pz - (az + abz * t));
+        }
+        function pathClear(ax, az, bx, bz, ignoreB, clearance) {
+          for (var i = 0; i < balls.length; i++) {
+            var b = balls[i];
+            if (b.out || b.id === 0 || b.id === ignoreB) continue;
+            if (segDist(b.x, b.z, ax, az, bx, bz) < clearance) return false;
+          }
+          return true;
+        }
+        function findShot(cx, cz, player) {
+          var tg = targetBalls(player),
+            best = null;
+          tg.forEach(function (t) {
+            POCKETS.forEach(function (p) {
+              var px = p.x - Math.sign(p.x) * 0.15,
+                pz = p.z - Math.sign(p.z) * (p.x === 0 ? 0.25 : 0.15);
+              var dx = px - t.x,
+                dz = pz - t.z,
+                dl = Math.hypot(dx, dz);
+              if (dl < 1e-6) return;
+              var ux = dx / dl,
+                uz = dz / dl,
+                gx = t.x - ux * D,
+                gz = t.z - uz * D;
+              if (Math.abs(gx) > LX || Math.abs(gz) > LZ) return;
+              var cxg = gx - cx,
+                czg = gz - cz,
+                cl = Math.hypot(cxg, czg);
+              if (cl < 0.05) return;
+              var cosCut = (cxg * ux + czg * uz) / cl;
+              if (cosCut < 0.25) return;
+              if (!pathClear(cx, cz, gx, gz, t.id, D * 0.98)) return;
+              if (!pathClear(t.x, t.z, px, pz, t.id, D * 0.98)) return;
+              var score = cosCut * 3 - (cl + dl) * 0.05 - (p.x === 0 ? 0.15 : 0);
+              if (!best || score > best.score)
+                best = { score: score, angle: Math.atan2(czg, cxg), dist: cl + dl };
+            });
+          });
+          return best;
+        }
+        function gauss() {
+          return (Math.random() + Math.random() + Math.random() - 1.5) / 0.75;
+        }
+        function powerForDist(d) {
+          var v = Math.sqrt(2 * FRIC * d) * 1.45 + 5;
+          return Math.pow(clamp((v - 4) / (VMAX - 4), 0.05, 1), 1 / 1.1);
+        }
+        function aiChooseShot() {
+          var cue = balls[0],
+            sig = [0.05, 0.022, 0.008][G.diff],
+            psig = [0.18, 0.1, 0.04][G.diff];
+          var angle, power, top = 0;
+          if (G.breakShot) {
+            angle = Math.atan2(0 - cue.z, HL / 2 - cue.x);
+            power = [0.8, 0.9, 0.97][G.diff];
+          } else {
+            var sh = findShot(cue.x, cue.z, G.turn);
+            if (sh) {
+              angle = sh.angle;
+              power = clamp(powerForDist(sh.dist), 0.18, 1);
+              if (G.diff === 2 && sh.dist < 14) top = 0.15;
+            } else {
+              var tg = targetBalls(G.turn),
+                best = null,
+                bd = 1e9;
+              if (!tg.length)
+                tg = balls.filter(function (b) {
+                  return b.id !== 0 && !b.out;
+                });
+              tg.forEach(function (b) {
+                var d = Math.hypot(b.x - cue.x, b.z - cue.z);
+                if (d < bd) {
+                  bd = d;
+                  best = b;
+                }
+              });
+              angle = best ? Math.atan2(best.z - cue.z, best.x - cue.x) : Math.random() * Math.PI * 2;
+              power = 0.42;
+            }
+          }
+          angle += gauss() * sig;
+          power = clamp(power * (1 + gauss() * psig), 0.15, 1);
+          return { angle: angle, power: power, top: top };
+        }
+        function aiPlaceCue() {
+          var cue = balls[0],
+            best = null,
+            i;
+          for (i = 0; i < 60; i++) {
+            var x = (Math.random() * 2 - 1) * LX,
+              z = (Math.random() * 2 - 1) * LZ;
+            if (!placeFree(x, z, 0)) continue;
+            var sh = findShot(x, z, G.turn),
+              sc = sh ? sh.score : -5 + Math.random();
+            if (!best || sc > best.sc) best = { x: x, z: z, sc: sc };
+          }
+          if (!best) best = findFreeSpot(-HL / 2, 0);
+          cue.x = best.x;
+          cue.z = best.z;
+          cue.px = best.x;
+          cue.pz = best.z;
+          pendingPlace = { x: best.x, z: best.z };
+        }
+        function aiUpdate(dt) {
+          if (!isAITurn() || G.strike || (G.phase !== "aim" && G.phase !== "place")) return;
+          AI.t += dt;
+          if (AI.state === "think") {
+            if (AI.t < 0.9) return;
+            if (G.phase === "place") {
+              aiPlaceCue();
+              G.phase = "aim";
+              G.ballInHand = false;
+              if (MODE === "mp" && hooks().place && pendingPlace)
+                hooks().place({ x: +pendingPlace.x.toFixed(3), z: +pendingPlace.z.toFixed(3) });
+            }
+            var sh = aiChooseShot();
+            AI.angle = sh.angle;
+            AI.power = sh.power;
+            AI.top = sh.top;
+            AI.state = "turn";
+            AI.t = 0;
+          } else if (AI.state === "turn") {
+            var diff = wrapA(AI.angle - G.aim),
+              step = (2.4 + Math.abs(diff) * 4) * dt;
+            if (Math.abs(diff) <= step || Math.abs(diff) < 0.002) {
+              G.aim += diff;
+              AI.state = "charge";
+              AI.t = 0;
+            } else G.aim += Math.sign(diff) * step;
+          } else if (AI.state === "charge") {
+            G.power = AI.power * Math.min(1, AI.t / 0.8);
+            if (AI.t >= 0.8) {
+              spin.x = 0;
+              spin.y = AI.top;
+              AI.state = "wait";
+              startStrike(AI.power);
+            }
+          }
+        }
+
+        /* ---------- per-frame visuals ---------- */
+        var axis = new THREE.Vector3(),
+          qtmp = new THREE.Quaternion();
+        function syncBalls(dt) {
+          balls.forEach(function (b) {
+            var m = b.mesh;
+            if (b.out) {
+              if (b.dropT < 0.4 && b.pk) {
+                b.dropT += dt;
+                var k = Math.min(1, b.dropT / 0.4);
+                m.position.set(b.x + (b.pk.x - b.x) * k, R - k * 0.9, b.z + (b.pk.z - b.z) * k);
+                var s = 1 - 0.4 * k;
+                m.scale.set(s, s, s);
+              } else m.visible = false;
+              return;
+            }
+            var dx = b.x - b.px,
+              dz = b.z - b.pz,
+              l = Math.hypot(dx, dz);
+            if (l > 1e-6) {
+              axis.set(dz, 0, -dx).normalize();
+              qtmp.setFromAxisAngle(axis, l / R);
+              m.quaternion.premultiply(qtmp);
+            }
+            b.px = b.x;
+            b.pz = b.z;
+            m.position.set(b.x, R, b.z);
+          });
+        }
+        function updateCue() {
+          var cue = balls[0],
+            show = G.phase === "aim" && !cue.out;
+          cueRig.visible = show;
+          if (!show) return;
+          var pull = G.power * PULLMAX * (G.strike ? Math.max(0, 1 - G.strike.t / 0.1) : 1);
+          var oy = spin.y * R * 0.6,
+            oz = spin.x * R * 0.6;
+          var surf = Math.sqrt(Math.max(0.0001, R * R - oy * oy - oz * oz));
+          cueRig.position.set(cue.x, R, cue.z);
+          cueRig.rotation.y = -G.aim;
+          cuePivot.position.set(-(surf + 0.02 + pull), oy, oz);
+        }
+        function predict(ox, oz, dx, dz) {
+          var best = 1e9,
+            hit = null;
+          balls.forEach(function (b) {
+            if (b.id === 0 || b.out) return;
+            var fx = ox - b.x,
+              fz = oz - b.z,
+              bb = fx * dx + fz * dz,
+              cc = fx * fx + fz * fz - D * D,
+              disc = bb * bb - cc;
+            if (disc < 0) return;
+            var s = -bb - Math.sqrt(disc);
+            if (s > 0 && s < best) {
+              best = s;
+              hit = b;
+            }
+          });
+          var sw = 1e9;
+          if (dx > 1e-9) sw = Math.min(sw, (LX - ox) / dx);
+          else if (dx < -1e-9) sw = Math.min(sw, (-LX - ox) / dx);
+          if (dz > 1e-9) sw = Math.min(sw, (LZ - oz) / dz);
+          else if (dz < -1e-9) sw = Math.min(sw, (-LZ - oz) / dz);
+          if (sw < best) {
+            best = sw;
+            hit = null;
+          }
+          return { s: Math.max(0, best), ball: hit };
+        }
+        function updateGuide() {
+          var cue = balls[0],
+            show = G.phase === "aim" && humanTurn() && !cue.out && !G.strike;
+          if (!show) {
+            gLine.visible = gTarget.visible = gDefl.visible = ghost.visible = false;
+            return;
+          }
+          var dx = Math.cos(G.aim),
+            dz = Math.sin(G.aim);
+          var pr = predict(cue.x, cue.z, dx, dz);
+          var ex = cue.x + dx * pr.s,
+            ez = cue.z + dz * pr.s;
+          setLine(gLine, cue.x + dx * R, cue.z + dz * R, ex, ez);
+          ghost.visible = true;
+          ghost.position.set(ex, 0.03, ez);
+          if (pr.ball) {
+            var nx = pr.ball.x - ex,
+              nz = pr.ball.z - ez,
+              nl = Math.hypot(nx, nz) || 1;
+            nx /= nl;
+            nz /= nl;
+            setLine(gTarget, pr.ball.x, pr.ball.z, pr.ball.x + nx * 3, pr.ball.z + nz * 3);
+            var dot = dx * nx + dz * nz,
+              tx = dx - dot * nx,
+              tz = dz - dot * nz,
+              tl = Math.hypot(tx, tz);
+            if (tl > 0.05)
+              setLine(gDefl, ex, ez, ex + (tx / tl) * Math.min(2.2, tl * 2.6), ez + (tz / tl) * Math.min(2.2, tl * 2.6));
+            else gDefl.visible = false;
+          } else {
+            gTarget.visible = false;
+            gDefl.visible = false;
+          }
+        }
+        function lerpAngle(a, b, k) {
+          return a + wrapA(b - a) * k;
+        }
+        function updateCamera(dt) {
+          var asp = camera.aspect,
+            tanV = Math.tan((camera.fov * Math.PI) / 360),
+            tanH = tanV * asp,
+            portrait = asp < 1;
+          var ew = 2 * (HL + 2.4),
+            eh = 2 * (HW + 2.4);
+          var fit = portrait
+            ? Math.max(eh / (2 * tanH), ew / (2 * tanV))
+            : Math.max(ew / (2 * tanH), eh / (2 * tanV));
+          var cue = balls[0],
+            wp,
+            wd,
+            wx,
+            wy,
+            wz,
+            wyaw = cam.cyaw,
+            yr = 6;
+          if (cam.top || G.phase === "place") {
+            wp = 1.5;
+            wd = fit * 1.02;
+            wx = 0;
+            wy = 0;
+            wz = 0;
+            wyaw = portrait ? Math.PI / 2 : 0;
+          } else if (G.phase === "rolling" || G.phase === "over" || G.phase === "menu") {
+            wp = 0.85;
+            wd = Math.max(fit * 0.72, 16);
+            wx = 0;
+            wy = 0;
+            wz = 0;
+          } else {
+            wp = cam.pitch;
+            wd = cam.dist;
+            wx = cue.x + Math.cos(G.aim) * 1.2;
+            wy = R;
+            wz = cue.z + Math.sin(G.aim) * 1.2;
+            wyaw = G.aim;
+            yr = 18;
+          }
+          var k = 1 - Math.exp(-5 * dt),
+            ky = 1 - Math.exp(-yr * dt);
+          cam.cp += (wp - cam.cp) * k;
+          cam.cd += (wd - cam.cd) * k;
+          cam.tx += (wx - cam.tx) * k;
+          cam.ty += (wy - cam.ty) * k;
+          cam.tz += (wz - cam.tz) * k;
+          cam.cyaw = lerpAngle(cam.cyaw, wyaw, ky);
+          var cp = Math.cos(cam.cp),
+            sp = Math.sin(cam.cp);
+          camera.position.set(
+            cam.tx - Math.cos(cam.cyaw) * cp * cam.cd,
+            cam.ty + sp * cam.cd,
+            cam.tz - Math.sin(cam.cyaw) * cp * cam.cd,
+          );
+          camera.lookAt(cam.tx, cam.ty, cam.tz);
+          lamp.visible = cam.cp < 1.0;
+        }
+        var lastP = -1;
+        function updatePowerUI() {
+          var p = Math.round(G.power * 100);
+          if (p === lastP) return;
+          lastP = p;
+          var f = G.power;
+          B$("bidaPfill").style.height = f * 100 + "%";
+          B$("bidaPfill").style.backgroundSize = "100% " + 100 / Math.max(f, 0.05) + "%";
+          B$("bidaPknob").style.top = f * 100 + "%";
+          B$("bidaPknob").style.transform = "translateY(" + -f * 100 + "%)";
+          B$("bidaPval").textContent = p + "%";
+          B$("bidaPtrack").setAttribute("aria-valuenow", String(p));
+        }
+        function updateSpinUI() {
+          B$("bidaSdot").style.left = 50 + spin.x * 50 + "%";
+          B$("bidaSdot").style.top = 50 - spin.y * 50 + "%";
+        }
+
+        /* ---------- main loop ---------- */
+        var last = performance.now();
+        function frame(now) {
+          var dt = Math.min(0.05, (now - last) / 1000);
+          last = now;
+          if (G.phase === "rolling" && G.shot) {
+            acc += dt;
+            var n = 0,
+              moving = true;
+            while (acc >= H && n < 24) {
+              moving = stepPhysics(balls, H, EV);
+              acc -= H;
+              n++;
+              if (!moving) break;
+            }
+            G.shot.t += dt;
+            if (!moving || G.shot.t > 40) {
+              balls.forEach(function (b) {
+                b.vx = 0;
+                b.vz = 0;
+              });
+              acc = 0;
+              endShot();
+            }
+          }
+          if (G.strike) {
+            G.strike.t += dt;
+            if (G.strike.t >= 0.1) {
+              var p = G.strike.power;
+              G.strike = null;
+              fireShot(G.aim, p, false);
+            }
+          } else if (spaceCharge && canShoot()) {
+            G.power = Math.min(1, G.power + dt * 0.75);
+          }
+          aiUpdate(dt);
+          syncBalls(dt);
+          updateCue();
+          updateGuide();
+          updateCamera(dt);
+          updatePowerUI();
+          if (overlayOpen()) renderer.render(scene, camera);
+          requestAnimationFrame(frame);
+        }
+
+        /* ---------- input ---------- */
+        var ptrs = new Map(),
+          placing = false,
+          pinchD = 0,
+          grip = null,
+          STROKE_PX = 200;
+        var ray = new THREE.Raycaster(),
+          ndc = new THREE.Vector2(),
+          plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -R);
+        function pointerToTable(e) {
+          var r = canvas.getBoundingClientRect();
+          ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+          ray.setFromCamera(ndc, camera);
+          var p = new THREE.Vector3();
+          return ray.ray.intersectPlane(plane, p) ? p : null;
+        }
+        function movePlace(e) {
+          if (G.phase !== "place" || !humanTurn()) return;
+          var p = pointerToTable(e);
+          if (!p) return;
+          var x = clamp(p.x, -LX, LX),
+            z = clamp(p.z, -LZ, LZ);
+          if (placeFree(x, z, 0)) {
+            var c = balls[0];
+            c.x = x;
+            c.z = z;
+            c.px = x;
+            c.pz = z;
+            pendingPlace = { x: x, z: z };
+          }
+        }
+        canvas.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+        canvas.addEventListener("pointerdown", function (e) {
+          audio();
+          try {
+            canvas.setPointerCapture(e.pointerId);
+          } catch (err) {}
+          ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          grip =
+            ptrs.size === 1 && G.phase === "aim" && humanTurn() && !G.strike
+              ? { x0: e.clientX, y0: e.clientY, mode: null, max: 0, last: 0, hist: [] }
+              : null;
+          if (ptrs.size === 2) {
+            var a = Array.from(ptrs.values());
+            pinchD = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+          }
+          if (G.phase === "place" && humanTurn()) {
+            placing = true;
+            movePlace(e);
+          }
+        });
+        canvas.addEventListener("pointermove", function (e) {
+          if (G.phase === "place" && humanTurn()) {
+            movePlace(e);
+          }
+          var pr = ptrs.get(e.pointerId);
+          if (!pr) return;
+          var dx = e.clientX - pr.x,
+            dy = e.clientY - pr.y;
+          pr.x = e.clientX;
+          pr.y = e.clientY;
+          if (ptrs.size >= 2) {
+            var a = Array.from(ptrs.values()),
+              d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+            if (pinchD > 0) cam.dist = clamp((cam.dist * pinchD) / d, 5, 40);
+            pinchD = d;
+            return;
+          }
+          if (G.phase === "aim" && humanTurn() && !G.strike) {
+            if (grip && grip.mode === null) {
+              var mx = e.clientX - grip.x0,
+                my = e.clientY - grip.y0;
+              if (Math.abs(mx) + Math.abs(my) > 8)
+                grip.mode = my > 0 && my > Math.abs(mx) * 1.2 ? "stroke" : "aim";
+            }
+            if (grip && grip.mode === "stroke") {
+              /* Pull back (drag down) to set power, push forward (drag up) to strike. */
+              var now = performance.now(),
+                pf = clamp((e.clientY - grip.y0 - 8) / STROKE_PX, 0, 1);
+              grip.hist.push({ t: now, y: e.clientY });
+              while (grip.hist.length > 1 && now - grip.hist[0].t > 90) grip.hist.shift();
+              if (pf > grip.max) grip.max = pf;
+              G.power = pf;
+              if (grip.max > 0.06 && pf <= 0.012 && grip.last > 0.012) {
+                var h0 = grip.hist[0],
+                  v = (h0.y - e.clientY) / Math.max(1, now - h0.t);
+                if (v > 0.25) {
+                  var sn = clamp((v - 0.25) / 1.35, 0, 1),
+                    power = clamp(grip.max * (0.55 + 0.45 * sn), 0.05, 1);
+                  grip = null;
+                  sfx.cue(power);
+                  fireShot(G.aim, power, false);
+                  return;
+                }
+                grip.max = 0;
+                G.power = 0;
+              }
+              grip.last = pf;
+              return;
+            }
+            var f = (e.shiftKey ? 0.25 : 1) * (cam.top ? 0.5 : 1);
+            G.aim += dx * 0.0045 * f;
+            if (!cam.top) cam.pitch = clamp(cam.pitch + dy * 0.004, 0.1, 1.35);
+          }
+        });
+        function endPtr(e) {
+          ptrs.delete(e.pointerId);
+          pinchD = 0;
+          if (grip) {
+            if (grip.mode === "stroke" && G.phase === "aim" && !G.strike && !spaceCharge) G.power = 0;
+            grip = null;
+          }
+          if (placing && ptrs.size === 0) {
+            placing = false;
+            if (G.phase === "place" && humanTurn()) {
+              G.phase = "aim";
+              G.ballInHand = false;
+              autoAim();
+              setStatus(pname(G.turn) + ": ngắm và đánh.", "");
+              renderPlayers();
+              if (MODE === "mp" && hooks().place && pendingPlace)
+                hooks().place({ x: +pendingPlace.x.toFixed(3), z: +pendingPlace.z.toFixed(3) });
+            }
+          }
+        }
+        canvas.addEventListener("pointerup", endPtr);
+        canvas.addEventListener("pointercancel", endPtr);
+        canvas.addEventListener(
+          "wheel",
+          function (e) {
+            e.preventDefault();
+            cam.dist = clamp(cam.dist * Math.exp(e.deltaY * 0.001), 5, 40);
+          },
+          { passive: false },
+        );
+
+        /* spin dial */
+        var spinEl = B$("bidaSpin");
+        function setSpinFromPointer(e) {
+          var r = spinEl.getBoundingClientRect();
+          var x = ((e.clientX - r.left) / r.width - 0.5) * 2,
+            y = -((e.clientY - r.top) / r.height - 0.5) * 2;
+          var l = Math.hypot(x, y);
+          if (l > 0.85) {
+            x *= 0.85 / l;
+            y *= 0.85 / l;
+          }
+          spin.x = x;
+          spin.y = y;
+          updateSpinUI();
+        }
+        var spinDrag = false,
+          spinTapAt = 0;
+        spinEl.addEventListener("pointerdown", function (e) {
+          if (!humanTurn()) return;
+          try {
+            spinEl.setPointerCapture(e.pointerId);
+          } catch (err) {}
+          spinDrag = true;
+          setSpinFromPointer(e);
+        });
+        spinEl.addEventListener("pointermove", function (e) {
+          if (spinDrag) setSpinFromPointer(e);
+        });
+        spinEl.addEventListener("pointerup", function () {
+          spinDrag = false;
+          var now = Date.now();
+          if (now - spinTapAt < 320 && Math.hypot(spin.x, spin.y) < 0.2) {
+            spin.x = 0;
+            spin.y = 0;
+            updateSpinUI();
+          }
+          spinTapAt = now;
+        });
+        spinEl.addEventListener("pointercancel", function () {
+          spinDrag = false;
+        });
+        spinEl.addEventListener("dblclick", function () {
+          spin.x = 0;
+          spin.y = 0;
+          updateSpinUI();
+        });
+
+        /* fine aim */
+        var fineDir = 0;
+        function bindFine(id, dir) {
+          var el = B$(id);
+          el.addEventListener("pointerdown", function (e) {
+            e.preventDefault();
+            fineDir = dir;
+          });
+          ["pointerup", "pointerleave", "pointercancel"].forEach(function (t) {
+            el.addEventListener(t, function () {
+              fineDir = 0;
+            });
+          });
+        }
+        bindFine("bidaFl", -1);
+        bindFine("bidaFr", 1);
+        setInterval(function () {
+          if (fineDir && G.phase === "aim" && humanTurn() && !G.strike) G.aim += fineDir * 0.0025;
+        }, 16);
+
+        /* keyboard */
+        var keysHeld = {};
+        window.addEventListener("keydown", function (e) {
+          if (!overlayOpen() || startShown()) return;
+          var tag = e.target && e.target.tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+          if (e.code === "Space") {
+            e.preventDefault();
+            if (!e.repeat && canShoot()) {
+              spaceCharge = true;
+              audio();
+            }
+          } else if (e.code === "ArrowLeft") {
+            keysHeld.l = true;
+            e.preventDefault();
+          } else if (e.code === "ArrowRight") {
+            keysHeld.r = true;
+            e.preventDefault();
+          } else if (e.code === "KeyT" && !e.repeat) {
+            toggleTop();
+          } else if (e.code === "KeyM" && !e.repeat) {
+            toggleSound();
+          }
+        });
+        window.addEventListener("keyup", function (e) {
+          if (e.code === "Space") {
+            if (spaceCharge) {
+              spaceCharge = false;
+              if (G.power > 0.04 && canShoot()) startStrike(G.power);
+              else G.power = 0;
+            }
+          } else if (e.code === "ArrowLeft") keysHeld.l = false;
+          else if (e.code === "ArrowRight") keysHeld.r = false;
+        });
+        setInterval(function () {
+          if (G.phase === "aim" && humanTurn() && !G.strike && (keysHeld.l || keysHeld.r)) {
+            G.aim += ((keysHeld.r ? 1 : 0) - (keysHeld.l ? 1 : 0)) * 0.003;
+          }
+        }, 16);
+
+        /* toolbar and start panel */
+        function toggleTop() {
+          cam.top = !cam.top;
+          B$("bidaTop").textContent = cam.top ? "Nhìn thường" : "Nhìn từ trên";
+        }
+        function toggleSound() {
+          muted = !muted;
+          B$("bidaSnd").textContent = "Âm thanh: " + (muted ? "tắt" : "bật");
+          if (!muted) audio();
+        }
+        function showStartPanel(title, sub, btn) {
+          B$("bidaOvTitle").textContent = title;
+          B$("bidaOvSub").textContent = sub;
+          B$("bidaStartBtn").textContent = btn;
+          B$("bidaStart").classList.add("show");
+        }
+        B$("bidaTop").addEventListener("click", toggleTop);
+        B$("bidaSnd").addEventListener("click", toggleSound);
+        B$("bidaNew").addEventListener("click", function () {
+          if (MODE === "mp") {
+            var mp = mpInfo();
+            if (mp && mp.isHost && hooks().newMatch) hooks().newMatch();
+            else if (typeof toast === "function") toast("Ván mới do chủ sảnh mở — chờ chút nhé");
+            return;
+          }
+          showStartPanel("Bida 8 Bi 3D", "Chọn chế độ rồi bắt đầu ván mới.", "Bắt đầu");
+        });
+        B$("bidaExit").addEventListener("click", function () {
+          if (typeof closeOverlay === "function") closeOverlay("poolOverlay");
+        });
+        function setDiff(d) {
+          selDiff = d;
+          G.diff = d;
+          syncSegs();
+          B$("bidaDiffQuick").value = String(d);
+        }
+        function syncSegs() {
+          Array.prototype.forEach.call(B$("bidaModeSel").children, function (b) {
+            b.classList.toggle("sel", b.getAttribute("data-mode") === selMode);
+          });
+          Array.prototype.forEach.call(B$("bidaDiffSel").children, function (b) {
+            b.classList.toggle("sel", +b.getAttribute("data-diff") === selDiff);
+          });
+          B$("bidaDiffSel").style.display = selMode === "ai" ? "flex" : "none";
+        }
+        B$("bidaModeSel").addEventListener("click", function (e) {
+          var m = e.target.getAttribute && e.target.getAttribute("data-mode");
+          if (m) {
+            selMode = m;
+            syncSegs();
+          }
+        });
+        B$("bidaDiffSel").addEventListener("click", function (e) {
+          var d = e.target.getAttribute && e.target.getAttribute("data-diff");
+          if (d !== null && d !== undefined) setDiff(+d);
+        });
+        B$("bidaDiffQuick").addEventListener("change", function () {
+          setDiff(+B$("bidaDiffQuick").value);
+        });
+        B$("bidaStartBtn").addEventListener("click", function () {
+          audio();
+          if (selMode === "ai") {
+            NAMES = ["Bạn", "Máy"];
+            newGame("solo-ai", selDiff);
+          } else {
+            NAMES = ["Người chơi 1", "Người chơi 2"];
+            newGame("solo-pvp", selDiff);
+          }
+        });
+
+        /* ---------- public API cho hệ sảnh ---------- */
+        window.__bida = {
+          setStatus: setStatus,
+          renderPlayers: renderPlayers,
+          reset: function () {
+            if (MODE === "mp") {
+              var mp = mpInfo();
+              if (mp && mp.isHost && hooks().newMatch) hooks().newMatch();
+              return;
+            }
+            showStartPanel("Bida 8 Bi 3D", "Chọn chế độ rồi bắt đầu ván mới.", "Bắt đầu");
+          },
+          startMPS: function (opts) {
+            NAMES = [opts.names[0] || "Người chơi 1", opts.names[1] || "Người chơi 2"];
+            setDiff(opts.diff != null ? opts.diff : selDiff);
+            newGame("mp", G.diff);
+          },
+          applyRemoteShot: function (d) {
+            if (!d || G.phase === "rolling" || G.phase === "over" || G.phase === "menu") return;
+            if (d.place) {
+              var c = balls[0];
+              c.x = clamp(d.place.x, -LX, LX);
+              c.z = clamp(d.place.z, -LZ, LZ);
+              c.px = c.x;
+              c.pz = c.z;
+              c.out = false;
+              c.mesh.visible = true;
+            }
+            G.ballInHand = false;
+            G.phase = "aim";
+            spin.x = d.sx || 0;
+            spin.y = d.sy || 0;
+            G.aim = d.angle || 0;
+            fireShot(d.angle || 0, d.power || 0.3, true);
+          },
+          applyRemotePlace: function (d) {
+            if (!d || G.phase === "rolling") return;
+            var c = balls[0];
+            c.x = clamp(d.x, -LX, LX);
+            c.z = clamp(d.z, -LZ, LZ);
+            c.px = c.x;
+            c.pz = c.z;
+          },
+          applySnapshot: applySnapshot,
+          snapshot: snapshotState,
+          showStart: function () {
+            if (MODE !== "mp") B$("bidaStart").classList.add("show");
+          },
+        };
+
+        /* boot */
+        rack();
+        renderPlayers();
+        syncSegs();
+        updateSpinUI();
+        requestAnimationFrame(frame);
+      })();
     </script>
     <script>
       "use strict";
@@ -20178,12 +22028,12 @@
           pub: "ludo",
         },
         pool: {
-          name: "Bi-a lỗ",
+          name: "Bida 8 Bi 3D",
           icon: "🎱",
           overlay: "poolOverlay",
           min: 2,
           max: 2,
-          bots: false,
+          bots: true,
           pub: "pool",
         },
         audition: {
@@ -20670,7 +22520,19 @@
         _lbNetPrev(msg);
         if (!msg || typeof msg !== "object" || msg.from === RoomState.me.id) return;
         if (msg.type === "game-lobby") lbOnMsg(msg);
-        else if (msg.type === "game-sync") gsOnMsg(msg);
+        else if (msg.type === "game-sync") {
+          // Người ngoài sảnh đứng xem trong phòng Bi-a: bàn 3D trong phòng vẫn
+          // cập nhật theo ảnh chụp trạng thái của chủ bàn sau mỗi cú đánh.
+          if (
+            msg.game === "pool" &&
+            msg.sub === "bida-state" &&
+            msg.snap &&
+            window.__poolWorld &&
+            window.__poolWorld.setState
+          )
+            window.__poolWorld.setState(msg.snap);
+          gsOnMsg(msg);
+        }
         else if (msg.type === "karaoke-queue" && window.__karaQueueMsg) __karaQueueMsg(msg);
         else if (msg.type === "join") {
           LBS.lobbies.forEach((lob) => {
@@ -21144,12 +23006,7 @@
             $("#turnMsg").textContent = "Chờ chủ sảnh tung xúc xắc…";
           }
         } else if (lob.game === "pool") {
-          poolMode = 2;
-          if (MPS.isHost) poolReset();
-          else {
-            poolReset();
-            poolMsg("Chủ sảnh " + MPS.seats[0].name + " đánh trước — bạn là " + MPS.seats[1].name);
-          }
+          bidaStartMPS(lob, seats);
         } else if (lob.game === "uno") {
           if (MPS.isHost) {
             unoSeatCount = seats.length;
@@ -21263,6 +23120,7 @@
           "wolf-ask",
           "wolf-seer",
           "match-end",
+          "bida-state",
         ];
         if (
           !MPS.isHost &&
@@ -21271,7 +23129,11 @@
           msg.from !== MPS.seats[0].id
         )
           return;
-        if (msg.sub === "pool-state" && !MPS.seats.some((s) => s.id === msg.from)) return;
+        if (
+          (msg.sub === "bida-shot" || msg.sub === "bida-place") &&
+          !MPS.seats.some((s) => s.id === msg.from)
+        )
+          return;
         switch (msg.sub) {
           case "ludo-state":
             if (!MPS.isHost) applyLudoSnap(msg.snap);
@@ -21282,8 +23144,14 @@
           case "roulette-state":
             if (!MPS.isHost) applyRoulSnap(msg.snap);
             break;
-          case "pool-state":
-            applyPoolSnap(msg.snap);
+          case "bida-shot":
+            if (window.__bida) window.__bida.applyRemoteShot(msg);
+            break;
+          case "bida-place":
+            if (window.__bida) window.__bida.applyRemotePlace(msg);
+            break;
+          case "bida-state":
+            if (window.__bida) window.__bida.applySnapshot(msg.snap);
             break;
           case "action":
             if (MPS.isHost) hostAction(msg);
@@ -21373,7 +23241,7 @@
             roulRender();
           }
         } else if (MPS.game === "pool") {
-          if (msg.act === "reset") poolReset();
+          if (msg.act === "reset") restartMatch();
         } else if (MPS.game === "cards") {
           if (msg.act === "deal") hostDealCards();
         }
@@ -21514,99 +23382,49 @@
         return true;
       });
 
-      /* ---------- BI-A ---------- */
-      function poolSnap() {
-        return {
-          balls: pool.balls.map((b) => ({
-            x: b.x,
-            y: b.y,
-            in: b.in,
-            cue: b.cue,
-            color: b.color,
-            num: b.num,
-          })),
-          turn: pool.turn,
-          score: pool.score.slice(),
-          shots: pool.shots,
-          over: pool.over,
-          msg: $("#poolMsg").textContent,
+      /* ---------- BIDA 8 BI 3D (đồng bộ theo cú đánh qua sảnh) ---------- */
+      window.__bidaMP = { active: false, isHost: false, mySeat: -1, seats: [], lobbyId: null };
+      window.__bidaHooks = {
+        shot: function (d) {
+          gsSend("bida-shot", d);
+        },
+        place: function (d) {
+          gsSend("bida-place", d);
+        },
+        state: function (snap) {
+          gsSend("bida-state", { snap: snap });
+        },
+        newMatch: function () {
+          restartMatch();
+        },
+      };
+      function bidaStartMPS(lob, seats) {
+        window.__bidaMP = {
+          active: true,
+          isHost: lob.hostId === RoomState.me.id,
+          mySeat: seats.findIndex((s) => s.id === RoomState.me.id),
+          seats: seats,
+          lobbyId: lob.id,
         };
+        if (window.__bida)
+          window.__bida.startMPS({
+            names: [seats[0] ? seats[0].name : "Người chơi 1", seats[1] ? seats[1].name : "Người chơi 2"],
+          });
+        const me = window.__bidaMP;
+        toast(
+          me.mySeat === 0
+            ? "🎱 Ván Bida 8 Bi bắt đầu — bạn phá bi trước!"
+            : "🎱 Ván Bida 8 Bi bắt đầu — " + (seats[0] ? seats[0].name : "Chủ sảnh") + " phá bi trước",
+        );
       }
-      function applyPoolSnap(snap) {
-        if (!snap || !MPS || MPS.game !== "pool") return;
-        poolMode = 2;
-        pool = {
-          balls: snap.balls.map((b) => ({
-            x: b.x,
-            y: b.y,
-            vx: 0,
-            vy: 0,
-            in: b.in,
-            cue: b.cue,
-            color: b.color,
-            num: b.num,
-          })),
-          turn: snap.turn,
-          score: snap.score.slice(),
-          shots: snap.shots,
-          shotPocketed: 0,
-          shotCueIn: false,
-          over: snap.over,
-          started: true,
-        };
-        poolWasMoving = false;
-        poolMsg(snap.msg);
-        poolHud();
+      function bidaEndMPS() {
+        if (window.__bidaMP) window.__bidaMP.active = false;
       }
-      const _poolOnShotEnd = poolOnShotEnd;
-      poolOnShotEnd = function () {
-        const shooter = pool ? pool.turn : 0;
-        _poolOnShotEnd();
-        if (MPS && MPS.game === "pool" && (MPS.isHost || shooter === MPS.mySeat))
-          gsSend("pool-state", { snap: poolSnap() });
+      const _bidaExitMP = exitMP;
+      exitMP = function () {
+        bidaEndMPS();
+        _bidaExitMP();
       };
-      const _poolResetFn = poolReset;
-      poolReset = function () {
-        _poolResetFn();
-        if (MPS && MPS.game === "pool" && MPS.isHost) gsSend("pool-state", { snap: poolSnap() });
-      };
-      const _poolHudFn = poolHud;
-      poolHud = function () {
-        _poolHudFn();
-        if (MPS && MPS.game === "pool" && pool && MPS.seats.length === 2) {
-          $("#poolScore1").textContent = MPS.seats[0].name + ": " + pool.score[0] + " bi";
-          $("#poolScore2").textContent = MPS.seats[1].name + ": " + pool.score[1] + " bi";
-        }
-      };
-      (function () {
-        const wrap = document.querySelector("#poolOverlay .pool-wrap");
-        if (wrap)
-          wrap.addEventListener(
-            "pointerdown",
-            (e) => {
-              if (MPS && MPS.game === "pool" && pool && pool.turn !== MPS.mySeat) {
-                e.stopPropagation();
-                e.preventDefault();
-                toast("Chưa tới lượt của bạn — chờ đối thủ đánh xong nhé");
-              }
-            },
-            true,
-          );
-      })();
-      lbIntercept("poolOverlay", "#poolReset", () => {
-        if (!MPS || MPS.game !== "pool") return false;
-        if (!MPS.isHost) {
-          gsSend("action", { act: "reset" });
-          toast("Đã nhờ chủ sảnh xếp lại bàn");
-          return true;
-        }
-        return false;
-      });
-      lbIntercept("poolOverlay", "#poolModeSeg button", () => {
-        if (!MPS || MPS.game !== "pool") return false;
-        toast("Đang chơi trong sảnh: cố định 2 người");
-        return true;
-      });
 
       /* ---------- UNO ---------- */
       window.__unoMP = {
@@ -24092,327 +25910,7 @@
     </script>
 
     <script>
-      /* =====================================================================
-   ĐỢT B — BI-A 3D (Pool3D): trải nghiệm bi-a 3D thật ngay trong overlay
-   bi-a của phòng Bi-a. Bàn 3D, camera bay quanh bàn, kéo để ngắm góc,
-   giữ–thả nút Đánh (hoặc giữ phím Space) để lấy lực, vật lý bóng lăn /
-   chạm nhau / nảy băng / vào lỗ chạy bằng bước vật lý cố định 120Hz nên
-   mượt và không giật. Chế độ sảnh 2D cũ giữ nguyên — đây là chế độ chơi
-   thêm, bật/tắt bằng nút "🎱 Chế độ 3D" trong overlay.
-   ===================================================================== */
-      (function Pool3D() {
-        "use strict";
-        var ov = document.getElementById("poolOverlay");
-        if (!ov || typeof THREE === "undefined") return;
-        var wrap = ov.querySelector(".pool-wrap");
-        var hud = ov.querySelector(".pool-hud");
-        if (!wrap || !hud) return;
-        var toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "btn teal";
-        toggle.textContent = "🎱 Chế độ 3D";
-        hud.appendChild(toggle);
-        var box3d = document.createElement("div");
-        box3d.style.cssText = "display:none;margin-top:10px";
-        box3d.innerHTML =
-          '<div id="p3dWrap" style="position:relative;border-radius:14px;overflow:hidden;background:#0d2417;box-shadow:0 10px 26px rgba(0,0,0,.35)">' +
-          '<canvas id="p3dCanvas" width="920" height="460" style="display:block;width:100%;height:auto;touch-action:none"></canvas>' +
-          '<div id="p3dMsg" style="position:absolute;left:12px;top:10px;color:#ffe9c9;font-weight:700;font-size:.88rem;text-shadow:0 2px 6px rgba(0,0,0,.7)">Kéo ngang để ngắm · giữ nút Đánh để lấy lực, thả để đánh</div>' +
-          '<div style="position:absolute;right:12px;bottom:12px;display:flex;gap:8px;align-items:center">' +
-          '<div style="width:110px;height:12px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(255,233,201,.4);overflow:hidden"><div id="p3dPower" style="height:100%;width:0%;background:linear-gradient(90deg,#57b25e,#e9a13b,#d43a2f)"></div></div>' +
-          '<button type="button" id="p3dShoot" style="border:0;border-radius:999px;background:#B56A3A;color:#fff;font-weight:800;padding:12px 22px;min-height:46px;font-size:.95rem">🎯 Giữ để đánh</button>' +
-          '<button type="button" id="p3dReset" style="border:1px solid rgba(255,233,201,.4);border-radius:999px;background:rgba(255,233,201,.12);color:#ffe9c9;font-weight:700;padding:12px 16px;min-height:46px">Xếp lại</button>' +
-          "</div></div>";
-        hud.parentNode.insertBefore(box3d, hud.nextSibling); // chèn ngay sau HUD trong ĐÚNG thẻ cha của nó (trước đây chèn vào .modal với nút tham chiếu thuộc cha khác → lỗi insertBefore)
-        var on = false,
-          inited = false,
-          P = null;
-        toggle.addEventListener("click", function () {
-          on = !on;
-          toggle.textContent = on ? "🎱 Về chế độ 2D" : "🎱 Chế độ 3D";
-          box3d.style.display = on ? "block" : "none";
-          wrap.style.display = on ? "none" : "block";
-          if (on && !inited) {
-            inited = true;
-            try {
-              P = init();
-            } catch (e) {
-              document.getElementById("p3dMsg").textContent =
-                "Thiết bị chưa bật được 3D cho bàn bi-a.";
-            }
-          }
-          if (P) P.running = on;
-        });
-        function init() {
-          var cv = document.getElementById("p3dCanvas");
-          var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-          renderer.setSize(920, 460, false);
-          var scene = new THREE.Scene();
-          scene.background = new THREE.Color(0x0d2417);
-          var camera = new THREE.PerspectiveCamera(46, 920 / 460, 0.1, 100);
-          scene.add(new THREE.HemisphereLight(0xfff2d8, 0x1d3a24, 0.75));
-          var key = new THREE.DirectionalLight(0xffe9c4, 0.9);
-          key.position.set(4, 9, 3);
-          scene.add(key);
-          var W = 7.6,
-            D = 3.8,
-            R = 0.16; // mặt bàn chơi + bán kính bi
-          var felt = new THREE.Mesh(
-            new THREE.BoxGeometry(W + 0.7, 0.22, D + 0.7),
-            new THREE.MeshLambertMaterial({ color: 0x8b4a2b }),
-          );
-          felt.position.y = -0.16;
-          scene.add(felt);
-          var cloth = new THREE.Mesh(
-            new THREE.PlaneGeometry(W, D),
-            new THREE.MeshLambertMaterial({ color: 0x177a4c }),
-          );
-          cloth.rotation.x = -Math.PI / 2;
-          cloth.position.y = -0.04;
-          scene.add(cloth);
-          [
-            [-1, -1],
-            [0, -1],
-            [1, -1],
-            [-1, 1],
-            [0, 1],
-            [1, 1],
-          ].forEach(function (s) {
-            var pk = new THREE.Mesh(
-              new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16),
-              new THREE.MeshBasicMaterial({ color: 0x0a0a0a }),
-            );
-            pk.position.set((s[0] * W) / 2, -0.03, (s[1] * D) / 2);
-            scene.add(pk);
-          });
-          var COLS = [
-            0xf7f0e3, 0xf2b705, 0x2470c7, 0xe0393e, 0x5b4a9e, 0xe4572e, 0x2ea44f, 0x8a2f2b,
-            0x2b1c11, 0xf2b705, 0x2470c7, 0xe0393e, 0x5b4a9e, 0xe4572e, 0x2ea44f, 0x8a2f2b,
-          ];
-          var balls = [];
-          function mkBall(n, x, z) {
-            var m = new THREE.Mesh(
-              new THREE.SphereGeometry(R, 18, 14),
-              new THREE.MeshLambertMaterial({ color: COLS[n] }),
-            );
-            m.position.set(x, R - 0.04, z);
-            scene.add(m);
-            var b = { n: n, mesh: m, x: x, z: z, vx: 0, vz: 0, out: false };
-            balls.push(b);
-            return b;
-          }
-          var cue = null;
-          function rack() {
-            balls.forEach(function (b) {
-              scene.remove(b.mesh);
-            });
-            balls = [];
-            cue = mkBall(0, -W / 4, 0);
-            var order = [1, 9, 2, 8, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15],
-              ri = 0;
-            for (var col = 0; col < 5; col++)
-              for (var row = 0; row <= col; row++)
-                mkBall(order[ri++], W / 4 + col * R * 1.78, (row - col / 2) * R * 2.06);
-          }
-          rack();
-          var aimGeo = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(),
-            new THREE.Vector3(0, 0, -3),
-          ]);
-          var aim = new THREE.Line(
-            aimGeo,
-            new THREE.LineBasicMaterial({ color: 0xffe9c9, transparent: true, opacity: 0.75 }),
-          );
-          scene.add(aim);
-          var yaw = Math.PI / 2,
-            power = 0,
-            charging = false,
-            potted = 0,
-            raf = 0,
-            last = performance.now();
-          var msg = document.getElementById("p3dMsg"),
-            powEl = document.getElementById("p3dPower");
-          function moving() {
-            return balls.some(function (b) {
-              return !b.out && (Math.abs(b.vx) > 0.02 || Math.abs(b.vz) > 0.02);
-            });
-          }
-          function shoot() {
-            if (!cue || cue.out || moving() || power <= 0.03) {
-              power = 0;
-              powEl.style.width = "0%";
-              return;
-            }
-            var sp = 2.2 + power * 9.5;
-            cue.vx = Math.sin(yaw) * sp;
-            cue.vz = -Math.cos(yaw) * sp;
-            power = 0;
-            powEl.style.width = "0%";
-          }
-          function step(dt) {
-            balls.forEach(function (b) {
-              if (b.out) return;
-              b.x += b.vx * dt;
-              b.z += b.vz * dt;
-              var damp = Math.exp(-0.62 * dt);
-              b.vx *= damp;
-              b.vz *= damp;
-              if (Math.abs(b.vx) < 0.015) b.vx = 0;
-              if (Math.abs(b.vz) < 0.015) b.vz = 0;
-              if (b.x < -W / 2 + R) {
-                b.x = -W / 2 + R;
-                b.vx = Math.abs(b.vx) * 0.82;
-              }
-              if (b.x > W / 2 - R) {
-                b.x = W / 2 - R;
-                b.vx = -Math.abs(b.vx) * 0.82;
-              }
-              if (b.z < -D / 2 + R) {
-                b.z = -D / 2 + R;
-                b.vz = Math.abs(b.vz) * 0.82;
-              }
-              if (b.z > D / 2 - R) {
-                b.z = D / 2 - R;
-                b.vz = -Math.abs(b.vz) * 0.82;
-              }
-              [
-                [-W / 2, -D / 2],
-                [0, -D / 2],
-                [W / 2, -D / 2],
-                [-W / 2, D / 2],
-                [0, D / 2],
-                [W / 2, D / 2],
-              ].forEach(function (p) {
-                if (!b.out && Math.hypot(b.x - p[0], b.z - p[1]) < 0.3) {
-                  b.out = true;
-                  b.vx = b.vz = 0;
-                  b.mesh.visible = false;
-                  if (b.n === 0) {
-                    msg.textContent = "Bi trắng vào lỗ — đặt lại bi trắng, đánh tiếp!";
-                    setTimeout(function () {
-                      b.out = false;
-                      b.mesh.visible = true;
-                      b.x = -W / 4;
-                      b.z = 0;
-                    }, 600);
-                  } else {
-                    potted++;
-                    msg.textContent = "Vào lỗ! Đã bỏ túi " + potted + "/15 bi 🎱";
-                  }
-                }
-              });
-            });
-            for (var i = 0; i < balls.length; i++)
-              for (var j = i + 1; j < balls.length; j++) {
-                var a = balls[i],
-                  b = balls[j];
-                if (a.out || b.out) continue;
-                var dx = b.x - a.x,
-                  dz = b.z - a.z,
-                  d = Math.hypot(dx, dz);
-                if (d > 0 && d < R * 2) {
-                  var nx = dx / d,
-                    nz = dz / d,
-                    push = (R * 2 - d) / 2;
-                  a.x -= nx * push;
-                  a.z -= nz * push;
-                  b.x += nx * push;
-                  b.z += nz * push;
-                  var rvx = b.vx - a.vx,
-                    rvz = b.vz - a.vz,
-                    vn = rvx * nx + rvz * nz;
-                  if (vn < 0) {
-                    a.vx += vn * nx;
-                    a.vz += vn * nz;
-                    b.vx -= vn * nx;
-                    b.vz -= vn * nz;
-                  }
-                }
-              }
-            balls.forEach(function (b) {
-              if (!b.out) {
-                b.mesh.position.x = b.x;
-                b.mesh.position.z = b.z;
-                b.mesh.rotation.x += (b.vz * dt) / R;
-                b.mesh.rotation.z -= (b.vx * dt) / R;
-              }
-            });
-          }
-          var dragX = null;
-          cv.addEventListener("pointerdown", function (e) {
-            dragX = e.clientX;
-            cv.setPointerCapture(e.pointerId);
-          });
-          cv.addEventListener("pointermove", function (e) {
-            if (dragX !== null && !moving()) {
-              yaw += (e.clientX - dragX) * 0.006;
-              dragX = e.clientX;
-            }
-          });
-          cv.addEventListener("pointerup", function () {
-            dragX = null;
-          });
-          cv.addEventListener("pointercancel", function () {
-            dragX = null;
-          });
-          var shootBtn = document.getElementById("p3dShoot");
-          shootBtn.addEventListener("pointerdown", function (e) {
-            e.preventDefault();
-            charging = true;
-          });
-          ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) {
-            shootBtn.addEventListener(ev, function () {
-              if (charging) {
-                charging = false;
-                shoot();
-              }
-            });
-          });
-          document.getElementById("p3dReset").addEventListener("click", function () {
-            rack();
-            potted = 0;
-            msg.textContent = "Đã xếp lại bàn — kéo ngang để ngắm, giữ nút Đánh để lấy lực.";
-          });
-          document.addEventListener("keydown", function (e) {
-            if (e.code === "Space" && P && P.running && ov.classList.contains("open")) {
-              charging = true;
-              e.preventDefault();
-            }
-          });
-          document.addEventListener("keyup", function (e) {
-            if (e.code === "Space" && charging) {
-              charging = false;
-              shoot();
-            }
-          });
-          var api = { running: false };
-          function loop(now) {
-            raf = requestAnimationFrame(loop);
-            var dt = Math.min(0.04, (now - last) / 1000);
-            last = now;
-            if (!api.running || !ov.classList.contains("open")) return;
-            if (charging && !moving()) {
-              power = Math.min(1, power + dt * 0.9);
-              powEl.style.width = Math.round(power * 100) + "%";
-            }
-            var sub = Math.max(1, Math.round(dt / (1 / 120)));
-            for (var s2 = 0; s2 < sub; s2++) step(dt / sub);
-            if (cue && !cue.out) {
-              aim.visible = !moving();
-              aim.position.set(cue.x, R - 0.02, cue.z);
-              aim.rotation.y = -yaw;
-              var cx = cue.x + Math.sin(yaw) * 6.4,
-                cz = cue.z - Math.cos(yaw) * 6.4;
-              camera.position.set(cx, 4.6, cz);
-              camera.lookAt(cue.x * 0.4, 0, cue.z * 0.4);
-            }
-            renderer.render(scene, camera);
-          }
-          raf = requestAnimationFrame(loop);
-          return api;
-        }
-      })();
+      /* ĐỢT B (Pool3D cũ) đã gỡ: bi-a nay chỉ còn MỘT game duy nhất — Bida 8 Bi 3D ở script BI-A phía trên. */
     </script>
 
     <script>
