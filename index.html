@@ -8134,8 +8134,29 @@
           const kx = -16, kz = -6;
           cy(3.9, 4.1, 0.4, STONE, kx, 0.2, kz, null, 32); cy(3.5, 3.5, 0.05, 0x6fc3d0, kx, 0.38, kz, null, 32);
           for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; const r = cy(0.32, 0.32, 0.02, 0x5fae5a, kx + Math.cos(a) * (1 + (i % 3)), 0.42, kz + Math.sin(a) * (1 + (i % 3)), null, 10); }
-          koi = new th.Group(); koi.position.set(kx, 0.45, kz); scene.add(koi);
-          [[1.8, 0xf07f13], [2.4, 0xfdf6e3], [1.2, 0xe0393e]].forEach((k, i) => { const f = new th.Group(); const b = cone(0.12, 0.5, k[1], 0, 0, 0, f, 8); b.rotation.z = Math.PI / 2; f.userData = { r: k[0], ph: i * 2.1 }; f.position.x = k[0]; koi.add(f); });
+          koi = new th.Group(); koi.position.set(kx, 0.42, kz); scene.add(koi);
+          /* CÁ KOI LÀM LẠI (2026-11-16): bản cũ là KHỐI NÓN đơn — trong ảnh
+             chụp trông như mấy cục màu nằm trên mặt nước, không ra hình cá.
+             Nay mỗi con là cá thật: thân thon dài (cầu dẹt kéo dài trục z) +
+             đầu tròn + 2 mắt đen + vây lưng + 2 vây bên + ĐUÔI hình quạt
+             gắn khớp riêng để VẪY trong tickFx; màu kiểu koi (trắng vá đỏ
+             kohaku / cam vá trắng / đỏ cam vá trắng — vá là các mảng dẹt
+             nổi trên lưng). Tổng dài ~1.1–1.3 m: đứng trên bờ nhìn xuống
+             nhận ra ngay là cá. Hành vi bơi giữ nguyên (vòng tròn r/ph cũ). */
+          [[1.8, 0xfdf6e3, 0xe0393e, 1.05], [2.4, 0xf07f13, 0xfdf6e3, 0.9], [1.2, 0xe4572e, 0xfdf6e3, 1.15]].forEach((k, i) => {
+            const f = new th.Group();
+            const bd = sp(0.16, k[1], 0, 0, 0, f); bd.scale.set(0.82, 0.62, 2.4); // thân thon dài ~0.77 m
+            const hd = sp(0.145, k[1], 0, 0.01, 0.3, f); hd.scale.set(0.9, 0.66, 1.1); // đầu
+            [-0.085, 0.085].forEach((ex) => sp(0.03, 0x1a1210, ex, 0.05, 0.3, f)); // mắt
+            const df = bx(0.03, 0.11, 0.42, k[1], 0, 0.13, -0.03, f); df.rotation.x = -0.15; // vây lưng
+            [[-1, 0.5], [1, -0.5]].forEach((sd) => { const pf = bx(0.17, 0.03, 0.2, k[1], sd[0] * 0.15, -0.04, 0.16, f); pf.rotation.set(0, sd[1], sd[0] * 0.45); }); // vây bên
+            const tg = new th.Group(); tg.position.set(0, 0, -0.36); f.add(tg); // khớp đuôi (điểm vẫy)
+            const tf = cone(0.17, 0.36, k[1], 0, 0, -0.16, tg, 6); tf.rotation.x = Math.PI / 2; tf.scale.set(0.28, 1, 1); // vây đuôi quạt đứng, dẹt ngang
+            [[-0.02, 0.1], [0.05, -0.14], [-0.04, -0.3]].forEach((pp, j) => { const pt = sp(0.085 + (j % 2) * 0.03, k[2], pp[0], 0.085, pp[1], f); pt.scale.set(0.95, 0.32, 1.35); }); // vá màu trên lưng
+            f.scale.setScalar(k[3]);
+            f.userData = { r: k[0], ph: i * 2.1, tail: tg };
+            f.position.x = k[0]; koi.add(f);
+          });
           for (let i = 0; i < 5; i++) bx(1.0, 0.1, 0.6, DARK, kx - 2.5 + i * 1.25, 0.55 + Math.sin(i / 4 * Math.PI) * 0.45, kz + 4.6);
           OB(kx - 4, kx + 4, kz - 4, kz + 4);
           // đài phun nước (đông-bắc sân, tây hành lang C3 — chừa khoảng thở 0.4 m tới mép hành lang)
@@ -8260,7 +8281,14 @@
           [-5.1, -3.5].forEach((z) => bx(0.12, 1.7, 0.12, CARA, -21.5, 4.85, z)); bx(0.12, 0.12, 1.7, CARA, -21.5, 5.7, -4.3);
           signBoard("🛝 CẦU TỤT NHẸ", 2.4, 0.7, "#8B4A2B", "#FFE9C9", -23, 5.3, -5.6, Math.PI);
           OB(-24.6, -24.3, -5.6, -5.3); OB(-21.7, -21.4, -5.6, -5.3); OB(-24.6, -21.4, -2.4, 4.4, { groundOnly: true });
-          regSlide("slide1", [[-23, 4.3, -4], [-20.2, 3.95, -4.9], [-17, 3.2, -5], [-13.9, 2.3, -4], [-11.4, 1.4, -2], [-10, 0.75, 0.4], [-9.7, 0.45, 2.4], [-9.75, 0.3, 3.4]], 0.35,
+          /* ĐỊNH TUYẾN LẠI (2026-11-16): máng cũ chạy thẳng về đông ĐÈ LÊN HỒ
+             CÁ KOI (điểm (-17,-5) và (-13.9,-4) nằm ngay trên mặt hồ). Máng mới
+             vòng lên PHÍA BẮC của hồ rồi mới ngoặt xuống hồ bơi: mọi điểm cách
+             tâm hồ koi (-16,-6) ≥ 5.9 m (bán kính vành hồ 4.1 + lề an toàn 1.0 +
+             nửa bề rộng máng 0.65 = 5.75), quét dấu chân máng (mẫu 0.2 m, cả
+             cột đỡ) giao 4 hành lang C1–C4 + khung hồ koi = 0; điểm đáp bay vào
+             hồ tại ≈ (-11.4, 4.0). */
+          regSlide("slide1", [[-23, 4.3, -4], [-22.2, 4.05, -7.6], [-19.8, 3.65, -11.2], [-16, 3.0, -12.4], [-12.5, 2.3, -11.8], [-10, 1.5, -8.6], [-9.6, 0.8, -4.5], [-10.2, 0.4, -0.5], [-11, 0.3, 2.6]], 0.35,
             { bed: 0x1f8fc4, rail: 0xfdf6e3, wet: 0x9adcf5, cap: 0xb56a3a });
           // ── Cầu tụt 2 (tháp cao 7.3 m, xoắn ốc + dốc đứng + bật xuống hồ): tháp dời tới (6.7, 10), dốc lên từ phía đông x 22.4
           const cx = 6.7, cz = 10, Y0 = 7.3;
@@ -8278,10 +8306,21 @@
              theo mẫu RRAMP: chân dốc x 18.6–22.4 để trống cho người chơi bước lên,
              và hành lang C3 (x 18.5–23.5) đi qua đúng chân dốc thấp — không bị chặn. */
           OB(8.4, 18.4, 8.4, 11.6, { groundOnly: true });
-          const pts2 = [], R = 3, hx = 5, hz = cz - R;
-          for (let i = 0; i <= 24; i++) { const a = Math.PI / 2 + i / 24 * Math.PI * 2; pts2.push([hx + R * Math.cos(a), 7.4 - (3.75 * i) / 24, hz + R * Math.sin(a)]); }
-          pts2.push([2.6, 3.3, cz], [0.8, 2.4, cz], [-0.8, 1.35, cz], [-2.0, 1.1, cz], [-3.0, 1.35, cz]);
-          regSlide("slide2", pts2, 0.4, { bed: 0xe4572e, rail: 0xfff3d6, wet: 0xffe29a, cap: 0xb3361e });
+          /* ĐỊNH TUYẾN LẠI (2026-11-16): vòng xoắn cũ (tâm (5,7) R 3) lấn tới
+             x = 2 và đoạn thoát thẳng z = 10 chạy dài sang x = -3 — THÂN MÁNG
+             VẮT NGANG hành lang C1 (x[-2.5, 2.5]) đúng như ảnh chủ nhân chụp.
+             Xoắn mới: tâm (6.0, 7.3) R 2.55 ôm sát tháp (mép tây x = 3.45),
+             cao độ hạ theo u² (đầu vòng gần như phẳng để máng nằm trên sàn
+             tháp, cuối vòng dốc nhanh); đoạn thoát DỪNG ở x = 3.42 (dấu chân
+             máng cách mép C1 ≥ 0.27 m, cột đỡ ≥ 0.84 m — quét mẫu 0.2 m giao
+             C1–C4 + khung hồ koi = 0), kết thúc bằng CÚ HẤT LÊN ~28°: người
+             trượt BAY qua hành lang (không máng) và đáp trong hồ tại
+             ≈ (-6.5, 7.7) (mô phỏng đạn đạo villaTick, lề hồ ≥ 1.5 m).
+             κ nâng 0.40 → 0.80 để đủ tốc độ cho cú bay xa ~10 m. */
+          const pts2 = [], R = 2.55, hx = 6.0, hz = 7.3;
+          for (let i = 0; i <= 24; i++) { const a = Math.PI / 2 + i / 24 * Math.PI * 2, u = i / 24; pts2.push([hx + R * Math.cos(a), 7.4 - 3.75 * u * u, hz + R * Math.sin(a)]); }
+          pts2.push([4.8, 3.1, 9.8], [4.05, 2.3, 9.65], [3.7, 1.66, 9.55], [3.42, 1.8, 9.5]);
+          regSlide("slide2", pts2, 0.8, { bed: 0xe4572e, rail: 0xfff3d6, wet: 0xffe29a, cap: 0xb3361e });
           V.slideCurve = SLIDES.slide1.curve; V.slideCurve2 = SLIDES.slide2.curve;
           const f2 = new th.Mesh(new th.TorusGeometry(0.95, 0.09, 8, 22), new th.MeshBasicMaterial({ color: 0xeaf9ff })); f2.rotation.x = Math.PI / 2; f2.position.set(-9.75, -0.06, 4.6); scene.add(f2);
           const f3 = new th.Mesh(new th.TorusGeometry(1.1, 0.09, 8, 22), new th.MeshBasicMaterial({ color: 0xeaf9ff })); f3.rotation.x = Math.PI / 2; f3.position.set(-11.1, -0.06, 7.0); scene.add(f3);
@@ -8290,7 +8329,7 @@
         function buildMain() { buildGround(); buildPool(); buildSlides(); buildGarden(); buildFence(); }
         function tickFx(dt, t) {
           if (waterTex) { waterTex.offset.x = t * 0.02; waterTex.offset.y = t * 0.015; }
-          if (koi) koi.children.forEach((f) => { const a = t * 0.5 + f.userData.ph; f.position.set(Math.cos(a) * f.userData.r, 0, Math.sin(a) * f.userData.r); f.rotation.y = -a; });
+          if (koi) koi.children.forEach((f) => { const a = t * 0.5 + f.userData.ph; f.position.set(Math.cos(a) * f.userData.r, Math.sin(t * 1.7 + f.userData.ph * 2) * 0.02, Math.sin(a) * f.userData.r); f.rotation.y = -a; f.rotation.z = Math.sin(t * 7 + f.userData.ph * 3) * 0.05; if (f.userData.tail) f.userData.tail.rotation.y = Math.sin(t * 7 + f.userData.ph * 3) * 0.5; }); /* đuôi vẫy + thân lượn nhẹ theo nhịp bơi */
           pulses.forEach((g) => { g.s.material.opacity = g.b * (0.78 + 0.22 * Math.sin(t * 1.9 + g.ph)); });
         }
         const api = { buildMain, buildFire, updateFire, tickFx, slides: SLIDES, obstacles: gObs };
@@ -8743,7 +8782,8 @@
           if (villaRide) {
             /* Trượt bằng HỆ CỦA LÀNG trên đường cong v2: chạy theo chiều dài
                thật (getPointAt), tốc độ v = max(1, sqrt(1 + 19.6·κ·(y0 − y)))
-               như đặc tả v2 (κ slide1 0.35 / slide2 0.40); hết máng thì BAY
+               như đặc tả v2 (κ slide1 0.35 / slide2 0.80 — slide2 nâng κ để
+               cú hất cuối máng đủ xa, bay qua hành lang C1 rồi đáp hồ); hết máng thì BAY
                ĐẠN ĐẠO theo tiếp tuyến (g = 9.8) tới khi chạm nước (y ≤ −0.1)
                rồi đáp xuống hồ ở cao độ bơi −0.72. Tư thế nằm do updateAvatars. */
             const R = villaRide,
@@ -14079,7 +14119,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           villaRide = startSlide(V.slideCurve, 0.35);
           toast("Wheee! 🛝");
         } else if (a.type === "vslide2") {
-          villaRide = startSlide(V.slideCurve2, 0.4);
+          villaRide = startSlide(V.slideCurve2, 0.8); /* κ khớp regSlide slide2 (0.80 — đủ tốc độ bay qua hành lang C1 đáp hồ) */
           toast("Wheee! 🎢");
         } else if (a.type === "vdj") {
           vlPanel("dj");
@@ -14524,6 +14564,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           /* Ánh sáng theo brief: hemisphere ấm nhẹ + spot chính ấm đổ bóng mềm + các point ấm cục bộ */
           const hemi = new THREE.HemisphereLight(0xffe9c4, 0x3a2a1c, 0.44);
           scene.add(hemi);
+          /* Ánh sáng nền dịu toàn cảnh (2026-11-16): nhấc các mặt khuất của
+             nội thất lên khỏi vùng tối đặc — nhà chính không còn mảng tối
+             như đổ bóng, kể cả ban đêm. Cố định theo thiết kế (không nhân
+             theo giờ) để nhà sáng đều cả ngày lẫn đêm. */
+          const ambIn = new THREE.AmbientLight(0xffe9c4, 0.3);
+          scene.add(ambIn);
           const spot = new THREE.SpotLight(0xffd9a8, 1.15, 46, 1.08, 0.55, 0.5);
           spot.position.set(2, 10.5, -33.5);
           spot.target.position.set(0, 0, -36);
@@ -14536,18 +14582,40 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           spot.shadow.camera.far = 32;
           scene.add(spot);
           scene.add(spot.target);
-          const lampLight = new THREE.PointLight(0xffc37a, 1.8, 12);
+          const lampLight = new THREE.PointLight(0xffc37a, 2.1, 15);
           lampLight.position.set(22, 1.9, -19); /* căn theo chậu cây thật ở góc đông-nam sảnh nghỉ của nhà v2: plant(22, 0, -19) — đã dời -35 theo nhà */
           scene.add(lampLight);
-          const cinemaLight = new THREE.PointLight(0xffd9a8, 1.6, 12);
-          cinemaLight.position.set(0, 3.6, -46);
+          const cinemaLight = new THREE.PointLight(0xffd9a8, 2.1, 18);
+          cinemaLight.position.set(0, 5.6, -46);
           scene.add(cinemaLight);
-          const gameLight = new THREE.PointLight(0xffc98f, 1.5, 13);
-          gameLight.position.set(-2, 3.4, -24);
+          const gameLight = new THREE.PointLight(0xffc98f, 2.0, 17);
+          gameLight.position.set(-2, 5.4, -24);
           scene.add(gameLight);
-          const loftLight = new THREE.PointLight(0xffd9a8, 1.5, 11);
-          loftLight.position.set(14.5, 5.6, -43);
+          const loftLight = new THREE.PointLight(0xffd9a8, 1.9, 16);
+          loftLight.position.set(14.5, 6.6, -43);
           scene.add(loftLight);
+          /* NHÀ CHÍNH SÁNG TOÀN DIỆN (2026-11-16): nhà v2 rộng 65×35 m mà
+             trước đây chỉ có 4 đèn điểm tầm 11–13 m — cánh tây (thư viện/quầy
+             trà), phòng ăn và nửa đông gác lửng nằm ngoài tầm đèn nên tối
+             om. Bổ sung 5 đèn trần cho đúng các phòng đó (chao đèn treo dựng
+             ngay sau buildHouse ở dưới) + nâng tầm/cường độ 4 đèn cũ. Mọi
+             đèn đều vào warmLights để applyEnvironment chỉnh theo giờ —
+             hệ số warm thấp nhất ban ngày vẫn đủ sáng nhờ cường độ gốc cao. */
+          const westLight = new THREE.PointLight(0xffd9a8, 1.7, 17);
+          westLight.position.set(-26, 6.0, -35); /* thư viện + lò sưởi cánh tây (local -26, 0) */
+          scene.add(westLight);
+          const teaLight = new THREE.PointLight(0xffc98f, 1.5, 15);
+          teaLight.position.set(-25, 6.0, -47); /* quầy trà cánh tây-bắc (local -25, -12) */
+          scene.add(teaLight);
+          const dineLight = new THREE.PointLight(0xffd9a8, 1.7, 17);
+          dineLight.position.set(28, 6.0, -35); /* phòng ăn cánh đông (local 28, 0) */
+          scene.add(dineLight);
+          const loftEastLight = new THREE.PointLight(0xffd9a8, 1.5, 15);
+          loftEastLight.position.set(27, 7.0, -44); /* góc đọc phía đông gác lửng (local 27, -9) */
+          scene.add(loftEastLight);
+          const loftBedLight = new THREE.PointLight(0xffc98f, 1.4, 14);
+          loftBedLight.position.set(10, 7.0, -21); /* khu giường gác lửng (local 10, 14) */
+          scene.add(loftBedLight);
           three = {
             renderer,
             scene,
@@ -14557,10 +14625,15 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             spot,
             lampLight,
             warmLights: [
-              { l: lampLight, base: 1.8 },
-              { l: cinemaLight, base: 1.6 },
-              { l: gameLight, base: 1.5 },
-              { l: loftLight, base: 1.5 },
+              { l: lampLight, base: 2.1 },
+              { l: cinemaLight, base: 2.1 },
+              { l: gameLight, base: 2.0 },
+              { l: loftLight, base: 1.9 },
+              { l: westLight, base: 1.7 },
+              { l: teaLight, base: 1.5 },
+              { l: dineLight, base: 1.7 },
+              { l: loftEastLight, base: 1.5 },
+              { l: loftBedLight, base: 1.4 },
             ],
             fish: [],
             cats: [],
@@ -14581,6 +14654,52 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             if (o.isMesh) {
               o.receiveShadow = true;
               o.castShadow = !(o.material && o.material.transparent) && !o.userData.noCast;
+            }
+          });
+          /* Chao đèn trần cho 5 đèn điểm mới của nhà chính: dây treo từ xà
+             trần 8.7 xuống + đĩa phát sáng (MeshBasic — luôn sáng rõ). Vị
+             trí khớp từng đèn: thư viện tây, quầy trà, phòng ăn, gác đông,
+             gác giường (gác treo thấp hơn vì không gian mở tới mái). */
+          [
+            [-26, -35, 7.5],
+            [-25, -47, 7.5],
+            [28, -35, 7.5],
+            [27, -44, 8.0],
+            [10, -21, 8.0],
+          ].forEach((lp) => {
+            const rod = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.03, 0.03, 8.7 - lp[2], 6),
+              new THREE.MeshLambertMaterial({ color: 0x2f2420 }),
+            );
+            rod.position.set(lp[0], (8.7 + lp[2]) / 2, lp[1]);
+            scene.add(rod);
+            const shade = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.55, 0.85, 0.35, 18),
+              new THREE.MeshLambertMaterial({ color: 0x8b4a2b }),
+            );
+            shade.position.set(lp[0], lp[2], lp[1]);
+            scene.add(shade);
+            const bulb = new THREE.Mesh(
+              new THREE.SphereGeometry(0.3, 12, 10),
+              new THREE.MeshBasicMaterial({ color: 0xffd9a8 }),
+            );
+            bulb.position.set(lp[0], lp[2] - 0.22, lp[1]);
+            scene.add(bulb);
+          });
+          /* NHÀ CHÍNH KHÔNG ĐỔ BÓNG — luật chủ nhân (chỉ giữ đổ bóng ngoài
+             trời): gỡ cờ đổ/nhận bóng của MỌI mesh nằm trong dấu chân nhà
+             chính (x ±33, z -53.5..-17), gồm cả mái và nội thất, để bóng
+             nắng ngoài trời không bao giờ làm tối/làm xấu nội thất. Shadow
+             map toàn cục hiện đang tắt nên đây là lớp khóa cấu trúc: sau
+             này có bật lại bóng ngoài trời thì trong nhà vẫn sạch bóng. */
+          scene.traverse((o) => {
+            if (o.isMesh) {
+              const wp = new THREE.Vector3();
+              o.getWorldPosition(wp);
+              if (wp.x >= -33 && wp.x <= 33 && wp.z >= -53.5 && wp.z <= -17) {
+                o.castShadow = false;
+                o.receiveShadow = false;
+              }
             }
           });
           sizeRenderer();
