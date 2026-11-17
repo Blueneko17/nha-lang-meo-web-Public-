@@ -5533,6 +5533,201 @@
         }
       }
     </style>
+    <style>
+      /* ===== Cá ngựa: TOÀN MÀN HÌNH khi chơi (như bi-a) =====
+         Mở ván cá ngựa → lớp phủ chiếm 100% viewport (100dvh, bỏ max-width
+         880px + lề hộp thoại); script đi kèm (sau khối Bida) xin fullscreen
+         của trình duyệt khi mở ván và nhả ra khi đóng — trình duyệt/webview
+         từ chối Fullscreen API thì bố cục 100dvh vẫn phủ kín màn hình.
+         Bàn cờ là hình vuông: KHÔNG khóa hướng ngang, giữ nguyên hướng máy
+         của người chơi; bàn căn giữa, phóng to nhất có thể theo viewport,
+         canvas 3D và bàn 2D tự resize theo khung chứa chung. */
+      #ludoOverlay {
+        --lsat: env(safe-area-inset-top, 0px);
+        --lsar: env(safe-area-inset-right, 0px);
+        --lsab: env(safe-area-inset-bottom, 0px);
+        --lsal: env(safe-area-inset-left, 0px);
+      }
+      #ludoOverlay.open {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        height: var(--app-h, 100dvh);
+        padding: 0;
+        background: #17110b;
+        z-index: 110;
+        display: flex;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+      #ludoOverlay .ludo-modal {
+        margin: 0;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        max-height: none;
+        padding: calc(var(--lsat) + 10px) calc(var(--lsar) + 14px)
+          calc(var(--lsab) + 12px) calc(var(--lsal) + 14px);
+        border-radius: 0;
+        box-shadow: none;
+        overflow: hidden;
+        animation: none;
+        display: flex;
+        flex-direction: column;
+      }
+      #ludoOverlay .ludo-modal::before {
+        display: none; /* bỏ tay nắm bottom-sheet của bản điện thoại */
+      }
+      /* Toàn màn: bỏ tiêu đề + đoạn mô tả luật dài (như bi-a bỏ h2/desc) —
+         thoát ván bằng nút "Thoát về phòng" luôn hiện rõ góc trên-phải */
+      #ludoOverlay .ludo-modal > h2,
+      #ludoOverlay .ludo-modal > .desc {
+        display: none;
+      }
+      #ludoOverlay .ludo-modal > .x {
+        top: calc(var(--lsat) + 10px);
+        right: calc(var(--lsar) + 12px);
+        width: auto;
+        height: 46px;
+        min-width: 46px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border-color: transparent;
+        background: var(--gold, #f2b705);
+        color: #241a02;
+        font-size: 0.95rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      }
+      #ludoOverlay .ludo-modal > .x::after {
+        content: "Thoát về phòng";
+      }
+      /* Dải báo lượt chừa chỗ cho nút thoát ở góc phải */
+      #ludoOverlay .ludo-turnbar {
+        margin-right: 182px;
+      }
+      #ludoOverlay #ludoSetup {
+        overflow-y: auto;
+        min-height: 0;
+        padding-top: 54px;
+      }
+      #ludoOverlay #ludoGame {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+      }
+      #ludoOverlay #ludoGame[hidden],
+      #ludoOverlay #ludoSetup[hidden] {
+        display: none;
+      }
+      /* Bố cục ngang (màn rộng / máy ngang): bàn ở giữa, cột điều khiển bên
+         phải cuộn độc lập — ô tên người chơi, xúc xắc, nhật ký đều ở đây */
+      #ludoOverlay .ludo-layout {
+        display: flex;
+        flex-direction: row;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+      }
+      #ludoOverlay .ludo-board-col {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+      }
+      #ludoOverlay #ludo3dWrap,
+      #ludoOverlay .board-wrap {
+        width: min(100%, calc(100dvh - 168px));
+        max-width: none;
+        margin: auto;
+      }
+      #ludoOverlay .ludo-side {
+        width: 300px;
+        flex: none;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 2px;
+      }
+      /* Mục tiêu chạm ≥ 46px trong giao diện full màn */
+      #ludoOverlay .btn {
+        min-height: 46px;
+      }
+      #ludoOverlay .ludo-view-toggle button {
+        min-height: 46px;
+      }
+      #ludoOverlay .seg button {
+        min-height: 46px;
+      }
+      /* Dọc hẹp (điện thoại dựng máy): ô tên thành HÀNG ngang trên bàn, bàn
+         ở giữa, điều khiển xếp dưới; phần thừa cuộn trong khung game */
+      @media (max-width: 860px) and (orientation: portrait) {
+        #ludoOverlay .ludo-modal {
+          padding-top: calc(var(--lsat) + 58px);
+        }
+        #ludoOverlay .ludo-turnbar {
+          margin-right: 0;
+        }
+        #ludoOverlay #ludoSetup {
+          padding-top: 0;
+        }
+        #ludoOverlay #ludoGame {
+          overflow-y: auto;
+        }
+        #ludoOverlay .ludo-layout {
+          flex-direction: column;
+          flex: none;
+          gap: 10px;
+        }
+        #ludoOverlay .ludo-side {
+          display: contents;
+        }
+        #ludoOverlay #playerList {
+          order: -1;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+        #ludoOverlay .p-chip {
+          flex: 1 1 42%;
+          min-width: 0;
+          font-size: 0.85rem;
+          padding: 6px 9px;
+        }
+        #ludoOverlay #ludo3dWrap,
+        #ludoOverlay .board-wrap {
+          width: min(100%, calc(100dvh - 430px));
+          margin: 0 auto;
+        }
+        #ludoOverlay .turn-msg {
+          min-height: 0;
+        }
+        #ludoOverlay .ludo-log {
+          max-height: 72px;
+        }
+      }
+      /* Ngang thấp (điện thoại xoay ngang): cột phải hẹp + cuộn, bàn vẫn
+         trọn khung theo chiều cao thật của viewport */
+      @media (orientation: landscape) and (max-height: 600px) {
+        #ludoOverlay .ludo-side {
+          width: 252px;
+        }
+        #ludoOverlay #ludo3dWrap,
+        #ludoOverlay .board-wrap {
+          width: min(100%, calc(100dvh - 148px));
+        }
+        #ludoOverlay .ludo-view-hint {
+          display: none;
+        }
+        #ludoOverlay .ludo-turnbar {
+          margin-bottom: 8px;
+          padding: 6px 13px;
+        }
+      }
+    </style>
     <!-- Làng Mèo | visual/performance upgrade V3, 2026-11-15 -->
     <style>
       /* Kệ sách lore — bảng đọc sách (điện thoại: chữ lớn, cuộn mượt, nút đóng rõ) */
@@ -20544,6 +20739,68 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             },
             { passive: false },
           );
+        syncFS();
+      })();
+    </script>
+    <script>
+      "use strict";
+      /* ===== Cá ngựa: FULLSCREEN khi mở ván, nhả ra khi đóng ván =====
+         Cùng cơ chế với bi-a: theo dõi lớp .open của #ludoOverlay nên mọi
+         đường mở ván đều được hưởng (trạm trong phòng Cá ngựa, nút mở panel,
+         sảnh nhiều người). Mở → xin fullscreen của trình duyệt; đóng (nút
+         "Thoát về phòng" / Esc / chạm nền) → nhả fullscreen nếu chính ván
+         này đã xin. Trình duyệt/webview từ chối thì lớp phủ CSS vẫn chiếm
+         100dvh, không lỗi, chơi bình thường. KHÁC bi-a: KHÔNG khóa hướng
+         ngang — bàn cờ là hình vuông, giữ nguyên hướng máy của người chơi.
+         Nếu làng đã ở fullscreen từ trước (nút vào làng) thì giữ nguyên,
+         thoát ván không đá người chơi khỏi fullscreen của làng. Canvas 3D
+         tự resize theo khung chứa trong vòng lặp vẽ của nó; bàn 2D là CSS
+         thuần nên tự theo khung. */
+      (function ludoFullscreen() {
+        var ov = document.getElementById("ludoOverlay");
+        if (!ov) return;
+        var wasOpen = false,
+          weFs = false;
+        function enterFS() {
+          try {
+            var el = document.documentElement;
+            if (el.requestFullscreen && !document.fullscreenElement) {
+              weFs = true;
+              var p = el.requestFullscreen({ navigationUI: "hide" });
+              if (p && typeof p.catch === "function")
+                p.catch(function () {
+                  try {
+                    el.requestFullscreen();
+                  } catch (e) {}
+                });
+            }
+          } catch (e) {}
+        }
+        function exitFS() {
+          try {
+            if (weFs && document.fullscreenElement && document.exitFullscreen) {
+              var p = document.exitFullscreen();
+              if (p && typeof p.catch === "function") p.catch(function () {});
+            }
+          } catch (e) {}
+          weFs = false;
+        }
+        function syncFS() {
+          var open = ov.classList.contains("open");
+          if (open && !wasOpen) enterFS();
+          else if (!open && wasOpen) exitFS();
+          wasOpen = open;
+        }
+        if (window.MutationObserver)
+          new MutationObserver(syncFS).observe(ov, {
+            attributes: true,
+            attributeFilter: ["class"],
+          });
+        document.addEventListener("fullscreenchange", function () {
+          /* Người chơi tự thoát fullscreen (Esc/gesture) giữa ván: ván vẫn
+             mở ở lớp phủ 100dvh; lúc đóng ván không gọi exit nữa */
+          if (!document.fullscreenElement) weFs = false;
+        });
         syncFS();
       })();
     </script>
