@@ -1329,8 +1329,142 @@
         box-shadow: inset 0 -3px 4px rgba(0, 0, 0, 0.3);
       }
       .p-chip.turn {
-        border-color: var(--gold);
-        background: color-mix(in srgb, var(--gold) 14%, var(--bg));
+        border-color: var(--pc, var(--gold));
+        background: color-mix(in srgb, var(--pc, var(--gold)) 13%, var(--bg));
+        animation: chipPulse 1.1s ease-in-out infinite;
+      }
+      @keyframes chipPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0
+            color-mix(in srgb, var(--pc, #f2b705) 55%, transparent);
+        }
+        50% {
+          box-shadow: 0 0 0 5px
+            color-mix(in srgb, var(--pc, #f2b705) 16%, transparent);
+        }
+      }
+      .p-chip .going {
+        font-weight: 800;
+        font-size: 0.78rem;
+        color: var(--pc, #b97f06);
+        white-space: nowrap;
+      }
+      .p-chip .bot-tag {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      /* Dải thông báo lượt kiểu file mẫu: chấm màu + tên người đang đi */
+      .ludo-turnbar {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 15px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        background: var(--bg);
+      }
+      .ludo-turnbar .dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        flex: none;
+        box-shadow: inset 0 -3px 4px rgba(0, 0, 0, 0.3);
+      }
+      .ludo-turnbar .ludo-turn-tag {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      /* Hai chip xúc xắc: giá trị từng viên, bấm để chọn viên đi trước */
+      .dice-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .die-chip {
+        min-width: 54px;
+        height: 54px;
+        border-radius: 13px;
+        background: #fff;
+        color: #33241a;
+        border: 3px solid #d8cbb2;
+        font: 800 24px "Baloo 2", sans-serif;
+        cursor: pointer;
+        padding: 0 10px;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      }
+      .die-chip.wide {
+        font-size: 0.92rem;
+      }
+      .die-chip.sel {
+        border-color: var(--pc, #f2b705);
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--pc, #f2b705) 45%, transparent);
+      }
+      .die-chip:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .ludo-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .ludo-act-btns {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .ludo-act-btns .btn {
+        min-height: 46px;
+      }
+      #rollBtn {
+        min-height: 48px;
+      }
+      #rollBtn.on {
+        outline: 3px solid var(--pc, #f2b705);
+        animation: ludoBtnPulse 0.9s ease-in-out infinite;
+      }
+      @keyframes ludoBtnPulse {
+        50% {
+          transform: translateY(-3px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #rollBtn.on {
+          animation: none;
+        }
+        .p-chip.turn {
+          animation: none;
+        }
+      }
+      .cell .lane-n {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.62rem;
+        font-weight: 800;
+        color: rgba(60, 40, 10, 0.55);
+      }
+      .yard-disc {
+        position: absolute;
+        width: 7.6%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        border: 2.5px solid;
+        background: rgba(255, 255, 255, 0.65);
+        z-index: 1;
+        pointer-events: none;
       }
       .p-chip .home-n {
         margin-left: auto;
@@ -1431,7 +1565,7 @@
         padding: 5px 10px;
         font-weight: 700;
         font-size: 0.82rem;
-        min-height: 34px;
+        min-height: 40px;
       }
       .seg button.sel {
         background: var(--accent);
@@ -5587,8 +5721,9 @@
             <div class="game-body">
               <h3 class="font-disp">Cờ cá ngựa</h3>
               <p>
-                2–4 người chơi, chọn Người hoặc Máy cho từng màu. Tung 6 để xuất quân, đá quân đối
-                thủ về chuồng, đưa cả 4 quân ngựa về đích trước là thắng.
+                2–4 người chơi, chọn Người hoặc Máy cho từng màu. Mỗi lượt tung 2 xúc xắc dùng từng
+                viên một, ra 6 hoặc ra đôi được tung lại; cấm nhảy qua quân — đưa đủ 4 quân vào các
+                ô đích 3, 4, 5, 6 là thắng.
               </p>
               <button class="btn teal" type="button" data-open="ludoOverlay">
                 Chơi cờ cá ngựa
@@ -5694,8 +5829,8 @@
             <div class="game-body">
               <h3 class="font-disp">Karaoke sân khấu</h3>
               <p>
-                Dán link karaoke YouTube lên màn hình lớn, lên sân khấu trước màn hình, bật mic và
-                hát — khán giả thả cá khô, thả tim cổ vũ để chấm điểm vui.
+                Dán link karaoke YouTube để chiếu lên TV nhà chính, lên sân khấu phòng karaoke,
+                bật mic và hát — khán giả thả cá khô, thả tim cổ vũ để chấm điểm vui.
               </p>
               <button class="btn teal" type="button" data-open="karaokeOverlay">Hát karaoke</button>
             </div>
@@ -5874,8 +6009,11 @@
         <button class="x" type="button" data-close="ludoOverlay" aria-label="Đóng">✕</button>
         <h2 class="font-disp">🐴 Cờ cá ngựa</h2>
         <p class="desc">
-          Tung được 6 mới xuất quân. Đá quân đối thủ (ở ô thường) thì quân đó về chuồng; ô sao và ô
-          xuất phát là ô an toàn. Đưa cả 4 quân về đích để thắng.
+          Mỗi lượt tung 2 xúc xắc và dùng lần lượt từng viên — không có nước đi dồn tổng. Ra 6 thì
+          dùng xong được tung lại đúng viên đó; ra đôi thì dùng hết cả 2 viên được tung lại cả 2.
+          Ra quân luôn là lựa chọn của bạn (ra 6 hoặc ra đôi), không bao giờ bị ép. Cấm nhảy qua
+          bất kỳ quân nào; đá quân địch khi đáp đúng ô. Vào cột đích phải đúng số bước, thắng khi
+          đủ 4 quân ở các ô đích 3, 4, 5, 6.
         </p>
         <div id="ludoSetup">
           <div id="setupRows"></div>
@@ -5884,6 +6022,10 @@
           </button>
         </div>
         <div id="ludoGame" hidden>
+          <div class="ludo-turnbar" id="ludoTurnBar">
+            <span class="dot" id="ludoTurnDot"></span><span id="ludoTurnName">Chưa mở ván</span
+            ><span class="ludo-turn-tag" id="ludoTurnTag"></span>
+          </div>
           <div class="ludo-layout">
             <div class="board-wrap" id="boardWrap">
               <div class="board-grid" id="boardGrid"></div>
@@ -5892,21 +6034,27 @@
                 viewBox="0 0 100 100"
                 aria-hidden="true"
               >
-                <polygon points="50,50 0,0 100,0" fill="#2ea44f" />
-                <polygon points="50,50 100,0 100,100" fill="#f2b705" />
-                <polygon points="50,50 100,100 0,100" fill="#2470c7" />
-                <polygon points="50,50 0,100 0,0" fill="#e0393e" />
+                <polygon points="50,50 0,0 100,0" fill="#33c9cc" />
+                <polygon points="50,50 100,0 100,100" fill="#ffc907" />
+                <polygon points="50,50 100,100 0,100" fill="#99cc00" />
+                <polygon points="50,50 0,100 0,0" fill="#ff3a0a" />
               </svg>
               <div id="pieceLayer"></div>
             </div>
             <div class="ludo-side">
               <div class="player-list" id="playerList"></div>
               <div class="winner-banner" id="winnerBanner"></div>
-              <div class="dice-zone">
-                <div class="dice" id="diceEl" aria-hidden="true"></div>
-                <div>
-                  <div class="turn-msg" id="turnMsg"></div>
-                  <button class="btn" type="button" id="rollBtn">🎲 Tung xúc xắc</button>
+              <div class="turn-msg" id="turnMsg"></div>
+              <button class="btn" type="button" id="rollBtn">🎲 Tung 2 xúc xắc</button>
+              <div class="ludo-actions">
+                <div class="dice-chips" id="diceChips"></div>
+                <div class="ludo-act-btns">
+                  <button class="btn teal" type="button" id="ludoReleaseBtn" hidden>
+                    🐴 Ra quân
+                  </button>
+                  <button class="btn ghost" type="button" id="ludoDiscardBtn" hidden>
+                    Bỏ viên
+                  </button>
                 </div>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap">
@@ -6403,9 +6551,10 @@
         <button class="x" type="button" data-close="karaokeOverlay" aria-label="Đóng">✕</button>
         <h2 class="font-disp">🎤 Karaoke sân khấu Làng Mèo</h2>
         <p class="desc">
-          Dán link karaoke YouTube để chiếu lên màn hình lớn, bấm “Lên sân khấu” đứng trước màn
-          hình, bật mic rồi hát. Điểm vui tính bằng cổ vũ của khán giả (thả cá khô/tim) cộng nhịp
-          giữ nốt của ca sĩ.
+          Dán link karaoke YouTube để chiếu lên <b>TV nhà chính</b> — hình và tiếng karaoke phát
+          ở TV nhà chính (màn hình trong phòng karaoke chỉ là bảng trang trí). Bấm “Lên sân khấu”
+          đứng trước màn hình phòng karaoke, bật mic rồi hát. Điểm vui tính bằng cổ vũ của khán
+          giả (thả cá khô/tim) cộng nhịp giữ nốt của ca sĩ.
         </p>
         <form class="yt-form" id="karaForm">
           <input
@@ -15294,6 +15443,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           DJ.audio = null;
         }
         f.removeAttribute("src");
+        /* ĐỢT E: xóa dấu vết video cũ như applyScreen của TV — tránh gói
+           sự kiện trễ làm khung DJ tự sống lại sau khi đã tắt. */
+        f.dataset.vid = "";
+        f.dataset.bridged = "";
+        f.dataset.alive = "";
         DJ.cur = s && s.kind ? s : null;
         if (DJ.cur && DJ.cur.kind === "yt") {
           loadYtFrame(f, DJ.cur.id, "loop=1&playlist=" + DJ.cur.id + "&controls=0");
@@ -15331,6 +15485,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           };
         } else {
           f.removeAttribute("src");
+          /* ĐỢT E: xóa dấu vết video cũ như applyScreen của TV — tránh gói
+             sự kiện trễ làm màn hình Bar tự sống lại sau khi đã tắt. */
+          f.dataset.vid = "";
+          f.dataset.bridged = "";
+          f.dataset.alive = "";
           ov.classList.remove("on");
           ov.style.display = "none";
           ov.dataset.gated = "";
@@ -16348,7 +16507,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         box.classList.toggle("on", !!show);
       }
       function ytBridge(frame) {
-        if (!frame || frame.dataset.bridged === "1" || !frame.dataset.vid) return;
+        /* ĐỢT E: khung đã bị tắt (không còn src) thì không bao giờ được
+           nạp lại bởi một gói onError 153 đến trễ của trình phát cũ. */
+        if (!frame || frame.dataset.bridged === "1" || !frame.dataset.vid || !frame.getAttribute("src"))
+          return;
         frame.dataset.bridged = "1";
         frame.src = ytBridgeUrl(frame.dataset.vid, frame.dataset.vlx || "");
         const token = frame.dataset.vtoken;
@@ -16765,12 +16927,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       window.addEventListener("message", (e) => {
         const host = (e.origin || "").replace(/^https?:\/\//, "");
         const ytF = $("#ytFrame");
+        /* ĐỢT E: thanh điều khiển này CHỈ của TV — sự kiện phải đến từ
+           chính cửa sổ của #ytFrame. Trước đây chỉ lọc theo origin
+           youtube.com nên infoDelivery của khung Bar/DJ (cũng từ
+           youtube.com) lọt vào, làm thanh tiến trình/nút phát của TV
+           nhảy theo video ở khu bar. */
+        if (!ytF || e.source !== ytF.contentWindow) return;
         /* Qua trang cầu, sự kiện của trình phát về từ origin của trang cầu
            (chính là bản live của game) và cửa sổ gửi là khung TV đang bridged. */
         const fromBridge =
-          ytF &&
           ytF.dataset.bridged === "1" &&
-          e.source === ytF.contentWindow &&
           (e.origin || "") === new URL(VL_LIVE_BASE).origin;
         if (!/youtube(-nocookie)?\.com$/.test(host) && !fromBridge) return;
         let d = null;
@@ -17031,163 +17197,105 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
     </script>
     <script>
       "use strict";
-      /* ================= CỜ CÁ NGỰA ================= */
+      /* ================= CỜ CÁ NGỰA (làm lại đợt H) =================
+         Bàn theo file mẫu chủ nhân gửi: vòng 56 ô, 4 chuồng xuất phát ở 4
+         góc, cột về đích 6 ô/người, 4 quân/người. Luật chốt của chủ nhân
+         (ghi đè file mẫu ở các điểm khác nhau):
+         (1) Mỗi lượt tung 2 xúc xắc; KHÔNG có nước đi dùng tổng — dùng xúc
+             xắc LẦN LƯỢT TỪNG VIÊN, người chơi tự chọn viên nào trước và
+             đi quân nào cho viên đó.
+         (2) Ra 6: viên 6 dùng để ra quân hoặc đi 6 bước; dùng xong viên 6
+             thì TUNG LẠI ĐÚNG VIÊN ĐÓ (được chuỗi tiếp nếu lại ra 6).
+         (3) Ra đôi (trừ đôi 6): sau khi dùng HẾT CẢ 2 VIÊN thì TUNG LẠI
+             CẢ 2; "Ra quân (đôi)" là một hành động dùng cả cặp, hoặc tách
+             hai viên đi hai nước riêng.
+         (4) RA QUÂN LUÔN LÀ LỰA CHỌN: không bao giờ tự động ép ra quân,
+             kể cả khi đó là nước duy nhất; không ra quân mà viên đó không
+             còn nước đi nào thì có nút "Bỏ viên" rõ ràng, không kẹt lượt.
+         (5) Cấm nhảy qua bất kỳ quân nào (cả quân mình) trên vòng và
+             trong cột đích; đá quân địch chỉ khi đáp đúng ô; ra quân đáp
+             trúng ô xuất phát có quân địch thì đá quân đó về chuồng.
+         (6) Vào cột đích phải đúng số bước còn lại; trong cột, muốn lên
+             ô k phải tung đúng k và các ô đi qua phải trống; THẮNG khi
+             đủ 4 quân ở các ô đích 3, 4, 5, 6.
+         Nhiều người chơi: giữ nguyên cơ chế sảnh chủ-làm-trọng-tài qua
+         kênh game như các trò khác (khối sảnh ở cuối file lo phần đó). */
       const LUDO_COLORS = [
-        {
-          key: "red",
-          name: "Đỏ",
-          css: "#e0393e",
-          start: 0,
-          home: [
-            [7, 1],
-            [7, 2],
-            [7, 3],
-            [7, 4],
-            [7, 5],
-          ],
-          base: [
-            [1.6, 1.6],
-            [1.6, 3.9],
-            [3.9, 1.6],
-            [3.9, 3.9],
-          ],
-        },
-        {
-          key: "green",
-          name: "Xanh lá",
-          css: "#2ea44f",
-          start: 13,
-          home: [
-            [1, 7],
-            [2, 7],
-            [3, 7],
-            [4, 7],
-            [5, 7],
-          ],
-          base: [
-            [1.6, 10.6],
-            [1.6, 12.9],
-            [3.9, 10.6],
-            [3.9, 12.9],
-          ],
-        },
-        {
-          key: "yellow",
-          name: "Vàng",
-          css: "#f2b705",
-          start: 26,
-          home: [
-            [7, 13],
-            [7, 12],
-            [7, 11],
-            [7, 10],
-            [7, 9],
-          ],
-          base: [
-            [10.6, 10.6],
-            [10.6, 12.9],
-            [12.9, 10.6],
-            [12.9, 12.9],
-          ],
-        },
-        {
-          key: "blue",
-          name: "Xanh dương",
-          css: "#2470c7",
-          start: 39,
-          home: [
-            [13, 7],
-            [12, 7],
-            [11, 7],
-            [10, 7],
-            [9, 7],
-          ],
-          base: [
-            [10.6, 1.6],
-            [10.6, 3.9],
-            [12.9, 1.6],
-            [12.9, 3.9],
-          ],
-        },
+        { key: "teal", name: "Xanh ngọc", css: "#33c9cc", lt: "#95e6e6" },
+        { key: "red", name: "Đỏ", css: "#ff3a0a", lt: "#ff8466" },
+        { key: "green", name: "Xanh lá", css: "#99cc00", lt: "#caff3c" },
+        { key: "yellow", name: "Vàng", css: "#ffc907", lt: "#ffe680" },
       ];
+      const LUDO_START = [0, 14, 28, 42]; // ô xuất phát của từng người trên vòng 56
+      /* Vòng 56 ô theo đúng thứ tự file mẫu — tọa độ [hàng, cột], lưới 15×15 */
       const LUDO_PATH = [
-        [6, 1],
-        [6, 2],
-        [6, 3],
-        [6, 4],
-        [6, 5],
-        [5, 6],
-        [4, 6],
-        [3, 6],
-        [2, 6],
-        [1, 6],
-        [0, 6],
+        [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6],
+        [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0],
+        [7, 0], [8, 0],
+        [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6],
+        [9, 6], [10, 6], [11, 6], [12, 6], [13, 6], [14, 6],
+        [14, 7], [14, 8],
+        [13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 8],
+        [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14],
+        [7, 14], [6, 14],
+        [6, 13], [6, 12], [6, 11], [6, 10], [6, 9], [6, 8],
+        [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [0, 8],
         [0, 7],
-        [0, 8],
-        [1, 8],
-        [2, 8],
-        [3, 8],
-        [4, 8],
-        [5, 8],
-        [6, 9],
-        [6, 10],
-        [6, 11],
-        [6, 12],
-        [6, 13],
-        [6, 14],
-        [7, 14],
-        [8, 14],
-        [8, 13],
-        [8, 12],
-        [8, 11],
-        [8, 10],
-        [8, 9],
-        [9, 8],
-        [10, 8],
-        [11, 8],
-        [12, 8],
-        [13, 8],
-        [14, 8],
-        [14, 7],
-        [14, 6],
-        [13, 6],
-        [12, 6],
-        [11, 6],
-        [10, 6],
-        [9, 6],
-        [8, 5],
-        [8, 4],
-        [8, 3],
-        [8, 2],
-        [8, 1],
-        [8, 0],
-        [7, 0],
-        [6, 0],
       ];
-      const LUDO_SAFE = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
-      const CENTER_POS = {
-        red: [7.6, 6.4],
-        green: [6.4, 7.6],
-        yellow: [7.6, 8.6],
-        blue: [8.6, 7.6],
-      };
+      /* Cột về đích: LUDO_LANE[người][k-1] = [hàng, cột] của ô đích k (1..6) */
+      const LUDO_LANE = [
+        [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7]],
+        [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]],
+        [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]],
+        [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9], [7, 8]],
+      ];
+      /* Chuồng xuất phát ở 4 góc: góc trên-trái của vùng 6×6 của từng người */
+      const LUDO_YARD = [
+        { r: 0, c: 0 },
+        { r: 9, c: 0 },
+        { r: 9, c: 9 },
+        { r: 0, c: 9 },
+      ];
+      let LUDO_STEP_MS = 140; // nhịp bước chân quân (test hạ xuống cho nhanh)
 
-      const ludoSetupChoice = { red: "human", green: "bot", yellow: "bot", blue: "bot" };
-      let L = null; // active game state
+      const ludoSetupChoice = { teal: "human", red: "bot", green: "bot", yellow: "bot" };
+      let L = null; // trạng thái ván đang chạy
+      let ludoNet = null; // {mySeat, isHost} khi chơi qua sảnh; null = chơi ngay trên máy này
+      let ludoSelDie = 0; // viên xúc xắc đang chọn (chỉ là UI cục bộ của máy này)
+      let ludoSelPair = false; // đang chọn hành động "Ra quân (đôi)"
+
+      function ludoDice1() {
+        return 1 + Math.floor(Math.random() * 6);
+      }
+      function ludoIsGuest() {
+        return !!(ludoNet && !ludoNet.isHost);
+      }
+      /* Lượt hiện tại có phải do CHÍNH máy này thao tác tay không */
+      function ludoLocalTurn() {
+        if (!L) return false;
+        if (!ludoNet) return L.players[L.turn].type === "human";
+        return ludoNet.mySeat === L.turn;
+      }
+      function ludoPlayerName(pi) {
+        const p = L.players[pi];
+        return p && p.name ? p.name : LUDO_COLORS[p.colorIdx].name;
+      }
 
       function ludoBuildBoard() {
         const grid = $("#boardGrid");
         grid.innerHTML = "";
-        const pathSet = new Set(LUDO_PATH.map((p) => p[0] + "," + p[1]));
+        const wrap = $("#boardWrap");
+        wrap.querySelectorAll(".yard-disc").forEach((d) => d.remove());
+        const pathIdx = new Map(LUDO_PATH.map((p, i) => [p[0] + "," + p[1], i]));
         const startMap = {};
-        LUDO_COLORS.forEach((c) => {
-          const p = LUDO_PATH[c.start];
-          startMap[p[0] + "," + p[1]] = c;
+        LUDO_COLORS.forEach((c, pi) => {
+          const p = LUDO_PATH[LUDO_START[pi]];
+          startMap[p[0] + "," + p[1]] = pi;
         });
-        const homeMap = {};
-        LUDO_COLORS.forEach((c) =>
-          c.home.forEach((p) => {
-            homeMap[p[0] + "," + p[1]] = c;
+        const laneMap = {};
+        LUDO_LANE.forEach((lane, pi) =>
+          lane.forEach((p, k) => {
+            laneMap[p[0] + "," + p[1]] = { pi: pi, k: k + 1 };
           }),
         );
         for (let r = 0; r < 15; r++)
@@ -17195,41 +17303,52 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             const d = document.createElement("div");
             d.className = "cell";
             const key = r + "," + c;
-            const inBase =
-              (r < 6 && c < 6) || (r < 6 && c > 8) || (r > 8 && c > 8) || (r > 8 && c < 6);
+            let yardPi = -1;
+            LUDO_YARD.forEach((y, pi) => {
+              if (r >= y.r && r < y.r + 6 && c >= y.c && c < y.c + 6) yardPi = pi;
+            });
             if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
               d.style.background = "transparent";
-            } else if (inBase) {
-              const corner =
-                r < 6 && c < 6
-                  ? LUDO_COLORS[0]
-                  : r < 6 && c > 8
-                    ? LUDO_COLORS[1]
-                    : r > 8 && c > 8
-                      ? LUDO_COLORS[2]
-                      : LUDO_COLORS[3];
-              const lr = r < 6 ? r : r - 9,
-                lc = c < 6 ? c : c - 9;
+            } else if (yardPi >= 0) {
+              const col = LUDO_COLORS[yardPi];
+              const lr = r - LUDO_YARD[yardPi].r,
+                lc = c - LUDO_YARD[yardPi].c;
               if (lr >= 1 && lr <= 4 && lc >= 1 && lc <= 4) {
                 d.classList.add("pad");
               } else {
-                d.style.background = corner.css + "55";
+                d.style.background = col.css + "2e";
                 d.style.borderColor = "transparent";
               }
-            } else if (homeMap[key]) {
-              d.style.background = homeMap[key].css + "88";
-            } else if (pathSet.has(key)) {
+            } else if (laneMap[key]) {
+              const lm = laneMap[key];
+              d.style.background = LUDO_COLORS[lm.pi].lt;
+              d.innerHTML = '<span class="lane-n">' + lm.k + "</span>";
+            } else if (pathIdx.has(key)) {
+              const idx = pathIdx.get(key);
               d.classList.add("path");
-              if (startMap[key]) {
-                d.style.background = startMap[key].css;
+              if (startMap[key] !== undefined) {
+                d.style.background = LUDO_COLORS[startMap[key]].css;
                 d.innerHTML = '<span class="home-dot">🐴</span>';
               } else {
-                const idx = LUDO_PATH.findIndex((p) => p[0] === r && p[1] === c);
-                if (LUDO_SAFE.has(idx)) d.innerHTML = '<span class="star">★</span>';
+                // Mỗi phần tư vòng nhuộm nhẹ màu của người gần nhất (như file mẫu)
+                d.style.background =
+                  LUDO_COLORS[Math.floor((idx + 1) / 14) % 4].css + "30";
               }
             }
             grid.appendChild(d);
           }
+        // 4 ô đậu quân trong mỗi chuồng xuất phát
+        const u = 100 / 15;
+        LUDO_YARD.forEach((y, pi) => {
+          for (let i = 0; i < 4; i++) {
+            const disc = document.createElement("div");
+            disc.className = "yard-disc";
+            disc.style.borderColor = LUDO_COLORS[pi].css;
+            disc.style.left = (y.c + 1.5 + (i % 2) * 2 + 0.5) * u + "%";
+            disc.style.top = (y.r + 1.5 + (i >> 1) * 2 + 0.5) * u + "%";
+            wrap.appendChild(disc);
+          }
+        });
       }
       function ludoBuildSetup() {
         const rows = $("#setupRows");
@@ -17271,103 +17390,88 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         log.prepend(d);
         while (log.children.length > 30) log.removeChild(log.lastChild);
       }
-      function ludoPiecePos(player, piece) {
-        const col = LUDO_COLORS[player];
-        if (piece.prog === -1) {
-          const b = col.base[piece.idx];
-          return [b[0], b[1]];
+
+      /* ---------- Luật đi quân ---------- */
+      /* Vị trí hiển thị [hàng, cột] (số thực cho ô đậu trong chuồng) */
+      function ludoPiecePos(pi, pc) {
+        if (pc.u < 0) {
+          const y = LUDO_YARD[pi];
+          return [y.r + 1.5 + (pc.idx >> 1) * 2, y.c + 1.5 + (pc.idx % 2) * 2];
         }
-        if (piece.prog <= 50) {
-          return LUDO_PATH[(col.start + piece.prog) % 52];
-        }
-        if (piece.prog <= 55) {
-          return col.home[piece.prog - 51];
-        }
-        return CENTER_POS[col.key];
+        if (pc.u <= 55) return LUDO_PATH[(LUDO_START[pi] + pc.u) % 56];
+        return LUDO_LANE[pi][pc.u - 56];
       }
-      function ludoRenderPieces(movable) {
-        const layer = $("#pieceLayer");
-        layer.innerHTML = "";
-        if (!L) return;
-        const groups = new Map();
+      /* Bản đồ các quân đang trên vòng: ô toàn cục -> {pi, idx} */
+      function ludoOcc() {
+        const m = new Map();
         L.players.forEach((p, pi) =>
           p.pieces.forEach((pc) => {
-            const pos = ludoPiecePos(pi, pc);
-            const k = pos[0].toFixed(1) + "," + pos[1].toFixed(1);
-            if (!groups.has(k)) groups.set(k, []);
-            groups.get(k).push({ pi, pc, pos });
+            if (pc.u >= 0 && pc.u <= 55) m.set((LUDO_START[pi] + pc.u) % 56, { pi: pi, idx: pc.idx });
           }),
         );
-        groups.forEach((list) => {
-          list.forEach((it, i) => {
-            const el = document.createElement("div");
-            el.className = "piece";
-            el.style.background = LUDO_COLORS[it.pi].css;
-            const off = list.length > 1 ? [(i % 2) - 0.5, Math.floor(i / 2) - 0.5] : [0, 0];
-            const u = 100 / 15;
-            el.style.left = (it.pos[1] + 0.5) * u + off[0] * 1.7 + "%";
-            el.style.top = (it.pos[0] + 0.5) * u + off[1] * 1.7 + "%";
-            el.textContent = "♞";
-            if (movable && movable.some((m) => m.pi === it.pi && m.idx === it.pc.idx)) {
-              el.classList.add("movable");
-              el.addEventListener("click", () => ludoHumanMove(it.pi, it.pc.idx));
-            }
-            layer.appendChild(el);
-          });
-        });
+        return m;
       }
-      function ludoRenderSide() {
-        const list = $("#playerList");
-        list.innerHTML = "";
-        L.players.forEach((p, pi) => {
-          const col = LUDO_COLORS[p.colorIdx];
-          const chip = document.createElement("div");
-          chip.className = "p-chip" + (L.turn === pi && !L.over ? " turn" : "");
-          const home = p.pieces.filter((x) => x.prog === 56).length;
-          chip.innerHTML =
-            '<span class="dot" style="background:' +
-            col.css +
-            '"></span><span>' +
-            col.name +
-            (p.type === "bot" ? " (Máy)" : " (Người)") +
-            "</span>" +
-            (p.rank
-              ? '<span class="rank">🏆 Hạng ' + p.rank + "</span>"
-              : '<span class="home-n">về đích ' + home + "/4</span>");
-          list.appendChild(chip);
-        });
-      }
-      function ludoSetDice(v) {
-        const layouts = {
-          1: [4],
-          2: [0, 8],
-          3: [0, 4, 8],
-          4: [0, 2, 6, 8],
-          5: [0, 2, 4, 6, 8],
-          6: [0, 2, 3, 5, 6, 8],
-        };
-        const el = $("#diceEl");
-        el.innerHTML = "";
-        for (let i = 0; i < 9; i++) {
-          const pip = document.createElement("i");
-          if (layouts[v] && layouts[v].includes(i)) pip.className = "on";
-          el.appendChild(pip);
+      /* Đích đi của 1 quân với 1 viên xúc xắc: {to, cap} hoặc null nếu bị cấm.
+         Cấm nhảy qua MỌI quân trên đường đi (vòng lẫn cột đích). */
+      function ludoMoveTarget(pi, pc, v, occ) {
+        if (pc.u < 0) return null;
+        const P = L.players[pi];
+        if (pc.u >= 56) {
+          // Đang trong cột đích: lên đúng 1 ô, phải tung đúng số của ô đích
+          const a = pc.u - 55; // ô hiện tại 1..6
+          if (a >= 6 || v !== a + 1) return null;
+          if (P.pieces.some((o) => o.u === pc.u + 1)) return null;
+          return { to: pc.u + 1, cap: null };
         }
+        const t = pc.u + v;
+        if (t <= 55) {
+          for (let j = pc.u + 1; j < t; j++)
+            if (occ.has((LUDO_START[pi] + j) % 56)) return null;
+          const h = occ.get((LUDO_START[pi] + t) % 56);
+          if (h) return h.pi === pi ? null : { to: t, cap: h };
+          return { to: t, cap: null };
+        }
+        // Rẽ vào cột đích: phải đúng số bước còn lại, đường vào phải trống
+        const k = t - 55;
+        if (k > 6) return null;
+        for (let j = pc.u + 1; j <= 55; j++)
+          if (occ.has((LUDO_START[pi] + j) % 56)) return null;
+        for (let j = 1; j <= k; j++)
+          if (P.pieces.some((o) => o.u === 55 + j)) return null;
+        return { to: t, cap: null };
       }
-      function ludoLegalMoves(pi, roll) {
-        const p = L.players[pi];
+      /* Ra quân có hợp lệ không (ô xuất phát không bị quân mình chặn);
+         trả {cap} nếu ô xuất phát đang có quân địch (sẽ bị đá về) */
+      function ludoReleaseInfo(pi) {
+        const P = L.players[pi];
+        if (!P.pieces.some((pc) => pc.u < 0)) return null;
+        const h = ludoOcc().get(LUDO_START[pi]);
+        if (h && h.pi === pi) return null;
+        return { cap: h || null };
+      }
+      function ludoPairReleaseInfo(pi) {
+        if (!L.pairDbl || L.pool.length !== 2) return null;
+        return ludoReleaseInfo(pi);
+      }
+      /* Mọi nước đi của 1 viên xúc xắc: {v, moves:[{idx,to,cap}], release} */
+      function ludoDieActions(pi, di) {
+        const v = L.pool[di].v;
+        const occ = ludoOcc();
         const moves = [];
-        p.pieces.forEach((pc) => {
-          if (pc.prog === -1) {
-            if (roll === 6) moves.push({ idx: pc.idx, from: -1, to: 0 });
-          } else if (pc.prog < 56) {
-            const to = pc.prog + roll;
-            if (to <= 56) moves.push({ idx: pc.idx, from: pc.prog, to });
-          }
+        L.players[pi].pieces.forEach((pc) => {
+          const r = ludoMoveTarget(pi, pc, v, occ);
+          if (r) moves.push({ idx: pc.idx, to: r.to, cap: r.cap });
         });
-        return moves;
+        return { v: v, moves: moves, release: v === 6 ? ludoReleaseInfo(pi) : null };
       }
+      function ludoWon(p) {
+        const s = new Set(p.pieces.filter((x) => x.u >= 56).map((x) => x.u - 55));
+        return [3, 4, 5, 6].every((k) => s.has(k));
+      }
+
+      /* ---------- Luồng lượt ---------- */
       function ludoStart() {
+        ludoNet = null;
         const active = LUDO_COLORS.map((c, i) => ({
           colorIdx: i,
           type: ludoSetupChoice[c.key],
@@ -17380,23 +17484,24 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           players: active.map((p) => ({
             colorIdx: p.colorIdx,
             type: p.type,
+            name: null,
             rank: 0,
-            pieces: [0, 1, 2, 3].map((i) => ({ idx: i, prog: -1 })),
+            pieces: [0, 1, 2, 3].map((i) => ({ idx: i, u: -1 })),
           })),
           turn: 0,
           ranks: 0,
           over: false,
-          sixes: 0,
           busy: false,
-          rolled: null,
+          pool: [],
+          pairDbl: false,
+          phase: "roll",
         };
+        ludoSelDie = 0;
+        ludoSelPair = false;
         $("#ludoSetup").hidden = true;
         $("#ludoGame").hidden = false;
         $("#winnerBanner").className = "winner-banner";
         $("#ludoLog").innerHTML = "";
-        ludoSetDice(6);
-        ludoRenderPieces(null);
-        ludoRenderSide();
         ludoLog("Ván mới bắt đầu với " + L.players.length + " người chơi");
         publishGameStatus(
           "ludo",
@@ -17404,200 +17509,195 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         );
         ludoBeginTurn();
       }
-      function ludoCurrent() {
-        return L.players[L.turn];
-      }
       function ludoBeginTurn() {
         if (!L || L.over) return;
-        const p = ludoCurrent();
+        const p = L.players[L.turn];
         if (p.rank) {
           ludoNextTurn();
           return;
         }
-        L.rolled = null;
-        L.sixes = 0;
-        const col = LUDO_COLORS[p.colorIdx];
-        $("#turnMsg").textContent =
-          "Lượt của quân " +
-          col.name +
-          (p.type === "bot" ? " (Máy đang tung…)" : " — bấm tung xúc xắc");
-        $("#rollBtn").disabled = p.type === "bot";
-        publishGameStatus("ludo", "Đang chơi — lượt quân " + col.name);
-        ludoRenderSide();
-        if (p.type === "bot") setTimeout(ludoRoll, 750);
+        L.pool = [];
+        L.pairDbl = false;
+        L.phase = "roll";
+        ludoSelDie = 0;
+        ludoSelPair = false;
+        ludoRenderAll();
+        publishGameStatus("ludo", "Đang chơi — lượt quân " + LUDO_COLORS[p.colorIdx].name);
+        if (p.type === "bot" && !ludoIsGuest()) setTimeout(ludoRoll, 800);
       }
       function ludoNextTurn() {
         if (!L || L.over) return;
+        if (L.ranks >= L.players.length - 1) {
+          ludoGameOver();
+          return;
+        }
         let guard = 0;
         do {
           L.turn = (L.turn + 1) % L.players.length;
           guard++;
         } while (L.players[L.turn].rank && guard < 10);
-        if (L.players.every((p) => p.rank) || L.ranks >= L.players.length - 1) {
-          ludoGameOver();
-          return;
-        }
         ludoBeginTurn();
       }
       function ludoRoll() {
-        if (!L || L.busy || L.rolled !== null) return;
-        const diceEl = $("#diceEl");
-        diceEl.classList.remove("rolling");
-        void diceEl.offsetWidth;
-        diceEl.classList.add("rolling");
-        const v = 1 + Math.floor(Math.random() * 6);
-        setTimeout(() => {
-          ludoSetDice(v);
-          L.rolled = v;
-          $("#rollBtn").disabled = true;
-          const p = ludoCurrent(),
-            col = LUDO_COLORS[p.colorIdx];
-          if (v === 6) {
-            L.sixes++;
-          } else {
-            L.sixes = 0;
-          }
-          if (L.sixes >= 3) {
-            ludoLog(col.name + " tung 6 ba lần liên tiếp — mất lượt!");
-            L.rolled = null;
-            setTimeout(ludoNextTurn, 900);
-            return;
-          }
-          const moves = ludoLegalMoves(L.turn, v);
-          $("#turnMsg").textContent =
-            col.name +
+        if (!L || L.over || L.busy || L.phase !== "roll") return;
+        const p = L.players[L.turn],
+          col = LUDO_COLORS[p.colorIdx];
+        const a = ludoDice1(),
+          b = ludoDice1();
+        L.pool = [{ v: a }, { v: b }];
+        L.pairDbl = a === b && a !== 6;
+        L.phase = "act";
+        ludoSelDie = 0;
+        ludoSelPair = false;
+        ludoLog(
+          col.name +
             " tung được " +
-            v +
-            (moves.length
-              ? p.type === "bot"
-                ? " — Máy đang chọn quân…"
-                : " — chọn quân ngựa đang nhấp nháy để đi"
-              : " — không có quân nào đi được");
-          if (!moves.length) {
-            setTimeout(() => {
-              L.rolled = null;
-              ludoNextTurn();
-            }, 1000);
-            return;
-          }
-          if (p.type === "bot") {
-            setTimeout(() => ludoBotMove(moves), 650);
-          } else {
-            ludoRenderPieces(moves.map((m) => ({ pi: L.turn, idx: m.idx })));
-          }
-        }, 480);
-      }
-      function ludoBotMove(moves) {
-        const pi = L.turn,
-          p = ludoCurrent(),
-          col = LUDO_COLORS[p.colorIdx];
-        let best = moves[0],
-          bestScore = -1e9;
-        moves.forEach((m) => {
-          let score = Math.random() * 8 + m.to;
-          if (m.from === -1) score += 60;
-          if (m.to === 56) score += 80;
-          if (m.to >= 51) score += 25;
-          if (m.to <= 50) {
-            const g = (col.start + m.to) % 52;
-            if (LUDO_SAFE.has(g)) score += 30;
-            L.players.forEach((op, oi) => {
-              if (oi === pi) return;
-              const oc = LUDO_COLORS[op.colorIdx];
-              op.pieces.forEach((pc) => {
-                if (
-                  pc.prog >= 0 &&
-                  pc.prog <= 50 &&
-                  (oc.start + pc.prog) % 52 === g &&
-                  !LUDO_SAFE.has(g)
-                )
-                  score += 100;
-                if (pc.prog >= 0 && pc.prog <= 50 && !LUDO_SAFE.has(g)) {
-                  const og = (oc.start + pc.prog) % 52;
-                  const behind = (g - og + 52) % 52;
-                  if (behind >= 1 && behind <= 6) score -= 35;
-                }
-              });
-            });
-          }
-          if (score > bestScore) {
-            bestScore = score;
-            best = m;
-          }
-        });
-        ludoDoMove(pi, best);
-      }
-      function ludoHumanMove(pi, idx) {
-        if (!L || L.busy || L.rolled === null || pi !== L.turn) return;
-        const moves = ludoLegalMoves(pi, L.rolled);
-        const m = moves.find((x) => x.idx === idx);
-        if (m) ludoDoMove(pi, m);
-      }
-      function ludoDoMove(pi, move) {
-        const p = L.players[pi],
-          col = LUDO_COLORS[p.colorIdx];
-        const piece = p.pieces[move.idx];
-        L.busy = true;
-        ludoRenderPieces(null);
-        const wasInBase = move.from === -1;
-        let step = wasInBase ? 0 : move.from;
-        const target = move.to;
-        if (wasInBase) {
-          piece.prog = 0;
-          ludoRenderPieces(null);
-        }
-        const timer = setInterval(
-          () => {
-            if (!wasInBase && step < target) {
-              step++;
-              piece.prog = step;
-              ludoRenderPieces(null);
-            }
-            if (wasInBase || step >= target) {
-              clearInterval(timer);
-              setTimeout(() => ludoResolveMove(pi, move, wasInBase), 140);
-            }
-          },
-          wasInBase ? 60 : 150,
+            a +
+            " và " +
+            b +
+            (a === b ? (a === 6 ? " (đôi 6!)" : " (đôi!)") : ""),
         );
+        ludoStep();
       }
-      function ludoResolveMove(pi, move, wasInBase) {
+      /* Sau mỗi lần trạng thái lắng xuống: vẽ lại + cho Máy đi tiếp nếu tới lượt Máy */
+      function ludoStep() {
+        ludoRenderAll();
+        if (!L || L.over || L.busy || L.phase !== "act") return;
+        if (L.players[L.turn].type === "bot" && !ludoIsGuest())
+          setTimeout(ludoBotStep, 600);
+      }
+      function ludoBotStep() {
+        if (!L || L.over || L.busy || L.phase !== "act" || ludoIsGuest()) return;
+        const pi = L.turn;
+        if (L.players[pi].type !== "bot") return;
+        let best = null;
+        const consider = (a, s) => {
+          if (!best || s > best.s) best = { a: a, s: s };
+        };
+        if (ludoPairReleaseInfo(pi))
+          consider({ act: "pairRelease" }, 52 + Math.random() * 3);
+        L.pool.forEach((d, di) => {
+          const A = ludoDieActions(pi, di);
+          if (A.release) consider({ act: "release", die: di }, 46 + Math.random() * 3);
+          A.moves.forEach((m) => {
+            let s = m.to * 0.4 + Math.random() * 3;
+            if (m.cap) s += 60;
+            if (m.to >= 56) s += 34 + (m.to - 55) * 5;
+            consider({ act: "move", die: di, idx: m.idx }, s);
+          });
+          consider({ act: "discard", die: di }, -100 + di); // bỏ viên chỉ khi hết cách
+        });
+        if (best) ludoExecAction(best.a);
+      }
+
+      /* ---------- Thực thi hành động (chạy trên máy giữ ván: máy này hoặc chủ sảnh) ---------- */
+      function ludoExecAction(a) {
+        if (!L || L.over || L.busy || !a) return;
+        const pi = L.turn;
+        if (a.act === "roll") {
+          ludoRoll();
+          return;
+        }
+        if (L.phase !== "act") return;
+        if (a.act === "move") {
+          const di = a.die | 0;
+          if (!L.pool[di]) return;
+          const m = ludoDieActions(pi, di).moves.find((x) => x.idx === (a.idx | 0));
+          if (m) ludoDoMove(pi, di, m);
+        } else if (a.act === "release") {
+          const di = a.die | 0;
+          if (!L.pool[di] || L.pool[di].v !== 6) return;
+          if (ludoReleaseInfo(pi)) ludoDoRelease(pi, di, false);
+        } else if (a.act === "pairRelease") {
+          if (ludoPairReleaseInfo(pi)) ludoDoRelease(pi, -1, true);
+        } else if (a.act === "discard") {
+          const di = a.die | 0;
+          if (!L.pool[di]) return;
+          const col = LUDO_COLORS[L.players[pi].colorIdx];
+          ludoLog(col.name + " bỏ viên " + L.pool[di].v);
+          L.pool.splice(di, 1);
+          ludoSelPair = false;
+          if (ludoSelDie > L.pool.length - 1) ludoSelDie = Math.max(0, L.pool.length - 1);
+          ludoAfterPoolChange();
+        }
+      }
+      /* Điểm vào duy nhất cho thao tác của người chơi trên máy này;
+         khối sảnh ở cuối file ghi đè hàm này để gửi hành động lên chủ sảnh */
+      function ludoDispatch(a) {
+        ludoExecAction(a);
+      }
+      function ludoBump(cap, attackerCol) {
+        const op = L.players[cap.pi],
+          oc = LUDO_COLORS[op.colorIdx];
+        op.pieces[cap.idx].u = -1;
+        ludoLog("💥 Quân của " + oc.name + " bị " + attackerCol.name + " đá về chuồng xuất phát!");
+      }
+      function ludoDoMove(pi, di, m) {
         const p = L.players[pi],
           col = LUDO_COLORS[p.colorIdx];
-        let extra = L.rolled === 6;
-        if (wasInBase) ludoLog(col.name + " xuất quân 🐴");
-        if (move.to === 56) {
-          extra = true;
-          ludoLog(col.name + " đưa 1 quân về đích! 🏁");
-        }
-        if (move.to <= 50) {
-          const g = (col.start + move.to) % 52;
-          if (!LUDO_SAFE.has(g)) {
-            L.players.forEach((op, oi) => {
-              if (oi === pi) return;
-              op.pieces.forEach((pc) => {
-                if (
-                  pc.prog >= 0 &&
-                  pc.prog <= 50 &&
-                  (LUDO_COLORS[op.colorIdx].start + pc.prog) % 52 === g
-                ) {
-                  pc.prog = -1;
-                  extra = true;
-                  ludoLog(
-                    col.name + " đá quân của " + LUDO_COLORS[op.colorIdx].name + " về chuồng! 💥",
-                  );
-                }
-              });
-            });
+        const pc = p.pieces[m.idx];
+        const v = L.pool[di].v;
+        L.busy = true;
+        ludoRenderAll();
+        let step = pc.u;
+        const timer = setInterval(() => {
+          step++;
+          pc.u = step;
+          ludoRenderPieces();
+          if (step >= m.to) {
+            clearInterval(timer);
+            setTimeout(() => {
+              if (m.cap) ludoBump(m.cap, col);
+              if (m.to >= 56)
+                ludoLog(col.name + " đưa 1 quân vào cột đích, ô " + (m.to - 55) + " 🐴");
+              else if (m.to === 55)
+                ludoLog(col.name + " đã đi hết một vòng, sắp rẽ vào cột đích");
+              L.busy = false;
+              ludoFinishAction(pi, di, v);
+            }, 120);
           }
-        }
-        L.busy = false;
-        L.rolled = null;
-        ludoRenderPieces(null);
-        if (p.pieces.every((x) => x.prog === 56) && !p.rank) {
+        }, LUDO_STEP_MS);
+      }
+      function ludoDoRelease(pi, di, pair) {
+        const p = L.players[pi],
+          col = LUDO_COLORS[p.colorIdx];
+        const info = ludoReleaseInfo(pi);
+        if (!info) return;
+        const pc = p.pieces.find((x) => x.u < 0);
+        const v = pair ? 0 : L.pool[di].v;
+        L.busy = true;
+        pc.u = 0;
+        ludoRenderAll();
+        setTimeout(() => {
+          if (info.cap) ludoBump(info.cap, col);
+          ludoLog(col.name + (pair ? " ra quân bằng đôi 🐴" : " xuất quân 🐴"));
+          L.busy = false;
+          if (pair) {
+            L.pool = [];
+            ludoAfterPoolChange();
+          } else {
+            ludoFinishAction(pi, di, v);
+          }
+        }, 240);
+      }
+      /* Một viên đã dùng xong: xử lý thắng/hạng, tung lại viên 6, rồi đi tiếp */
+      function ludoFinishAction(pi, di, v) {
+        const p = L.players[pi],
+          col = LUDO_COLORS[p.colorIdx];
+        if (!p.rank && ludoWon(p)) {
           p.rank = ++L.ranks;
-          ludoLog("🏆 Quân " + col.name + " về đích toàn bộ — hạng " + p.rank + "!");
+          L.pool = [];
+          ludoLog(
+            "🏆 " +
+              ludoPlayerName(pi) +
+              " (quân " +
+              col.name +
+              ") đã đủ 4 quân ở các ô đích 3-4-5-6 — hạng " +
+              p.rank +
+              "!",
+          );
           publishGameStatus("ludo", "🏆 Quân " + col.name + " vừa thắng (hạng " + p.rank + ")");
+          ludoRenderAll();
           if (L.ranks >= L.players.length - 1) {
             ludoGameOver();
             return;
@@ -17605,30 +17705,277 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           ludoNextTurn();
           return;
         }
-        ludoRenderSide();
-        if (extra) {
-          $("#turnMsg").textContent = col.name + " được tung tiếp!";
-          $("#rollBtn").disabled = p.type === "bot";
-          ludoRenderSide();
-          if (p.type === "bot") setTimeout(ludoRoll, 700);
+        if (v === 6) {
+          const nv = ludoDice1();
+          L.pool[di] = { v: nv };
+          ludoLog(col.name + " dùng xong viên 6 — tung lại đúng viên đó: " + nv);
         } else {
-          ludoNextTurn();
+          L.pool.splice(di, 1);
         }
+        if (ludoSelDie > L.pool.length - 1) ludoSelDie = Math.max(0, L.pool.length - 1);
+        ludoSelPair = false;
+        ludoAfterPoolChange();
+      }
+      /* Pool rỗng: ra đôi thì tung lại cả 2, không thì hết lượt */
+      function ludoAfterPoolChange() {
+        if (!L || L.over) return;
+        if (L.pool.length === 0) {
+          if (L.pairDbl) {
+            const a = ludoDice1(),
+              b = ludoDice1();
+            L.pool = [{ v: a }, { v: b }];
+            L.pairDbl = a === b && a !== 6;
+            ludoSelDie = 0;
+            ludoSelPair = false;
+            const col = LUDO_COLORS[L.players[L.turn].colorIdx];
+            ludoLog(
+              col.name + " ra đôi — dùng hết cả 2 viên nên tung lại cả hai: " + a + " và " + b,
+            );
+            L.phase = "act";
+            ludoStep();
+            return;
+          }
+          ludoNextTurn();
+          return;
+        }
+        L.phase = "act";
+        ludoStep();
       }
       function ludoGameOver() {
         L.over = true;
+        L.phase = "over";
         const ranked = L.players.slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
         const winner = ranked[0];
         const wcol = LUDO_COLORS[winner.colorIdx];
         const banner = $("#winnerBanner");
-        banner.textContent = "🏆 Quân " + wcol.name + ' thắng ván này! Bấm "Ván mới" để chơi lại.';
+        banner.textContent =
+          "🏆 " +
+          ludoPlayerName(L.players.indexOf(winner)) +
+          " (quân " +
+          wcol.name +
+          ') thắng ván này! Bấm "Ván mới" để chơi lại.';
         banner.classList.add("show");
-        $("#turnMsg").textContent = "Ván đã kết thúc";
-        $("#rollBtn").disabled = true;
-        ludoRenderSide();
+        ludoRenderAll();
         publishGameStatus("ludo", "Vừa kết thúc — 🏆 quân " + wcol.name + " thắng");
       }
-      $("#rollBtn").addEventListener("click", ludoRoll);
+
+      /* ---------- Vẽ bàn & điều khiển ---------- */
+      function ludoHighlight() {
+        if (!L || !ludoLocalTurn() || L.phase !== "act" || L.busy) return null;
+        const pi = L.turn;
+        const set = new Set();
+        if (ludoSelPair) {
+          if (ludoPairReleaseInfo(pi))
+            L.players[pi].pieces.forEach((pc) => {
+              if (pc.u < 0) set.add(pi + ":" + pc.idx);
+            });
+          return set;
+        }
+        if (!L.pool[ludoSelDie]) return set;
+        const A = ludoDieActions(pi, ludoSelDie);
+        A.moves.forEach((m) => set.add(pi + ":" + m.idx));
+        if (A.release)
+          L.players[pi].pieces.forEach((pc) => {
+            if (pc.u < 0) set.add(pi + ":" + pc.idx);
+          });
+        return set;
+      }
+      function ludoRenderPieces() {
+        const layer = $("#pieceLayer");
+        layer.innerHTML = "";
+        if (!L) return;
+        const hl = ludoHighlight();
+        const groups = new Map();
+        L.players.forEach((p, pi) =>
+          p.pieces.forEach((pc) => {
+            const pos = ludoPiecePos(pi, pc);
+            const k = pos[0].toFixed(1) + "," + pos[1].toFixed(1);
+            if (!groups.has(k)) groups.set(k, []);
+            groups.get(k).push({ pi: pi, pc: pc, pos: pos });
+          }),
+        );
+        groups.forEach((list) => {
+          list.forEach((it, i) => {
+            const el = document.createElement("div");
+            el.className = "piece";
+            el.style.background = LUDO_COLORS[it.pi].css;
+            const off = list.length > 1 ? [(i % 2) - 0.5, Math.floor(i / 2) - 0.5] : [0, 0];
+            const u = 100 / 15;
+            el.style.left = (it.pos[1] + 0.5) * u + off[0] * 1.7 + "%";
+            el.style.top = (it.pos[0] + 0.5) * u + off[1] * 1.7 + "%";
+            el.textContent = "♞";
+            if (hl && hl.has(it.pi + ":" + it.pc.idx)) {
+              el.classList.add("movable");
+              el.addEventListener("click", () => ludoPieceClick(it.pi, it.pc.idx));
+            }
+            layer.appendChild(el);
+          });
+        });
+      }
+      function ludoPieceClick(pi, idx) {
+        if (!L || pi !== L.turn || !ludoLocalTurn() || L.phase !== "act" || L.busy) return;
+        const pc = L.players[pi].pieces[idx];
+        if (pc.u < 0) {
+          if (ludoSelPair) ludoDispatch({ act: "pairRelease" });
+          else ludoDispatch({ act: "release", die: ludoSelDie });
+        } else {
+          ludoDispatch({ act: "move", die: ludoSelDie, idx: idx });
+        }
+      }
+      function ludoRenderSide() {
+        const list = $("#playerList");
+        list.innerHTML = "";
+        if (!L) return;
+        L.players.forEach((p, pi) => {
+          const col = LUDO_COLORS[p.colorIdx];
+          const isTurn = L.turn === pi && !L.over;
+          const chip = document.createElement("div");
+          chip.className = "p-chip" + (isTurn ? " turn" : "");
+          chip.style.setProperty("--pc", col.css);
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          dot.style.background = col.css;
+          chip.appendChild(dot);
+          const nameEl = document.createElement("span");
+          nameEl.textContent = ludoPlayerName(pi);
+          chip.appendChild(nameEl);
+          if (p.type === "bot") {
+            const bt = document.createElement("span");
+            bt.className = "bot-tag";
+            bt.textContent = "(Máy)";
+            chip.appendChild(bt);
+          }
+          if (isTurn) {
+            const g = document.createElement("span");
+            g.className = "going";
+            g.textContent = "▶ đang đi";
+            chip.appendChild(g);
+          }
+          const tail = document.createElement("span");
+          if (p.rank) {
+            tail.className = "rank";
+            tail.textContent = "🏆 Hạng " + p.rank;
+          } else {
+            tail.className = "home-n";
+            tail.textContent =
+              "cột đích " + p.pieces.filter((x) => x.u >= 56).length + "/4";
+          }
+          chip.appendChild(tail);
+          list.appendChild(chip);
+        });
+      }
+      function ludoTurnText() {
+        if (!L) return "";
+        if (L.over) return "Ván đã kết thúc — bấm “Ván mới” để chơi lại.";
+        const p = L.players[L.turn],
+          col = LUDO_COLORS[p.colorIdx];
+        const nm = ludoPlayerName(L.turn) + " (quân " + col.name + ")";
+        if (L.busy || L.phase === "busy") return nm + " đang đi…";
+        if (L.phase === "roll")
+          return ludoLocalTurn()
+            ? "Lượt của " + nm + " — bấm tung 2 xúc xắc."
+            : "Lượt của " +
+                nm +
+                (p.type === "bot" ? " — Máy đang tung…" : " — chờ tung xúc xắc…");
+        const poolTxt = L.pool.map((d) => d.v).join(" và ");
+        if (ludoLocalTurn())
+          return (
+            nm +
+            " tung được " +
+            poolTxt +
+            ". Chọn 1 viên rồi chạm quân đang nhấp nháy để đi. Ra quân là tùy chọn — không dùng viên nào thì bấm Bỏ viên."
+          );
+        return nm + " đã tung " + poolTxt + " — đang chọn nước đi…";
+      }
+      function ludoRenderChips() {
+        const wrap = $("#diceChips");
+        wrap.innerHTML = "";
+        if (!L || L.over) return;
+        const col = LUDO_COLORS[L.players[L.turn].colorIdx];
+        const active = ludoLocalTurn() && L.phase === "act" && !L.busy;
+        L.pool.forEach((d, i) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "die-chip" + (!ludoSelPair && ludoSelDie === i ? " sel" : "");
+          b.textContent = d.v;
+          b.style.setProperty("--pc", col.css);
+          b.disabled = !active;
+          b.setAttribute("aria-label", "Xúc xắc " + d.v);
+          b.addEventListener("click", () => {
+            ludoSelDie = i;
+            ludoSelPair = false;
+            ludoRenderAll();
+          });
+          wrap.appendChild(b);
+        });
+        if (L.pairDbl && L.pool.length === 2) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "die-chip wide" + (ludoSelPair ? " sel" : "");
+          b.textContent = "🐴 Ra quân (đôi)";
+          b.style.setProperty("--pc", col.css);
+          b.disabled = !(active && !!ludoPairReleaseInfo(L.turn));
+          b.addEventListener("click", () => {
+            ludoSelPair = true;
+            ludoRenderAll();
+          });
+          wrap.appendChild(b);
+        }
+      }
+      function ludoRenderControls() {
+        const dot = $("#ludoTurnDot"),
+          nm = $("#ludoTurnName"),
+          tag = $("#ludoTurnTag"),
+          bar = $("#ludoTurnBar"),
+          rollBtn = $("#rollBtn"),
+          relBtn = $("#ludoReleaseBtn"),
+          disBtn = $("#ludoDiscardBtn");
+        if (!L) {
+          nm.textContent = "Chưa mở ván";
+          rollBtn.disabled = true;
+          relBtn.hidden = true;
+          disBtn.hidden = true;
+          ludoRenderChips();
+          return;
+        }
+        const p = L.players[L.turn],
+          col = LUDO_COLORS[p.colorIdx];
+        dot.style.background = col.css;
+        nm.textContent = L.over ? "Ván đã kết thúc" : "Lượt của " + ludoPlayerName(L.turn);
+        tag.textContent = "Quân " + col.name + (p.type === "bot" ? " · Máy" : "");
+        bar.style.borderColor = L.over ? "" : col.css;
+        $("#turnMsg").textContent = ludoTurnText();
+        const canRoll = !L.over && !L.busy && L.phase === "roll" && ludoLocalTurn();
+        rollBtn.disabled = !canRoll;
+        rollBtn.classList.toggle("on", canRoll);
+        rollBtn.style.setProperty("--pc", col.css);
+        const active = !L.over && !L.busy && L.phase === "act" && ludoLocalTurn();
+        let relMode = null;
+        if (active && ludoSelPair && ludoPairReleaseInfo(L.turn)) relMode = "pair";
+        else if (active && !ludoSelPair && L.pool[ludoSelDie]) {
+          if (ludoDieActions(L.turn, ludoSelDie).release) relMode = "single";
+        }
+        relBtn.hidden = !relMode;
+        relBtn.textContent =
+          relMode === "pair" ? "🐴 Ra quân (đôi)" : "🐴 Ra quân bằng viên 6";
+        disBtn.hidden = !active;
+        if (active && L.pool[ludoSelDie])
+          disBtn.textContent = "Bỏ viên " + L.pool[ludoSelDie].v;
+        ludoRenderChips();
+      }
+      function ludoRenderAll() {
+        ludoRenderPieces();
+        ludoRenderSide();
+        ludoRenderControls();
+      }
+      $("#rollBtn").addEventListener("click", () => ludoDispatch({ act: "roll" }));
+      $("#ludoReleaseBtn").addEventListener("click", () => {
+        if (ludoSelPair) ludoDispatch({ act: "pairRelease" });
+        else ludoDispatch({ act: "release", die: ludoSelDie });
+      });
+      $("#ludoDiscardBtn").addEventListener("click", () =>
+        ludoDispatch({ act: "discard", die: ludoSelDie }),
+      );
       $("#ludoStart").addEventListener("click", ludoStart);
       $("#ludoRestart").addEventListener("click", ludoStart);
       $("#ludoSetupBtn").addEventListener("click", () => {
@@ -17638,7 +17985,6 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       });
       ludoBuildBoard();
       ludoBuildSetup();
-      ludoSetDice(6);
     </script>
         <script>
       "use strict";
@@ -20962,9 +21308,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           return;
         }
         msg.classList.remove("err");
-        msg.textContent = "Đã chiếu karaoke lên màn hình lớn — lên sân khấu hát thôi!";
+        msg.textContent =
+          "Đã chiếu karaoke lên TV nhà chính — hình và tiếng phát ở TV nhà chính nhé, bạn cứ lên sân khấu phòng karaoke mà hát!";
         applyScreen({ videoId: id, url: raw.trim(), byName: RoomState.me.name }, true);
-        addFeed("<b>Bạn</b> đã mở karaoke lên TV");
+        addFeed("<b>Bạn</b> đã mở karaoke lên TV nhà chính");
       });
       $("#karaJoin").addEventListener("click", () => {
         if (!RoomState.inRoom) {
@@ -23344,8 +23691,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         if (MPS.game === "ludo" && L && L.players[seat]) {
           L.players[seat].type = "bot";
           if (!L.over && L.turn === seat && !L.busy) {
-            if (L.rolled === null) setTimeout(ludoRoll, 700);
-            else ludoBotMove(ludoLegalMoves(seat, L.rolled));
+            if (L.phase === "roll") setTimeout(ludoRoll, 700);
+            else ludoStep();
           }
         } else if (MPS.game === "uno" && UNO && !UNO.over && UNO.turn === seat) {
           unoAdvance();
@@ -23384,13 +23731,20 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         }
         if (lob.game === "ludo") {
           if (MPS.isHost) {
-            const choice = { red: "off", green: "off", yellow: "off", blue: "off" };
+            const choice = { teal: "off", red: "off", green: "off", yellow: "off" };
             seats.forEach((s, i) => {
               choice[LUDO_COLORS[i].key] = s.bot ? "bot" : "human";
             });
             Object.assign(ludoSetupChoice, choice);
             ludoStart();
+            if (L)
+              L.players.forEach((pl, i) => {
+                pl.name = seats[i].name;
+              });
+            ludoNet = { mySeat: MPS.mySeat, isHost: true };
+            ludoRenderAll();
           } else {
+            ludoNet = { mySeat: MPS.mySeat, isHost: false };
             $("#ludoSetup").hidden = true;
             $("#ludoGame").hidden = false;
             $("#winnerBanner").className = "winner-banner";
@@ -23618,8 +23972,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         if (seat < 0) return;
         if (MPS.game === "ludo") {
           if (!L || L.over || L.turn !== seat) return;
-          if (msg.act === "roll") ludoRoll();
-          else if (msg.act === "move") ludoHumanMove(seat, msg.idx);
+          // Hành động của khách (roll/move/release/pairRelease/discard) được
+          // ludoExecAction tự kiểm tra lại tính hợp lệ trên ván của chủ sảnh
+          ludoExecAction(msg);
         } else if (MPS.game === "uno") {
           if (!UNO || UNO.over || UNO.turn !== seat) return;
           if (msg.act === "play") unoPlayCard(seat, msg.idx, msg.color || null);
@@ -23651,10 +24006,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             hostSnap("ludo-state", {
               players: L.players,
               turn: L.turn,
-              rolled: L.rolled,
+              pool: L.pool.map((d) => d.v),
+              pairDbl: L.pairDbl,
+              phase: L.busy ? "busy" : L.phase,
               over: L.over,
               ranks: L.ranks,
-              dice: window.__diceV || 6,
               banner: $("#winnerBanner").textContent,
               bannerShow: $("#winnerBanner").classList.contains("show"),
             });
@@ -23704,68 +24060,38 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       }, 650);
 
       /* ---------- CỜ CÁ NGỰA ---------- */
-      const _ludoSetDice = ludoSetDice;
-      ludoSetDice = function (v) {
-        window.__diceV = v;
-        _ludoSetDice(v);
-      };
-      const _ludoHumanMove = ludoHumanMove;
-      ludoHumanMove = function (pi, idx) {
+      /* Mọi thao tác của người chơi đi qua ludoDispatch: khách gửi hành động
+         lên chủ sảnh; chủ sảnh không đi thay cho ghế của người ở máy khác
+         (ghế Máy/trống do ludoBotStep của chủ sảnh tự đánh). */
+      ludoDispatch = function (a) {
         if (MPS && MPS.game === "ludo") {
           if (!MPS.isHost) {
-            if (pi === MPS.mySeat) gsSend("action", { act: "move", idx: idx });
+            gsSend("action", a);
             return;
           }
-          if (L && MPS.seats[L.turn] && MPS.seats[L.turn].id !== RoomState.me.id) return; // không đi thay cho người ở máy khác
+          if (L && MPS.seats[L.turn] && MPS.seats[L.turn].id !== RoomState.me.id) return;
         }
-        _ludoHumanMove(pi, idx);
+        ludoExecAction(a);
       };
       function applyLudoSnap(snap) {
         if (!snap) return;
+        ludoNet = { mySeat: MPS.mySeat, isHost: false };
         L = {
           players: snap.players,
           turn: snap.turn,
           ranks: snap.ranks,
           over: snap.over,
-          sixes: 0,
           busy: false,
-          rolled: snap.rolled,
+          pool: (snap.pool || []).map((v) => ({ v: v })),
+          pairDbl: !!snap.pairDbl,
+          phase: snap.phase || "roll",
         };
-        ludoSetDice(snap.dice || 6);
-        const myTurn = snap.turn === MPS.mySeat && !snap.over;
-        let movable = null;
-        if (myTurn && snap.rolled !== null && snap.rolled !== undefined)
-          movable = ludoLegalMoves(MPS.mySeat, snap.rolled).map((m) => ({
-            pi: MPS.mySeat,
-            idx: m.idx,
-          }));
-        ludoRenderPieces(movable);
-        ludoRenderSide();
-        $("#turnMsg").textContent = snap.over
-          ? "Ván đã kết thúc"
-          : myTurn
-            ? snap.rolled
-              ? "Bạn tung được " + snap.rolled + " — chọn quân ngựa đang nhấp nháy để đi"
-              : "Lượt của bạn — bấm tung xúc xắc!"
-            : "Lượt của " +
-              MPS.seats[snap.turn].name +
-              " (quân " +
-              LUDO_COLORS[L.players[snap.turn].colorIdx].name +
-              ")";
-        $("#rollBtn").disabled = !(myTurn && snap.rolled === null);
+        if (ludoSelDie > L.pool.length - 1) ludoSelDie = 0;
+        ludoRenderAll();
         const b = $("#winnerBanner");
         b.textContent = snap.banner || "";
         b.classList.toggle("show", !!snap.bannerShow);
       }
-      lbIntercept("ludoOverlay", "#rollBtn", () => {
-        if (!MPS || MPS.game !== "ludo") return false;
-        if (!MPS.isHost) {
-          if (L && L.turn === MPS.mySeat && L.rolled === null) gsSend("action", { act: "roll" });
-          return true;
-        }
-        if (L && MPS.seats[L.turn] && MPS.seats[L.turn].id !== RoomState.me.id) return true;
-        return false;
-      });
       lbIntercept("ludoOverlay", "#ludoRestart, #ludoSetupBtn", () => {
         if (!MPS || MPS.game !== "ludo") return false;
         if (MPS.isHost) restartMatch();
@@ -28150,6 +28476,223 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
   }
 })();
 
+    </script>
+    <script>
+/* =====================================================================
+   ĐỢT F (2026-11-17) — RÀ SOÁT GHẾ + ĐỒ TƯƠNG TÁC TOÀN LÀNG
+   Quét mọi khu đối chiếu vật đã dựng 3D với đăng ký SEAT_POS/SEAT_DEFS và
+   các điểm tương tác hiện có. Ghế cũ: 106 (script chính 59 = B/F/C/A/L/M/N,
+   ComplexB 23 = K/W/H/T/P/G, Đợt B 24 = R/OT/TY/SP/VP) — giữ nguyên từng
+   cái, không đụng. Bổ sung 111 ghế còn thiếu + 3 điểm tương tác:
+   - Vườn: BN1–4 ghế băng buildGarden (bench() không hề có ghế), SL1–2 ghế
+     tắm nắng phía đông hồ bơi (2 ghế phía tây không gắn — xem cuối header).
+   - Khu phố: FB1–4 ghế băng quanh đài phun (104,40), AR1–2 ghế dài phòng
+     tranh, CF1–10 ghế đẩu quanh 5 bàn cà phê, KB1–6 ghế băng dài karaoke
+     (chairD w3.2, mỗi băng 2 chỗ), KS1–4 ghế đẩu quầy bar karaoke.
+   - Sàn bar lục giác (tâm −134,30): BS1–9 ghế đẩu quầy bar, TS1–6 ghế đẩu
+     đỉnh bể cá, VL1–3 sofa VIP quanh lò lửa, VB1–2 giường tròn VIP,
+     PD1–6 sofa pod, HL1–4 ghế nằm hồ bơi trên sàn. Ghế trên cao có bản đồ
+     __dotfElev: nút Ngồi chỉ hiện khi người chơi ở đúng tầng (chặn ngồi
+     xuyên sàn từ mặt đất), qua wrapper updateActionBtn ở dưới.
+   - Khu trò chơi: PB1–6 ghế băng quanh đài phun quảng trường, AV1–10 ghế
+     băng đại lộ, ghế đẩu quanh bàn game LU (cá ngựa) 4, UN (UNO) 4,
+     CD (bài cào) 5, RO (cò quay) 4, BC (bầu cua) 5, DR (vẽ) 3, WF (ma sói) 8
+     — tọa độ đổi local→world đúng phép (−x, 188−z) + lật offset theo phía
+     phòng như GAME_SPOTS; mặt ghế đẩu y 0.60 khớp hình dựng (đĩa y 0.55).
+   - Điểm tương tác mới: quầy kẹo bông (10,76), quầy bóng bay (−10,76) ở
+     công viên + quầy cà phê (122,26.5) — qua wrapper villaSpots/doAction
+     như hộp pháo hoa của Đợt B.
+   Không thêm vật cản nào (ghế mới nằm trên vật đã có vật cản riêng hoặc
+   vật vốn đi xuyên được như trước) — lối đi và hành vi cũ không đổi.
+   Số ghế trước → sau theo khu: nhà chính (B/F/C/A/N) 50 → 50 · đồi lửa
+   trại (L) 3 → 3 · vườn + hồ bơi 0 → 6 (+BN4 +SL2) · khu phố (K/M)
+   12 → 38 (+FB4 +AR2 +CF10 +KB6 +KS4) · công viên (W/H/T/P/G) 17 → 17 ·
+   đường + khách sạn + spa (R/OT/TY/SP) 20 → 20 · sàn bar (VP) 4 → 34
+   (+BS9 +TS6 +VL3 +VB2 +PD6 +HL4) · khu trò chơi 0 → 49 (+PB6 +AV10
+   +LU4 +UN4 +CD5 +RO4 +BC5 +DR3 +WF8). TỔNG: 106 → 217 ghế.
+   VẬT TRANG TRÍ THUẦN TÚY — KHÔNG GẮN (vật · ở đâu · vì sao):
+   - 2 ghế tắm nắng tây hồ bơi (−22.5; 3/9): đè dốc tháp cầu tụt 1 (xem trên).
+   - Bàn thấp + đệm trong pergola (16.5, 20): bàn trà thấp, trên mặt có hoa
+     trang trí — không phải mặt ngồi.
+   - 2 kệ/console dài trong mỗi phòng game (10 phòng × 2): mặt kệ cao
+     0.89 m có chậu/bình trang trí — kệ để đồ, không phải ghế.
+   - Cầu trượt nhỏ công viên (−22, 108) + tháp trượt hồ bơi công viên
+     (35, 90): máng trượt trẻ em không có đường trượt (ride curve) đăng ký
+     như 2 cầu tụt villa; gắn điểm trượt giả sẽ sai hành vi.
+   - Vòng quay nhỏ khu trò chơi (0, 236): cabin kín trang trí quay nền,
+     làng đã có vòng quay lớn công viên (G1–G8) lên được thật.
+   - Giường tầng/xô xông hơi phụ, bồn gội spa, quầy bar + kệ rượu trên sàn
+     (đã có BS), bàn DJ (đã có điểm vdj), bàn các trạm game (đã có điểm
+     chơi từng trạm), quầy lễ tân khách sạn (bàn đứng, không mặt ngồi).
+   ===================================================================== */
+(function DotF() {
+  "use strict";
+  var CX = -134, CZ = 30; // tâm khu bar lục giác
+  var elev = {}; // seatId -> cao độ myY kỳ vọng (chỉ ghế trên sàn/đỉnh bể)
+  var newIds = [];
+  function reg(id, label, x, z, y, rotY, expY) {
+    SEAT_DEFS.push({ id: id, label: label, zone: "dotf" });
+    SEAT_POS[id] = { x: x, z: z, y: y, rotY: rotY };
+    if (expY !== undefined) elev[id] = expY;
+    newIds.push(id);
+  }
+  try {
+    /* ---------- VƯỜN: ghế băng + ghế tắm nắng hồ bơi ---------- */
+    [[4, 40.5, Math.PI / 2], [12, 63.5, Math.PI], [17, 32, -Math.PI / 2], [-14, 17.8, 0]].forEach(function (b, i) {
+      reg("BN" + (i + 1), "Ghế băng vườn " + (i + 1), b[0], b[1], 0.51, b[2]);
+    });
+    /* Ghế tắm nắng: chỉ gắn 2 ghế PHÍA ĐÔNG hồ (−3.9; 3/9, nền cỏ phẳng).
+       2 ghế phía tây (−22.5; 3/9) KHÔNG gắn: chúng nằm đè đúng dốc đi bộ
+       lên tháp cầu tụt 1 (V.TRAMP x −24.6..−21.4; cao độ dốc tại đó
+       0.7–2.5 m, cao hơn hẳn mặt ghế 0.45) — gắn ghế thì nhân vật chìm
+       trong thân dốc. Xem danh sách vật không gắn ở cuối header đợt này. */
+    [[-3.9, 3], [-3.9, 9]].forEach(function (p, i) {
+      reg("SL" + (i + 1), "Ghế tắm nắng " + (i + 1), p[0], p[1], 0.45, 0);
+    });
+    /* ---------- KHU PHỐ: đài phun + phòng tranh + cà phê + karaoke ---------- */
+    [[98.5, 40, 0], [109.5, 40, Math.PI], [104, 33.8, 0], [104, 46.2, Math.PI]].forEach(function (b, i) {
+      reg("FB" + (i + 1), "Ghế băng đài phun phố " + (i + 1), b[0], b[1], 0.5, b[2]);
+    });
+    reg("AR1", "Ghế dài phòng tranh 1", 80.5, 31.5, 0.47, Math.PI / 2);
+    reg("AR2", "Ghế dài phòng tranh 2", 87.0, 21.5, 0.47, -Math.PI / 2);
+    var cfN = 0;
+    [[115.5, 21], [115.5, 26.5], [115.5, 32], [120, 21], [120, 32]].forEach(function (t) {
+      cfN++; reg("CF" + cfN, "Ghế đẩu cà phê " + cfN, t[0] - 0.85, t[1], 0.46, Math.PI / 2);
+      cfN++; reg("CF" + cfN, "Ghế đẩu cà phê " + cfN, t[0] + 0.85, t[1], 0.46, -Math.PI / 2);
+    });
+    reg("KB1", "Ghế băng karaoke tây 1", 79.2, 56.7, 0.47, Math.PI / 2);
+    reg("KB2", "Ghế băng karaoke tây 2", 79.2, 58.3, 0.47, Math.PI / 2);
+    reg("KB3", "Ghế băng karaoke đông 1", 88.8, 48.7, 0.47, -Math.PI / 2);
+    reg("KB4", "Ghế băng karaoke đông 2", 88.8, 50.3, 0.47, -Math.PI / 2);
+    reg("KB5", "Ghế băng karaoke đông 3", 88.8, 56.7, 0.47, -Math.PI / 2);
+    reg("KB6", "Ghế băng karaoke đông 4", 88.8, 58.3, 0.47, -Math.PI / 2);
+    [46.4, 47.5, 48.6, 49.7].forEach(function (z, i) {
+      reg("KS" + (i + 1), "Ghế đẩu quầy karaoke " + (i + 1), 80.5, z, 0.75, -Math.PI / 2);
+    });
+    /* ---------- SÀN BAR LỤC GIÁC ---------- */
+    for (var bi = 0; bi < 9; bi++)
+      reg("BS" + (bi + 1), "Ghế đẩu quầy bar " + (bi + 1), CX - 8 + bi * 2, CZ - 21.3, 4.89, Math.PI, 4.0);
+    for (var ti = 0; ti < 6; ti++) {
+      var ta = (ti / 6) * Math.PI * 2 + 0.5;
+      reg("TS" + (ti + 1), "Ghế đẩu đỉnh bể " + (ti + 1), CX + 4.1 * Math.cos(ta), CZ + 4.1 * Math.sin(ta), 10.89, Math.atan2(-Math.cos(ta), -Math.sin(ta)), 10.0);
+    }
+    [180, 90, 270].forEach(function (d, i) {
+      var b = (d * Math.PI) / 180;
+      reg("VL" + (i + 1), "Sofa VIP lò lửa " + (i + 1), CX - 29 + 2.8 * Math.cos(b), CZ + 2.8 * Math.sin(b), 4.62, Math.atan2(Math.cos(b), Math.sin(b)) + Math.PI, 4.0);
+    });
+    reg("VB1", "Giường tròn VIP 1", CX - 31.5, CZ - 3.6, 4.52, Math.PI / 2, 4.0);
+    reg("VB2", "Giường tròn VIP 2", CX - 31.5, CZ + 3.6, 4.52, Math.PI / 2, 4.0);
+    var pdN = 0;
+    [240, 300].forEach(function (d) {
+      var a = (d * Math.PI) / 180, px = 27 * Math.cos(a), pz = 27 * Math.sin(a);
+      [-70, 0, 70].forEach(function (dd) {
+        var bb = a + (dd * Math.PI) / 180;
+        pdN++;
+        reg("PD" + pdN, "Sofa pod " + pdN, CX + px + 2.5 * Math.cos(bb), CZ + pz + 2.5 * Math.sin(bb), 4.62, Math.atan2(Math.cos(bb), Math.sin(bb)) + Math.PI, 4.0);
+      });
+    });
+    for (var li = 0; li < 4; li++)
+      reg("HL" + (li + 1), "Ghế nằm hồ bơi bar " + (li + 1), CX + 25 + li * 2.5, CZ - 4.8, 4.35, 0, 4.0);
+    /* ---------- KHU TRÒ CHƠI: ghế băng quảng trường + đại lộ ---------- */
+    for (var pi = 0; pi < 6; pi++) {
+      var pa = (pi / 6) * Math.PI * 2 + 0.5;
+      reg("PB" + (pi + 1), "Ghế băng quảng trường " + (pi + 1), -10 * Math.cos(pa), 188 - 10 * Math.sin(pa), 0.61, -pa + Math.PI / 2 + Math.PI);
+    }
+    var avN = 0;
+    [-30, -10, 10, 30, 50].forEach(function (z) {
+      [-1, 1].forEach(function (s) {
+        avN++;
+        reg("AV" + avN, "Ghế băng đại lộ " + avN, -8.5 * s, 188 - (z - 4), 0.61, (s * Math.PI) / 2 + Math.PI);
+      });
+    });
+    /* ---------- KHU TRÒ CHƠI: ghế đẩu quanh bàn game ---------- */
+    function ringOff(n, r, off) {
+      var arr = [];
+      for (var i = 0; i < n; i++) { var a = ((i + (off || 0)) / n) * Math.PI * 2; arr.push([Math.cos(a) * r, Math.sin(a) * r]); }
+      return arr;
+    }
+    function gz(prefix, label, cx, cz, flip, offsets) {
+      offsets.forEach(function (o, i) {
+        var wx = flip ? cx + o[0] : cx - o[0], wz = flip ? cz + o[1] : cz - o[1];
+        reg(prefix + (i + 1), label + " " + (i + 1), wx, wz, 0.6, Math.atan2(cx - wx, cz - wz));
+      });
+    }
+    gz("LU", "Ghế đẩu cá ngựa", 28, 208, false, ringOff(4, 2.0, 0.5));
+    gz("UN", "Ghế đẩu UNO", 28, 168, false, [[-1.8, 0], [1.8, 0], [0, -1.12], [0, 1.12]]);
+    gz("CD", "Ghế đẩu bài cào", -28, 228, true, ringOff(5, 2.4, 0));
+    gz("RO", "Ghế đẩu cò quay", -28, 208, true, ringOff(4, 2.4, 0.5));
+    gz("BC", "Ghế đẩu bầu cua", -28, 188, true, ringOff(5, 2.5, 0.3));
+    gz("DR", "Ghế đẩu vẽ đoán chữ", -28, 168, true, [[0.5, -1.2], [0.5, 0], [0.5, 1.2]]);
+    gz("WF", "Ghế đẩu ma sói", -28, 148, true, ringOff(8, 3.0, 0));
+  } catch (e) { if (window.console) console.warn("DotF seats", e); }
+  window.__dotf = { seats: newIds, elev: elev };
+
+  /* ---------- Điểm tương tác mới: 2 quầy công viên + quầy cà phê ---------- */
+  var SPOTS = [
+    { type: "stallcandy", x: 10, z: 76, r: 2.6, label: "🍭 Quầy kẹo bông" },
+    { type: "stallballoon", x: -10, z: 76, r: 2.6, label: "🎈 Quầy bóng bay" },
+    { type: "cafe", x: 122.0, z: 26.5, r: 2.3, label: "☕ Quầy cà phê · xem menu" },
+  ];
+  function fx(emoji) {
+    try {
+      if (typeof spawnFx === "function" && typeof avatars3D !== "undefined" && typeof RoomState !== "undefined" && RoomState.me) {
+        var rec = avatars3D.get(RoomState.me.id);
+        if (rec) spawnFx(rec, emoji);
+      }
+    } catch (e) {}
+  }
+  var origVillaSpots = null, origDoAction = null, origUpdateActionBtn = null;
+  function wrapActions() {
+    if (typeof villaSpots === "function" && !origVillaSpots) {
+      origVillaSpots = villaSpots;
+      villaSpots = function (best) {
+        best = origVillaSpots(best);
+        if (typeof myPos !== "undefined" && typeof myY !== "undefined" && myY < 1.6) {
+          for (var i = 0; i < SPOTS.length; i++) {
+            var d = Math.hypot(SPOTS[i].x - myPos.x, SPOTS[i].z - myPos.z);
+            if (d < SPOTS[i].r && (!best || d < best.dist)) best = { type: SPOTS[i].type, dist: d };
+          }
+        }
+        return best;
+      };
+    }
+    if (typeof doAction === "function" && !origDoAction) {
+      origDoAction = doAction;
+      doAction = function () {
+        var t = typeof currentAction !== "undefined" && currentAction ? currentAction.type : null;
+        if (t === "stallcandy" || t === "stallballoon" || t === "cafe") {
+          if (t === "stallcandy") { fx("🍭"); toast("🍭 Kẹo bông hồng ngọt lịm — quầy bán bằng nụ cười, cứ lấy ăn thoải mái nhé!"); }
+          else if (t === "stallballoon") { fx("🎈"); toast("🎈 Bóng bay đủ màu — chọn một quả thật đẹp mang về nhà nhé!"); }
+          else { fx("☕"); toast("☕ Menu hôm nay: cà phê sữa đá · trà đào cam sả · bánh cá taiyaki — gọi món xong ra ghế đẩu quanh bàn ngồi thưởng thức nhé!"); }
+          if (typeof updateActionBtn === "function") updateActionBtn();
+          return;
+        }
+        return origDoAction();
+      };
+    }
+    if (typeof updateActionBtn === "function" && !origUpdateActionBtn) {
+      origUpdateActionBtn = updateActionBtn;
+      updateActionBtn = function () {
+        origUpdateActionBtn();
+        if (typeof currentAction === "undefined" || !currentAction) return;
+        var btn = document.querySelector("#actionBtn");
+        if (currentAction.type === "sit" && elev[currentAction.seatId] !== undefined) {
+          /* Ghế trên sàn/đỉnh bể: chỉ cho ngồi khi đang ở đúng tầng — tránh
+             người dưới mặt đất bấm Ngồi rồi bị hút xuyên sàn lên cao. */
+          if (typeof myY === "undefined" || Math.abs(myY - elev[currentAction.seatId]) > 1.8) {
+            currentAction = null;
+            if (btn) btn.hidden = true;
+          }
+          return;
+        }
+        for (var i = 0; i < SPOTS.length; i++)
+          if (currentAction.type === SPOTS[i].type && btn) btn.textContent = SPOTS[i].label;
+      };
+    }
+  }
+  wrapActions();
+  setTimeout(wrapActions, 1200);
+})();
     </script>
   </body>
 </html>
