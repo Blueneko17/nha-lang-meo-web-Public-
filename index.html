@@ -2864,6 +2864,31 @@
       #actionBtn:active {
         transform: translateX(-50%) scale(0.95);
       }
+      /* Nút hành động THỨ HAI: khi đứng gần cả ghế lẫn một điểm chức năng
+         (bàn game, TV, sân khấu…) thì hiện thêm nút này ngay trên nút chính
+         để bấm được cả hai, thay vì chỉ nút gần nhất như trước. */
+      #actionBtn2 {
+        position: absolute;
+        left: 50%;
+        bottom: 146px;
+        transform: translateX(-50%);
+        z-index: 7;
+        border: 1px solid rgba(255, 233, 201, 0.4);
+        border-radius: 999px;
+        background: rgba(43, 32, 24, 0.88);
+        color: #ffe9c9;
+        font-weight: 700;
+        font-size: 0.92rem;
+        padding: 11px 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        min-height: 46px;
+      }
+      #actionBtn2:active {
+        transform: translateX(-50%) scale(0.95);
+      }
+      #actionBtn2[hidden] {
+        display: none;
+      }
       #joystick {
         position: absolute;
         right: 16px;
@@ -5042,6 +5067,29 @@
         #actionBtn[hidden] {
           display: none;
         }
+        /* Nút hành động thứ hai trên điện thoại: xếp ngay trên nút chính,
+           cùng cụm ngón cái bên phải. */
+        #actionBtn2 {
+          left: auto;
+          right: calc(var(--sar) + 14px);
+          bottom: calc(var(--sab) + 106px);
+          transform: none;
+          min-height: 52px;
+          max-width: 42vw;
+          padding: 10px 14px;
+          font-size: 0.88rem;
+          line-height: 1.25;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+        #actionBtn2:active {
+          transform: scale(0.94);
+        }
+        #actionBtn2[hidden] {
+          display: none;
+        }
         .m-cluster {
           display: flex;
           right: calc(var(--sar) + 26px);
@@ -5680,6 +5728,7 @@
               <div id="sysMenuPanels"></div>
             </div>
             <button id="actionBtn" type="button" hidden></button>
+            <button id="actionBtn2" type="button" hidden></button>
             <div id="interactBar" hidden>
               <span class="ib-label" id="interactLabel">Gần bạn</span>
               <button type="button" data-act="punch">👊 Đấm</button>
@@ -15255,11 +15304,19 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
 
       /* ---------- Tương tác theo vị trí ---------- */
       let currentAction = null;
+      /* Hành động PHỤ: khi gần cả ghế lẫn điểm chức năng (bàn game/TV/sân
+         khấu…), nút chính giữ ứng viên gần nhất như cũ, nút thứ hai giữ ứng
+         viên còn lại — trước đây chỉ một nút duy nhất nên ghế đẩu quanh bàn
+         game luôn "nuốt" mất nút Chơi của bàn. */
+      let currentAction2 = null;
       function updateActionBtn() {
         const btn = $("#actionBtn");
+        const btn2 = $("#actionBtn2");
         currentAction = null;
+        currentAction2 = null;
         if (villaRide) {
           btn.hidden = true;
+          if (btn2) btn2.hidden = true;
           const bar0 = $("#interactBar");
           if (bar0) bar0.hidden = true;
           return;
@@ -15276,10 +15333,31 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           } else {
             const occ = seatOccupants();
             let best = null;
+            /* Ghế gần nhất và điểm chức năng gần nhất được chấm RIÊNG: nút
+               chính vẫn là ứng viên gần nhất tổng thể (hành vi cũ), ứng viên
+               còn lại thành nút phụ — đứng quanh bàn game là bấm được cả
+               "Ngồi ghế đẩu" lẫn "Chơi …". */
+            let bestSeat = null;
+            let bestSpot = null;
+            const considerSpot = (cand) => {
+              if (!bestSpot || cand.dist < bestSpot.dist) bestSpot = cand;
+              if (!best || cand.dist < best.dist) best = cand;
+            };
             SEAT_DEFS.forEach((d) => {
               if (occ.has(d.id)) return;
               const sp = SEAT_POS[d.id];
               if (d.id.charAt(0) === "G" && sp.y > 3) return; // cabin vòng quay chưa xuống gần bệ thì không "ngồi" từ xa/trên cao được
+              /* Ghế trên sàn/đỉnh bể (Đợt F đăng ký cao độ kỳ vọng): đang ở
+                 sai tầng thì bỏ qua ngay trong vòng chấm — nếu không, ghế
+                 trên cao có thể thành nút phụ và hút người chơi xuyên sàn
+                 (wrapper Đợt F trước đây chỉ chặn được nút chính). */
+              if (
+                window.__dotf &&
+                window.__dotf.elev &&
+                window.__dotf.elev[d.id] !== undefined &&
+                Math.abs(myY - window.__dotf.elev[d.id]) > 1.8
+              )
+                return;
               const dist = Math.hypot(sp.x - myPos.x, sp.z - myPos.z);
               /* Tầm bấm "Ngồi" theo loại ghế: sofa vòng cung có thân ghế + hộp cản
                  giữa người chơi và tâm ghế nên đứng sát ghế nhất cũng cách tâm
@@ -15288,21 +15366,22 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                  các ghế còn lại giữ 2.0 như cũ. */
               const reach =
                 d.zone === "back" ? 3.8 : d.zone === "front" ? 3.4 : d.zone === "cushion" ? 2.8 : 2.0;
-              if (dist < reach && (!best || dist < best.dist))
-                best = { type: "sit", seatId: d.id, dist, label: d.label };
+              if (dist < reach && (!bestSeat || dist < bestSeat.dist))
+                bestSeat = { type: "sit", seatId: d.id, dist, label: d.label };
             });
+            best = bestSeat;
             /* Trạm game ở KHU TRÒ CHƠI MỚI phía nam (world): bi-a (28,228), cá ngựa (28,208) */
             const dp = Math.hypot(28 - myPos.x, 228 - myPos.z);
-            if (dp < 2.7 && (!best || dp < best.dist)) best = { type: "pool", dist: dp };
+            if (dp < 2.7) considerSpot({ type: "pool", dist: dp });
             const dl = Math.hypot(28 - myPos.x, 208 - myPos.z);
-            if (dl < 2.3 && (!best || dl < best.dist)) best = { type: "ludo", dist: dl };
+            if (dl < 2.3) considerSpot({ type: "ludo", dist: dl });
             const dtv = Math.hypot(TV_POS.x - myPos.x, TV_POS.z - myPos.z);
-            if (dtv < 2.9 && (!best || dtv < best.dist)) best = { type: "tv", dist: dtv };
+            if (dtv < 2.9) considerSpot({ type: "tv", dist: dtv });
             const denv = Math.hypot(ENV_POS.x - myPos.x, ENV_POS.z - myPos.z);
-            if (denv < 2.4 && (!best || denv < best.dist)) best = { type: "env", dist: denv };
+            if (denv < 2.4) considerSpot({ type: "env", dist: denv });
             for (const bp of BOOK_POS) {
               const dbk = Math.hypot(bp.x - myPos.x, bp.z - myPos.z);
-              if (dbk < 2.4 && (!best || dbk < best.dist)) best = { type: "book", dist: dbk };
+              if (dbk < 2.4) considerSpot({ type: "book", dist: dbk });
             }
             /* Vị trí trạm ở KHU TRÒ CHƠI MỚI (world — xem window.GAME_SPOTS ở script GameZoneV2) */
             const gameSpots = [
@@ -15315,25 +15394,28 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               { type: "wolf", pos: { x: -28, z: 148 }, r: 2.8 },
             ];
             const dStage = Math.hypot(STAGE_POS.x - myPos.x, STAGE_POS.z - myPos.z);
-            if (dStage < 2.7 && (!best || dStage - 0.4 < best.dist))
-              best = { type: "karaoke", dist: dStage - 0.4 };
+            if (dStage < 2.7) considerSpot({ type: "karaoke", dist: dStage - 0.4 });
             const dArt = Math.hypot(ART_POS.x - myPos.x, ART_POS.z - myPos.z);
-            if (dArt < 2.4 && (!best || dArt < best.dist)) best = { type: "art", dist: dArt };
+            if (dArt < 2.4) considerSpot({ type: "art", dist: dArt });
             const dFire = Math.hypot(FIRE_POS.x - myPos.x, FIRE_POS.z - myPos.z);
-            if (dFire < 3.1 && (!best || dFire < best.dist)) best = { type: "fire", dist: dFire };
+            if (dFire < 3.1) considerSpot({ type: "fire", dist: dFire });
             Object.keys(ART3D.frames).forEach((fid) => {
               const fr = ART3D.frames[fid];
               const d = Math.hypot(fr.x - myPos.x, fr.z - myPos.z); /* KHU PHỐ v4: khung ở tường ĐÔNG Phòng Tranh, điểm đứng (87.6, z) ghi trong fr.x/fr.z */
-              if (d < 2.3 && (!best || d < best.dist))
-                best = { type: "frame", frameId: fid, dist: d };
+              if (d < 2.3) considerSpot({ type: "frame", frameId: fid, dist: d });
             });
             gameSpots.forEach((gs) => {
               const d = Math.hypot(gs.pos.x - myPos.x, gs.pos.z - myPos.z);
-              if (d < gs.r && (!best || d < best.dist)) best = { type: gs.type, dist: d };
+              if (d < gs.r) considerSpot({ type: gs.type, dist: d });
             });
             best = villaSpots(best);
+            bestSpot = villaSpots(bestSpot);
             if (best) {
               currentAction = best;
+              /* Nút phụ = phía còn lại: chính là điểm chức năng thì phụ là
+                 ghế, chính là ghế thì phụ là điểm chức năng gần nhất. */
+              if (best.type === "sit") currentAction2 = bestSpot;
+              else if (bestSeat) currentAction2 = bestSeat;
               const labels = {
                 vslide: "🛝 Trượt cầu tụt",
                 vslide2: "🎢 Trượt cầu tụt siêu tốc",
@@ -15355,18 +15437,21 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                 art: "🎨 Vẽ tranh fanart",
                 fire: "🔥 Sưởi bên lửa trại",
               };
-              btn.textContent =
-                best.type === "sit"
-                  ? "🪑 Ngồi · " + best.label
-                  : best.type === "frame"
-                    ? ART3D.frames[best.frameId] && ART3D.frames[best.frameId].filledBy
+              const lab = (a) =>
+                a.type === "sit"
+                  ? "🪑 Ngồi · " + a.label
+                  : a.type === "frame"
+                    ? ART3D.frames[a.frameId] && ART3D.frames[a.frameId].filledBy
                       ? "🖼️ Xem tranh trong khung"
                       : "🖼️ Treo tranh vào khung trống"
-                    : labels[best.type] || "Chơi";
+                    : labels[a.type] || "Chơi";
+              btn.textContent = lab(best);
+              if (btn2 && currentAction2) btn2.textContent = lab(currentAction2);
             }
           }
         }
         btn.hidden = !currentAction;
+        if (btn2) btn2.hidden = !currentAction2;
         const bar = $("#interactBar");
         if (RoomState.inRoom && !RoomState.me.seat) {
           const near = nearestPlayer();
@@ -15379,6 +15464,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           interactTarget = null;
           bar.hidden = true;
         }
+      }
+      /* Bấm nút phụ: mượn đúng đường doAction (kể cả các wrapper hộp pháo /
+         quầy hàng đọc currentAction) bằng cách tạm đặt hành động phụ làm
+         hành động hiện tại; doAction luôn gọi lại updateActionBtn ở cuối
+         nên trạng thái nút được chấm lại ngay sau đó. */
+      function doAction2() {
+        const a2 = currentAction2;
+        if (!a2) return;
+        currentAction = a2;
+        doAction();
       }
       function doAction() {
         const a = currentAction;
@@ -17181,6 +17276,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         });
       }
       $("#actionBtn").addEventListener("click", doAction);
+      $("#actionBtn2").addEventListener("click", doAction2);
       $("#hudViewBtn").addEventListener("click", () => {
         if (RoomState.inRoom) toggleView();
         else toast("Vào làng rồi mới đổi được góc nhìn nhé");
@@ -28659,6 +28755,11 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
           var btn = document.querySelector("#actionBtn");
           if (btn) btn.textContent = "🎆 Bắn pháo hoa";
         }
+        /* Hộp pháo cũng có thể là nút PHỤ (khi một ghế đỉnh bể gần hơn) */
+        if (typeof currentAction2 !== "undefined" && currentAction2 && currentAction2.type === "fireworks") {
+          var btn2 = document.querySelector("#actionBtn2");
+          if (btn2) btn2.textContent = "🎆 Bắn pháo hoa";
+        }
       };
     }
   }
@@ -29252,6 +29353,24 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
       origUpdateActionBtn = updateActionBtn;
       updateActionBtn = function () {
         origUpdateActionBtn();
+        var btn2 = document.querySelector("#actionBtn2");
+        /* Ghế trên cao làm nút PHỤ cũng phải chặn khi sai tầng (phòng hờ:
+           vòng chấm ghế ở lõi đã lọc, đây là chốt chặn thứ hai). */
+        if (
+          typeof currentAction2 !== "undefined" &&
+          currentAction2 &&
+          currentAction2.type === "sit" &&
+          elev[currentAction2.seatId] !== undefined &&
+          (typeof myY === "undefined" || Math.abs(myY - elev[currentAction2.seatId]) > 1.8)
+        ) {
+          currentAction2 = null;
+          if (btn2) btn2.hidden = true;
+        }
+        /* Nhãn riêng cho các quầy mới khi chúng là nút phụ */
+        if (typeof currentAction2 !== "undefined" && currentAction2 && btn2) {
+          for (var j = 0; j < SPOTS.length; j++)
+            if (currentAction2.type === SPOTS[j].type) btn2.textContent = SPOTS[j].label;
+        }
         if (typeof currentAction === "undefined" || !currentAction) return;
         var btn = document.querySelector("#actionBtn");
         if (currentAction.type === "sit" && elev[currentAction.seatId] !== undefined) {
