@@ -11473,7 +11473,12 @@ function winUnit(x, y, z, ry, w, h) {
   OCCL.push(bx(31.1, WH, T, WALL, -16.85, WH / 2, fz)); OCCL.push(bx(12.5, WH, T, WALL, 7.55, WH / 2, fz)); OCCL.push(bx(14.7, WH, T, WALL, 25.05, WH / 2, fz));
   OCCL.push(bx(3.9, 3.2, T, WALL, 15.75, 1.6, fz)); OCCL.push(bx(3.9, 2.8, T, WALL, 15.75, 7.6, fz)); OCCL.push(bx(2.6, WH - 3.4, T, WALL, 0, 3.4 + (WH - 3.4) / 2, fz));
   // chân tường đá + phào
-  bx(65.4, 0.8, 0.55, STONE, 0, 0.4, 17.3); bx(65.4, 0.8, 0.55, STONE, 0, 0.4, -17.3); bx(0.55, 0.8, 35.4, STONE, -32.3, 0.4, 0); bx(0.55, 0.8, 35.4, STONE, 32.3, 0.4, 0);
+  /* GỠ CHÂN TƯỜNG CHẮN CỬA CHÍNH (2026-11-18, chủ nhân báo): dải chân tường
+     đá mặt trước trước đây chạy liền một mạch 65.4 qua cả ô cửa ±1.3, thành
+     thanh đá cao 0.8 chắn ngang dưới khung cửa — cửa không có hộp cản nên
+     người đi xuyên qua thanh, lúc thấy lúc không. Nay chẻ đôi chừa đúng ô
+     cửa như tường phía trên: hai đoạn x −32.7..−1.3 và 1.3..32.7. */
+  bx(31.4, 0.8, 0.55, STONE, -17, 0.4, 17.3); bx(31.4, 0.8, 0.55, STONE, 17, 0.4, 17.3); bx(65.4, 0.8, 0.55, STONE, 0, 0.4, -17.3); bx(0.55, 0.8, 35.4, STONE, -32.3, 0.4, 0); bx(0.55, 0.8, 35.4, STONE, 32.3, 0.4, 0);
   bx(65.4, 0.35, 0.6, STONE, 0, 8.85, 17.3); bx(65.4, 0.35, 0.6, STONE, 0, 8.85, -17.3); bx(0.6, 0.35, 35.4, STONE, -32.3, 8.85, 0); bx(0.6, 0.35, 35.4, STONE, 32.3, 8.85, 0);
   bx(65, 1.1, 0.08, MID, 0, 0.8 + 0.55, -16.96); bx(65, 0.14, 0.1, TRIM, 0, 8.5, -16.95); bx(0.08, 1.1, 34, MID, -31.95, 1.35, 0); bx(0.08, 1.1, 34, MID, 31.95, 1.35, 0);
   // cột nhô mặt tiền (pilaster) + cột góc
