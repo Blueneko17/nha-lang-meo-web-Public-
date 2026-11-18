@@ -5611,10 +5611,28 @@
       #ludoOverlay .ludo-turnbar {
         margin-right: 182px;
       }
+      /* Panel sảnh đã thu gọn khi đang chơi cũng chừa góc phải cho pill
+         thoát, kẻo số người ở đầu panel bị pill đè lên */
+      #ludoOverlay .lb-panel.lb-playing {
+        padding-right: 196px;
+      }
       #ludoOverlay #ludoSetup {
         overflow-y: auto;
         min-height: 0;
         padding-top: 54px;
+      }
+      /* .lb-body bọc toàn bộ phần chơi (hệ sảnh chèn vào modal): phải là
+         mắt xích flex co giãn được của modal, nếu không nội dung cao hơn
+         màn hình sẽ tràn xuống và bị modal overflow:hidden cắt mất đáy
+         bàn — đúng lỗi "đủ người thì màn bị che xuống" */
+      #ludoOverlay .lb-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+      }
+      #ludoOverlay .lb-body[hidden] {
+        display: none;
       }
       #ludoOverlay #ludoGame {
         display: flex;
@@ -5642,7 +5660,9 @@
       }
       #ludoOverlay #ludo3dWrap,
       #ludoOverlay .board-wrap {
-        width: min(100%, calc(100dvh - 168px));
+        /* Chừa đúng chiều cao của dải sảnh đã thu gọn + dải lượt + thanh
+           chuyển 3D/2D + padding modal (~244px) để bàn không tràn đáy */
+        width: min(100%, calc(100dvh - 244px));
         max-width: none;
         margin: auto;
       }
@@ -5672,6 +5692,9 @@
         #ludoOverlay .ludo-turnbar {
           margin-right: 0;
         }
+        #ludoOverlay .lb-panel.lb-playing {
+          padding-right: 12px;
+        }
         #ludoOverlay #ludoSetup {
           padding-top: 0;
         }
@@ -5699,7 +5722,7 @@
         }
         #ludoOverlay #ludo3dWrap,
         #ludoOverlay .board-wrap {
-          width: min(100%, calc(100dvh - 430px));
+          width: min(100%, calc(100dvh - 392px));
           margin: 0 auto;
         }
         #ludoOverlay .turn-msg {
@@ -5717,7 +5740,7 @@
         }
         #ludoOverlay #ludo3dWrap,
         #ludoOverlay .board-wrap {
-          width: min(100%, calc(100dvh - 148px));
+          width: min(100%, calc(100dvh - 232px));
         }
         #ludoOverlay .ludo-view-hint {
           display: none;
@@ -6360,7 +6383,8 @@
                   <button type="button" id="ludoView2d">▦ Bàn 2D (nhẹ)</button>
                 </div>
                 <span class="ludo-view-hint" id="ludoViewHint"
-                  >Kéo để xoay bàn · cuộn chuột để thu phóng · chạm quân đang nhấp nhô để đi</span
+                  >Kéo: xoay bàn · chạm đúp: căn bàn vừa màn · chạm quân đang nhấp nhô để đi ·
+                  Space: tung xúc xắc</span
                 >
               </div>
               <div id="ludo3dWrap">
@@ -18412,7 +18436,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           btn3d.classList.toggle("sel", is3d);
           btn2d.classList.toggle("sel", !is3d);
           hint.textContent = is3d
-            ? "Kéo để xoay bàn · cuộn chuột để thu phóng · chạm quân đang nhấp nhô để đi"
+            ? "Kéo: xoay bàn · chạm đúp: căn bàn vừa màn · chạm quân đang nhấp nhô để đi · Space: tung xúc xắc"
             : "Bàn 2D nhẹ cho máy yếu — luật và ván chơi giữ nguyên";
           if (is3d) ensureInit();
         }
@@ -18637,8 +18661,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             renderer: renderer,
             pieces: new Map(), // "pi:idx" -> {g, anim, tx, tz}
             th: 0,
-            ph: 0.95,
+            ph: 0.62,
             rad: window.innerWidth < window.innerHeight ? 26 : 19,
+            userMoved: false, // người chơi đã tự xoay/phóng thì ngừng tự căn bàn
             ray: new THREE.Raycaster(),
             mkFigure: mkFigure,
           };
@@ -18711,6 +18736,38 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           });
         }
 
+        /* Tự căn bàn VỪA KHỚP khung canvas: chiếu 8 góc khối bàn (gồm chiều
+           cao quân) xuống màn hình rồi chỉnh khoảng cách camera để bàn lấp
+           ~94% khung — bàn không còn bị thu nhỏ ở đáy canvas với một mảng
+           tối trống phía trên. Chỉ chạy cho tới khi người chơi tự xoay/phóng
+           (chạm đúp vào bàn để căn lại). */
+        const FIT_PTS = [];
+        [-7.9, 7.9].forEach((fx) =>
+          [-7.9, 7.9].forEach((fz) => {
+            FIT_PTS.push([fx, 0, fz]);
+            FIT_PTS.push([fx, 1.75, fz]);
+          }),
+        );
+        function fitView(st) {
+          const v = new THREE.Vector3();
+          st.cam.position.set(
+            st.rad * Math.sin(st.ph) * Math.sin(st.th),
+            st.rad * Math.cos(st.ph),
+            st.rad * Math.sin(st.ph) * Math.cos(st.th),
+          );
+          st.cam.lookAt(0, 0, 0);
+          st.cam.updateMatrixWorld();
+          let m = 0;
+          FIT_PTS.forEach((p) => {
+            v.set(p[0], p[1], p[2]).project(st.cam);
+            m = Math.max(m, Math.abs(v.x), Math.abs(v.y));
+          });
+          if (m > 0.001) {
+            const target = st.rad * (m / 0.94);
+            st.rad = Math.max(11, Math.min(36, st.rad + (target - st.rad) * 0.45));
+          }
+        }
+
         /* ---------- Vòng lặp vẽ: chỉ vẽ khi overlay cá ngựa đang mở ở chế độ 3D ---------- */
         function loop(st, t) {
           requestAnimationFrame((nt) => loop(st, nt));
@@ -18724,6 +18781,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             st.cam.aspect = w / h;
             st.cam.updateProjectionMatrix();
           }
+          if (!st.userMoved) fitView(st);
           let hl = null;
           try {
             hl = typeof ludoHighlight === "function" ? ludoHighlight() : null;
@@ -18766,6 +18824,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const pointers = new Map();
           let pinchD = 0;
           canvas.addEventListener("pointerdown", (e) => {
+            st.userMoved = true;
             pointers.set(e.pointerId, [e.clientX, e.clientY]);
             down = [e.clientX, e.clientY];
             moved = 0;
@@ -18780,7 +18839,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             if (pointers.size === 2) {
               const pts = [...pointers.values()];
               const d = Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]);
-              if (pinchD) st.rad = Math.max(10, Math.min(32, st.rad - (d - pinchD) * 0.03));
+              if (pinchD) st.rad = Math.max(10, Math.min(36, st.rad - (d - pinchD) * 0.03));
               pinchD = d;
               moved += 10;
               return;
@@ -18819,7 +18878,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             );
             st.ray.setFromCamera(v, st.cam);
             const hits = st.ray.intersectObjects(sel, true);
-            if (!hits.length) return;
+            if (!hits.length) {
+              /* Chạm trượt khỏi mô hình quân (quân nhỏ, khó trúng trên điện
+                 thoại): chọn quân đang được gợi ý có hình chiếu gần điểm
+                 chạm nhất trong bán kính 56px trên màn hình */
+              let best = null,
+                bestD = 56;
+              const v3 = new THREE.Vector3();
+              st.pieces.forEach((rec, key) => {
+                if (!hl.has(key)) return;
+                v3.copy(rec.g.position);
+                v3.y += 0.8;
+                v3.project(st.cam);
+                if (v3.z > 1) return;
+                const sx = r.left + (v3.x * 0.5 + 0.5) * r.width;
+                const sy = r.top + (-v3.y * 0.5 + 0.5) * r.height;
+                const d = Math.hypot(e.clientX - sx, e.clientY - sy);
+                if (d < bestD) {
+                  bestD = d;
+                  best = rec.g;
+                }
+              });
+              if (best) ludoPieceClick(best.userData.pi, best.userData.idx);
+              return;
+            }
             let o = hits[0].object;
             while (o && o.userData.pi === undefined) o = o.parent;
             if (o) ludoPieceClick(o.userData.pi, o.userData.idx);
@@ -18833,10 +18915,15 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             "wheel",
             (e) => {
               e.preventDefault();
-              st.rad = Math.min(32, Math.max(10, st.rad + e.deltaY * 0.01));
+              st.userMoved = true;
+              st.rad = Math.min(36, Math.max(10, st.rad + e.deltaY * 0.01));
             },
             { passive: false },
           );
+          /* Chạm đúp / nhấp đúp: căn lại bàn vừa khớp màn hình */
+          canvas.addEventListener("dblclick", () => {
+            st.userMoved = false;
+          });
         }
 
         /* Gắn vào đường vẽ của game: mỗi lần bàn 2D vẽ lại quân thì bàn 3D
@@ -18852,6 +18939,26 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           _renderAll();
           sync();
         };
+        /* Phím tắt thao tác: Space/Enter = tung xúc xắc khi nút đang bật
+           (nút tự disabled khi chưa tới lượt / đang chờ đối thủ nên không
+           bấm hộ được); bỏ qua khi đang gõ chữ ở ô nhập/chat */
+        document.addEventListener("keydown", (e) => {
+          if (e.repeat) return;
+          if (e.code !== "Space" && e.code !== "Enter") return;
+          const t = e.target;
+          if (
+            t &&
+            t.closest &&
+            t.closest("button, a, input, textarea, select, [contenteditable]")
+          )
+            return;
+          const ov = document.getElementById("ludoOverlay");
+          if (!ov || !ov.classList.contains("open")) return;
+          const rb = document.getElementById("rollBtn");
+          if (!rb || rb.disabled || rb.offsetParent === null) return;
+          e.preventDefault();
+          rb.click();
+        });
         setMode("3d");
       })();
     </script>
@@ -23677,6 +23784,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
   .lb-bots-wrap{display:inline-flex;gap:7px;align-items:center;font-weight:700;border:1.5px solid var(--line);border-radius:999px;padding:4px 8px;background:var(--panel)}
   .lb-bots-wrap button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-weight:800;font-size:1rem;cursor:pointer}
   .lb-standings{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+  .lb-panel.lb-playing{padding:8px 12px;margin-bottom:8px}
+  .lb-panel.lb-playing .lb-rname,.lb-panel.lb-playing .lb-members,.lb-panel.lb-playing .lb-note{display:none}
+  .lb-panel.lb-playing .lb-room-btns{margin-top:7px}
+  .lb-panel.lb-playing .lb-standings{margin-top:6px}
   .sysmenu-sub .lb-item{background:rgba(255,233,201,.08);border-color:rgba(255,220,180,.25);color:#ffe9c9}
   .sysmenu-sub .lb-item .lb-imeta{color:rgba(255,233,201,.65)}
   `;
@@ -24331,6 +24442,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           (!!lob && lob.game === game && lob.started);
         rec.body.hidden = !show;
         rec.panel.style.display = SOLO[game] ? "none" : "";
+        /* Đang trong ván: thu panel sảnh thành một dải mỏng (chỉ còn tên
+           sảnh + nút Rời sảnh) để bàn chơi được trọn chiều cao màn hình,
+           không bị panel đẩy xuống/tràn khỏi khung như trước */
+        rec.panel.classList.toggle("lb-playing", show && !SOLO[game]);
       }
       function renderLobbyUI() {
         Object.keys(LBG).forEach((game) => {
