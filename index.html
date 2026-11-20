@@ -1214,92 +1214,6 @@
           grid-template-columns: 1fr;
         }
       }
-      .board-wrap {
-        position: relative;
-        width: 100%;
-        max-width: 560px;
-        margin: 0 auto;
-        aspect-ratio: 1;
-        background: #fdf6e3;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        border: 3px solid #8b4a2b;
-      }
-      .board-grid {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        grid-template-columns: repeat(15, 1fr);
-        grid-template-rows: repeat(15, 1fr);
-      }
-      .cell {
-        border: 0.5px solid rgba(120, 85, 40, 0.25);
-        position: relative;
-      }
-      .cell.path {
-        background: #fffdf6;
-      }
-      .cell.pad {
-        background: #fffdf6;
-        border-radius: 22%;
-      }
-      .cell .star {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #a98d5f;
-        font-size: 0.62rem;
-      }
-      .cell .home-dot {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.6rem;
-      }
-      .piece {
-        position: absolute;
-        width: 5.4%;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        border: 2px solid #fff;
-        box-shadow:
-          0 2px 5px rgba(0, 0, 0, 0.4),
-          inset 0 -3px 5px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 0.58rem;
-        font-weight: 800;
-        transition:
-          left 0.16s,
-          top 0.16s;
-        z-index: 3;
-      }
-      .piece.movable {
-        cursor: pointer;
-        animation: pulse 0.8s ease-in-out infinite;
-        z-index: 4;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          box-shadow:
-            0 0 0 0 rgba(255, 190, 40, 0.85),
-            0 2px 5px rgba(0, 0, 0, 0.4);
-        }
-        50% {
-          box-shadow:
-            0 0 0 6px rgba(255, 190, 40, 0.35),
-            0 2px 5px rgba(0, 0, 0, 0.4);
-        }
-      }
       .ludo-side {
         display: flex;
         flex-direction: column;
@@ -1445,27 +1359,6 @@
           animation: none;
         }
       }
-      .cell .lane-n {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.62rem;
-        font-weight: 800;
-        color: rgba(60, 40, 10, 0.55);
-      }
-      .yard-disc {
-        position: absolute;
-        width: 7.6%;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        border: 2.5px solid;
-        background: rgba(255, 255, 255, 0.65);
-        z-index: 1;
-        pointer-events: none;
-      }
       .p-chip .home-n {
         margin-left: auto;
         color: var(--muted);
@@ -1586,40 +1479,12 @@
 
       /* Cá ngựa 3D (port lớp trình diễn từ file mẫu của chủ nhân):
          bàn + quân nhân vật 3D trên canvas WebGL riêng, chỉ chạy khi
-         overlay cá ngựa đang mở ở chế độ 3D; bàn 2D giữ làm dự phòng. */
+         overlay cá ngựa đang mở. Cá ngựa chỉ còn bàn 3D này. */
       .ludo-board-col {
         min-width: 0;
         display: flex;
         flex-direction: column;
         gap: 8px;
-      }
-      .ludo-viewbar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .ludo-view-toggle {
-        display: flex;
-        border: 1.5px solid var(--line);
-        border-radius: 10px;
-        overflow: hidden;
-        flex: none;
-      }
-      .ludo-view-toggle button {
-        border: 0;
-        background: var(--bg);
-        color: var(--muted);
-        padding: 7px 13px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        min-height: 42px;
-        cursor: pointer;
-        font-family: inherit;
-      }
-      .ludo-view-toggle button.sel {
-        background: var(--accent);
-        color: #fff;
       }
       .ludo-view-hint {
         font-size: 0.8rem;
@@ -5541,7 +5406,7 @@
          từ chối Fullscreen API thì bố cục 100dvh vẫn phủ kín màn hình.
          Bàn cờ là hình vuông: KHÔNG khóa hướng ngang, giữ nguyên hướng máy
          của người chơi; bàn căn giữa, phóng to nhất có thể theo viewport,
-         canvas 3D và bàn 2D tự resize theo khung chứa chung. */
+         canvas 3D tự resize theo khung chứa của nó. */
       #ludoOverlay {
         --lsat: env(safe-area-inset-top, 0px);
         --lsar: env(safe-area-inset-right, 0px);
@@ -5658,11 +5523,10 @@
         min-width: 0;
         min-height: 0;
       }
-      #ludoOverlay #ludo3dWrap,
-      #ludoOverlay .board-wrap {
-        /* Chừa đúng chiều cao của dải sảnh đã thu gọn + dải lượt + thanh
-           chuyển 3D/2D + padding modal (~244px) để bàn không tràn đáy */
-        width: min(100%, calc(100dvh - 244px));
+      #ludoOverlay #ludo3dWrap {
+        /* Chừa đúng chiều cao của dải sảnh đã thu gọn + dải lượt + dòng
+           gợi ý + padding modal (~226px) để bàn không tràn đáy */
+        width: min(100%, calc(100dvh - 226px));
         max-width: none;
         margin: auto;
       }
@@ -5673,24 +5537,52 @@
         overflow-y: auto;
         padding-right: 2px;
       }
+      /* Thanh chế độ theo dõi: chỉ hiện khi đang xem trận của sảnh khác */
+      #ludoOverlay #ludoSpecBar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        border: 1.5px dashed var(--gold, #f2b705);
+        border-radius: 12px;
+        padding: 7px 12px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: color-mix(in srgb, var(--gold, #f2b705) 12%, var(--panel));
+      }
+      #ludoOverlay #ludoSpecBar[hidden] {
+        display: none;
+      }
+      #ludoOverlay #ludoSpecBar .btn {
+        margin-left: auto;
+        min-height: 40px;
+      }
       /* Mục tiêu chạm ≥ 46px trong giao diện full màn */
       #ludoOverlay .btn {
-        min-height: 46px;
-      }
-      #ludoOverlay .ludo-view-toggle button {
         min-height: 46px;
       }
       #ludoOverlay .seg button {
         min-height: 46px;
       }
-      /* Dọc hẹp (điện thoại dựng máy): ô tên thành HÀNG ngang trên bàn, bàn
-         ở giữa, điều khiển xếp dưới; phần thừa cuộn trong khung game */
+      /* Dọc hẹp (điện thoại dựng máy): chip tên người chơi gom thành MỘT
+         hàng mỏng trên cùng, banner lượt mỏng, bàn chiếm trọn chiều ngang
+         (và tối đa chiều cao bố cục cho phép), xúc xắc + chip chọn viên +
+         nút hành động nằm gọn ở thanh thao tác dưới đáy — mọi thao tác
+         với tới được không cần cuộn trên máy cao thường gặp; máy rất thấp
+         mới cuộn dự phòng trong khung game. */
       @media (max-width: 860px) and (orientation: portrait) {
         #ludoOverlay .ludo-modal {
           padding-top: calc(var(--lsat) + 58px);
+          padding-left: calc(var(--lsal) + 10px);
+          padding-right: calc(var(--lsar) + 10px);
+          padding-bottom: calc(var(--lsab) + 8px);
         }
         #ludoOverlay .ludo-turnbar {
           margin-right: 0;
+          margin-bottom: 6px;
+          padding: 5px 12px;
+          font-size: 0.92rem;
         }
         #ludoOverlay .lb-panel.lb-playing {
           padding-right: 12px;
@@ -5704,32 +5596,95 @@
         #ludoOverlay .ludo-layout {
           flex-direction: column;
           flex: none;
-          gap: 10px;
+          gap: 8px;
         }
         #ludoOverlay .ludo-side {
           display: contents;
         }
+        /* Một hàng chip mỏng duy nhất cho mọi người chơi */
         #ludoOverlay #playerList {
           order: -1;
-          flex-direction: row;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+          gap: 6px;
         }
         #ludoOverlay .p-chip {
-          flex: 1 1 42%;
           min-width: 0;
-          font-size: 0.85rem;
-          padding: 6px 9px;
+          font-size: 0.8rem;
+          padding: 5px 7px;
+          gap: 6px;
+          border-radius: 10px;
         }
-        #ludoOverlay #ludo3dWrap,
-        #ludoOverlay .board-wrap {
-          width: min(100%, calc(100dvh - 392px));
+        #ludoOverlay .p-chip .dot {
+          width: 12px;
+          height: 12px;
+        }
+        #ludoOverlay .p-chip .home-n,
+        #ludoOverlay .p-chip .going {
+          display: none;
+        }
+        #ludoOverlay .p-chip .bot-tag {
+          font-size: 0.68rem;
+        }
+        #ludoOverlay .ludo-view-hint {
+          font-size: 0.72rem;
+          text-align: center;
+        }
+        /* Bàn: trọn chiều ngang, bị chặn trên bởi chiều cao còn lại */
+        #ludoOverlay #ludo3dWrap {
+          width: min(100%, calc(100dvh - 400px));
           margin: 0 auto;
         }
+        #ludoOverlay .winner-banner {
+          order: 1;
+          padding: 8px 10px;
+        }
         #ludoOverlay .turn-msg {
+          order: 2;
           min-height: 0;
+          font-size: 0.88rem;
+        }
+        /* Thanh thao tác dưới đáy: tung → chọn viên → hành động → phụ */
+        #ludoOverlay #rollBtn {
+          order: 3;
+          min-height: 50px;
+        }
+        #ludoOverlay .ludo-actions {
+          order: 4;
+          gap: 7px;
+        }
+        #ludoOverlay .die-chip {
+          min-width: 52px;
+          height: 52px;
+        }
+        #ludoOverlay .ludo-act-btns .btn {
+          min-height: 48px;
+          flex: 1;
+        }
+        #ludoOverlay .ludo-util-btns {
+          order: 5;
+        }
+        #ludoOverlay .ludo-util-btns .btn {
+          min-height: 48px;
+          flex: 1;
         }
         #ludoOverlay .ludo-log {
-          max-height: 72px;
+          order: 6;
+          max-height: 46px;
+        }
+        #ludoOverlay .btn {
+          min-height: 48px;
+        }
+      }
+      /* Máy dọc rất thấp: thu nhật ký + gợi ý để bàn và thanh thao tác
+         vẫn vừa khung, khỏi phải cuộn */
+      @media (max-width: 860px) and (orientation: portrait) and (max-height: 720px) {
+        #ludoOverlay .ludo-log,
+        #ludoOverlay .ludo-view-hint {
+          display: none;
+        }
+        #ludoOverlay #ludo3dWrap {
+          width: min(100%, calc(100dvh - 348px));
         }
       }
       /* Ngang thấp (điện thoại xoay ngang): cột phải hẹp + cuộn, bàn vẫn
@@ -5738,9 +5693,8 @@
         #ludoOverlay .ludo-side {
           width: 252px;
         }
-        #ludoOverlay #ludo3dWrap,
-        #ludoOverlay .board-wrap {
-          width: min(100%, calc(100dvh - 232px));
+        #ludoOverlay #ludo3dWrap {
+          width: min(100%, calc(100dvh - 214px));
         }
         #ludoOverlay .ludo-view-hint {
           display: none;
@@ -6360,9 +6314,11 @@
         <p class="desc">
           Mỗi lượt tung 2 xúc xắc và dùng lần lượt từng viên — không có nước đi dồn tổng. Ra 6 thì
           dùng xong được tung lại đúng viên đó; ra đôi thì dùng hết cả 2 viên được tung lại cả 2.
-          Ra quân luôn là lựa chọn của bạn (ra 6 hoặc ra đôi), không bao giờ bị ép. Cấm nhảy qua
-          bất kỳ quân nào; đá quân địch khi đáp đúng ô. Vào cột đích phải đúng số bước, thắng khi
-          đủ 4 quân ở các ô đích 3, 4, 5, 6.
+          Bỏ viên vẫn tính là đã dùng viên đó. Ra quân luôn là lựa chọn của bạn (ra 6 hoặc ra đôi),
+          không bao giờ bị ép. Cấm nhảy qua bất kỳ quân nào; đá quân địch khi đáp đúng ô. Vào
+          chuồng phải dùng 2 xúc xắc: một viên không bao giờ đi xuyên qua ô cửa — phải dừng ở ô
+          cửa trước, rồi dùng một viên khác để lên ô chuồng. Thắng khi đủ 4 quân ở các ô đích 3,
+          4, 5, 6.
         </p>
         <div id="ludoSetup">
           <div id="setupRows"></div>
@@ -6371,42 +6327,26 @@
           </button>
         </div>
         <div id="ludoGame" hidden>
+          <div id="ludoSpecBar" hidden>
+            <span>👀 Bạn đang <b>xem trận</b> — chỉ xem, không tham gia chơi.</span>
+            <button class="btn ghost" type="button" id="ludoSpecExit">Ngừng xem</button>
+          </div>
           <div class="ludo-turnbar" id="ludoTurnBar">
             <span class="dot" id="ludoTurnDot"></span><span id="ludoTurnName">Chưa mở ván</span
             ><span class="ludo-turn-tag" id="ludoTurnTag"></span>
           </div>
           <div class="ludo-layout">
             <div class="ludo-board-col">
-              <div class="ludo-viewbar">
-                <div class="ludo-view-toggle" role="group" aria-label="Kiểu bàn cờ">
-                  <button type="button" id="ludoView3d" class="sel">🧊 Bàn 3D</button>
-                  <button type="button" id="ludoView2d">▦ Bàn 2D (nhẹ)</button>
-                </div>
-                <span class="ludo-view-hint" id="ludoViewHint"
-                  >Kéo: xoay bàn · chạm đúp: căn bàn vừa màn · chạm quân đang nhấp nhô để đi ·
-                  Space: tung xúc xắc</span
-                >
-              </div>
+              <div class="ludo-view-hint" id="ludoViewHint"
+                >Kéo: xoay bàn · chạm đúp: căn bàn vừa màn · chạm quân đang nhấp nhô để đi · Space:
+                tung xúc xắc</div
+              >
               <div id="ludo3dWrap">
                 <canvas id="ludo3dCanvas"></canvas>
                 <div id="ludo3dFallback" hidden>
-                  Máy này không mở được WebGL nên bàn 3D không chạy — hãy bấm “Bàn 2D (nhẹ)” ở trên
-                  để chơi tiếp nhé.
+                  ⚠️ Thiết bị này không hỗ trợ 3D (WebGL) nên không mở được bàn cá ngựa. Hãy thử
+                  bằng một máy hoặc trình duyệt khác nhé.
                 </div>
-              </div>
-              <div class="board-wrap" id="boardWrap" hidden>
-              <div class="board-grid" id="boardGrid"></div>
-              <svg
-                style="position: absolute; left: 40%; top: 40%; width: 20%; height: 20%"
-                viewBox="0 0 100 100"
-                aria-hidden="true"
-              >
-                <polygon points="50,50 0,0 100,0" fill="#33c9cc" />
-                <polygon points="50,50 100,0 100,100" fill="#ffc907" />
-                <polygon points="50,50 100,100 0,100" fill="#99cc00" />
-                <polygon points="50,50 0,100 0,0" fill="#ff3a0a" />
-              </svg>
-              <div id="pieceLayer"></div>
               </div>
             </div>
             <div class="ludo-side">
@@ -6425,7 +6365,7 @@
                   </button>
                 </div>
               </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <div class="ludo-util-btns" style="display: flex; gap: 8px; flex-wrap: wrap">
                 <button class="btn ghost" type="button" id="ludoRestart">Ván mới</button>
                 <button class="btn ghost" type="button" id="ludoSetupBtn">Đổi người chơi</button>
               </div>
@@ -16080,6 +16020,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                   ? "🧍 Xuống cabin · đã về bệ"
                   : "🎡 Đang ngắm cảnh · về bệ mới xuống được"
                 : "🧍 Đứng dậy";
+            /* Đang NGỒI trên ghế đẩu quanh một bàn game: vẫn hiện nút Chơi
+               của bàn đó ở nút phụ, mở/vào trận được mà không cần đứng dậy.
+               (Nút "ngồi" của chính ghế đang ngồi vốn đã ẩn vì nhánh ngồi
+               không hề đề cử hành động ngồi.) Áp dụng cho mọi bàn game có
+               ghế đẩu quanh bàn — cùng một cơ chế cho cả 7 bàn. */
+            const mySeatPos = SEAT_POS[RoomState.me.seat];
+            if (mySeatPos && RoomState.me.seat.charAt(0) !== "G") {
+              const gameTables = [
+                { type: "ludo", x: 28, z: 208, r: 3.4, label: "🐴 Chơi cờ cá ngựa" },
+                { type: "pool", x: 28, z: 228, r: 3.4, label: "🎱 Chơi bi-a" },
+                { type: "uno", x: 28, z: 168, r: 3.2, label: "🎴 Chơi UNO" },
+                { type: "cards", x: -28, z: 228, r: 3.8, label: "🃏 Chơi bài cào" },
+                { type: "roulette", x: -28, z: 208, r: 3.8, label: "🐟 Cò quay cá khô" },
+                { type: "baucua", x: -28, z: 188, r: 3.9, label: "🎲 Chơi bầu cua cá khô" },
+                { type: "wolf", x: -28, z: 148, r: 4.4, label: "🐺 Chơi ma sói" },
+              ];
+              for (const tb of gameTables) {
+                if (Math.hypot(tb.x - mySeatPos.x, tb.z - mySeatPos.z) < tb.r) {
+                  currentAction2 = { type: tb.type };
+                  if (btn2) btn2.textContent = tb.label;
+                  break;
+                }
+              }
+            }
           } else {
             const occ = seatOccupants();
             let best = null;
@@ -18189,9 +18153,18 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
          (5) Cấm nhảy qua bất kỳ quân nào (cả quân mình) trên vòng và
              trong cột đích; đá quân địch chỉ khi đáp đúng ô; ra quân đáp
              trúng ô xuất phát có quân địch thì đá quân đó về chuồng.
-         (6) Vào cột đích phải đúng số bước còn lại; trong cột, muốn lên
-             ô k phải tung đúng k và các ô đi qua phải trống; THẮNG khi
-             đủ 4 quân ở các ô đích 3, 4, 5, 6.
+         (6) VÀO CHUỒNG PHẢI DÙNG 2 XÚC XẮC: một viên KHÔNG BAO GIỜ đi
+             xuyên qua ô cửa (u=55, ô vòng cuối trước cột đích). Quân còn
+             cách ô cửa d ô: viên < d đi thường trên vòng; viên = d đứng
+             vào ô cửa và DỪNG (số dư mất); viên > d thì quân đó không có
+             nước đi. Quân đã đứng ở ô cửa dùng MỘT VIÊN KHÁC lên ô chuồng
+             k: phải tung đúng k và các ô đi qua phải trống; trong cột cũng
+             vậy. THẮNG khi đủ 4 quân ở các ô đích 3, 4, 5, 6.
+         (7) BỎ VIÊN VẪN TÍNH LÀ ĐÃ DÙNG: bỏ viên 6 thì tung lại đúng viên
+             đó; bỏ cho tới khi cả cặp đôi đều đã kết thúc (đi hoặc bỏ) thì
+             tung lại cả hai — quyết định tung lại chỉ dựa trên giá trị xúc
+             xắc + trạng thái đã dùng/bỏ (đếm bằng L.pairUsed), không dựa
+             trên việc có đi được hay không.
          Nhiều người chơi: giữ nguyên cơ chế sảnh chủ-làm-trọng-tài qua
          kênh game như các trò khác (khối sảnh ở cuối file lo phần đó). */
       const LUDO_COLORS = [
@@ -18237,6 +18210,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       let ludoNet = null; // {mySeat, isHost} khi chơi qua sảnh; null = chơi ngay trên máy này
       let ludoSelDie = 0; // viên xúc xắc đang chọn (chỉ là UI cục bộ của máy này)
       let ludoSelPair = false; // đang chọn hành động "Ra quân (đôi)"
+      /* Hẹn giờ của Máy: mỗi loại chỉ giữ MỘT hẹn giờ đang chờ — các lần gọi
+         ludoStep dồn dập không xếp chồng nhiều ludoBotStep cho cùng một lượt */
+      let ludoRollTimer = 0;
+      let ludoStepTimer = 0;
 
       function ludoDice1() {
         return 1 + Math.floor(Math.random() * 6);
@@ -18255,75 +18232,6 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         return p && p.name ? p.name : LUDO_COLORS[p.colorIdx].name;
       }
 
-      function ludoBuildBoard() {
-        const grid = $("#boardGrid");
-        grid.innerHTML = "";
-        const wrap = $("#boardWrap");
-        wrap.querySelectorAll(".yard-disc").forEach((d) => d.remove());
-        const pathIdx = new Map(LUDO_PATH.map((p, i) => [p[0] + "," + p[1], i]));
-        const startMap = {};
-        LUDO_COLORS.forEach((c, pi) => {
-          const p = LUDO_PATH[LUDO_START[pi]];
-          startMap[p[0] + "," + p[1]] = pi;
-        });
-        const laneMap = {};
-        LUDO_LANE.forEach((lane, pi) =>
-          lane.forEach((p, k) => {
-            laneMap[p[0] + "," + p[1]] = { pi: pi, k: k + 1 };
-          }),
-        );
-        for (let r = 0; r < 15; r++)
-          for (let c = 0; c < 15; c++) {
-            const d = document.createElement("div");
-            d.className = "cell";
-            const key = r + "," + c;
-            let yardPi = -1;
-            LUDO_YARD.forEach((y, pi) => {
-              if (r >= y.r && r < y.r + 6 && c >= y.c && c < y.c + 6) yardPi = pi;
-            });
-            if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
-              d.style.background = "transparent";
-            } else if (yardPi >= 0) {
-              const col = LUDO_COLORS[yardPi];
-              const lr = r - LUDO_YARD[yardPi].r,
-                lc = c - LUDO_YARD[yardPi].c;
-              if (lr >= 1 && lr <= 4 && lc >= 1 && lc <= 4) {
-                d.classList.add("pad");
-              } else {
-                d.style.background = col.css + "2e";
-                d.style.borderColor = "transparent";
-              }
-            } else if (laneMap[key]) {
-              const lm = laneMap[key];
-              d.style.background = LUDO_COLORS[lm.pi].lt;
-              d.innerHTML = '<span class="lane-n">' + lm.k + "</span>";
-            } else if (pathIdx.has(key)) {
-              const idx = pathIdx.get(key);
-              d.classList.add("path");
-              if (startMap[key] !== undefined) {
-                d.style.background = LUDO_COLORS[startMap[key]].css;
-                d.innerHTML = '<span class="home-dot">🐴</span>';
-              } else {
-                // Mỗi phần tư vòng nhuộm nhẹ màu của người gần nhất (như file mẫu)
-                d.style.background =
-                  LUDO_COLORS[Math.floor((idx + 1) / 14) % 4].css + "30";
-              }
-            }
-            grid.appendChild(d);
-          }
-        // 4 ô đậu quân trong mỗi chuồng xuất phát
-        const u = 100 / 15;
-        LUDO_YARD.forEach((y, pi) => {
-          for (let i = 0; i < 4; i++) {
-            const disc = document.createElement("div");
-            disc.className = "yard-disc";
-            disc.style.borderColor = LUDO_COLORS[pi].css;
-            disc.style.left = (y.c + 1.5 + (i % 2) * 2 + 0.5) * u + "%";
-            disc.style.top = (y.r + 1.5 + (i >> 1) * 2 + 0.5) * u + "%";
-            wrap.appendChild(disc);
-          }
-        });
-      }
       function ludoBuildSetup() {
         const rows = $("#setupRows");
         rows.innerHTML = "";
@@ -18405,14 +18313,19 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           if (h) return h.pi === pi ? null : { to: t, cap: h };
           return { to: t, cap: null };
         }
-        // Rẽ vào cột đích: phải đúng số bước còn lại, đường vào phải trống
-        const k = t - 55;
+        /* t > 55 — MỘT viên KHÔNG BAO GIỜ đi xuyên qua ô cửa (u=55):
+           quân chưa đứng ở ô cửa mà viên lớn hơn số ô còn tới cửa thì
+           quân đó KHÔNG có nước đi bằng viên này (không đi tiếp vòng qua
+           cửa, không vào thẳng chuồng) — dùng viên đó cho quân khác/bỏ. */
+        if (pc.u < 55) return null;
+        /* Đang đứng ở ô cửa: viên này đưa thẳng lên ô chuồng k = v, các ô
+           chuồng đi qua (và ô đáp) phải trống — vào chuồng luôn cần một
+           viên xúc xắc riêng, khác viên đã đưa quân tới ô cửa. */
+        const k = v;
         if (k > 6) return null;
-        for (let j = pc.u + 1; j <= 55; j++)
-          if (occ.has((LUDO_START[pi] + j) % 56)) return null;
         for (let j = 1; j <= k; j++)
           if (P.pieces.some((o) => o.u === 55 + j)) return null;
-        return { to: t, cap: null };
+        return { to: 55 + k, cap: null };
       }
       /* Ra quân có hợp lệ không (ô xuất phát không bị quân mình chặn);
          trả {cap} nếu ô xuất phát đang có quân địch (sẽ bị đá về) */
@@ -18468,6 +18381,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           busy: false,
           pool: [],
           pairDbl: false,
+          pairUsed: 0,
+          rollToken: 0,
           phase: "roll",
         };
         ludoSelDie = 0;
@@ -18492,12 +18407,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         }
         L.pool = [];
         L.pairDbl = false;
+        L.pairUsed = 0;
         L.phase = "roll";
         ludoSelDie = 0;
         ludoSelPair = false;
         ludoRenderAll();
         publishGameStatus("ludo", "Đang chơi — lượt quân " + LUDO_COLORS[p.colorIdx].name);
-        if (p.type === "bot" && !ludoIsGuest()) setTimeout(ludoRoll, 800);
+        if (p.type === "bot" && !ludoIsGuest()) {
+          /* Token lượt: hẹn giờ tung của lượt này không được phép cháy
+             sang lượt khác/ván khác; tới giờ cháy mà ghế không còn là Máy
+             (người vừa vào lại trận lấy lại ghế) thì không tung hộ nữa. */
+          const tok = (L.rollToken = (L.rollToken || 0) + 1);
+          if (ludoRollTimer) clearTimeout(ludoRollTimer);
+          ludoRollTimer = setTimeout(() => {
+            ludoRollTimer = 0;
+            if (
+              L &&
+              !L.over &&
+              L.phase === "roll" &&
+              L.players[L.turn] &&
+              L.players[L.turn].type === "bot"
+            )
+              ludoRoll(tok);
+          }, 800);
+        }
       }
       function ludoNextTurn() {
         if (!L || L.over) return;
@@ -18512,14 +18445,18 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         } while (L.players[L.turn].rank && guard < 10);
         ludoBeginTurn();
       }
-      function ludoRoll() {
+      function ludoRoll(token) {
         if (!L || L.over || L.busy || L.phase !== "roll") return;
+        /* Hẹn giờ tung mang token của lượt đã hẹn: token lệch = hẹn giờ cũ
+           của lượt/ván trước → bỏ qua, không tung chồng lên lượt hiện tại */
+        if (token !== undefined && token !== (L.rollToken || 0)) return;
         const p = L.players[L.turn],
           col = LUDO_COLORS[p.colorIdx];
         const a = ludoDice1(),
           b = ludoDice1();
         L.pool = [{ v: a }, { v: b }];
         L.pairDbl = a === b && a !== 6;
+        L.pairUsed = 0;
         L.phase = "act";
         ludoSelDie = 0;
         ludoSelPair = false;
@@ -18533,12 +18470,19 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         );
         ludoStep();
       }
-      /* Sau mỗi lần trạng thái lắng xuống: vẽ lại + cho Máy đi tiếp nếu tới lượt Máy */
+      /* Sau mỗi lần trạng thái lắng xuống: vẽ lại + cho Máy đi tiếp nếu tới lượt Máy.
+         Chỉ MỘT hẹn giờ bước-Máy được chờ tại một thời điểm: gọi ludoStep
+         nhiều lần trong cùng một trạng thái không nhân đôi nước đi của Máy. */
       function ludoStep() {
         ludoRenderAll();
         if (!L || L.over || L.busy || L.phase !== "act") return;
-        if (L.players[L.turn].type === "bot" && !ludoIsGuest())
-          setTimeout(ludoBotStep, 600);
+        if (L.players[L.turn].type === "bot" && !ludoIsGuest()) {
+          if (ludoStepTimer) return;
+          ludoStepTimer = setTimeout(() => {
+            ludoStepTimer = 0;
+            ludoBotStep();
+          }, 600);
+        }
       }
       function ludoBotStep() {
         if (!L || L.over || L.busy || L.phase !== "act" || ludoIsGuest()) return;
@@ -18588,11 +18532,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           const di = a.die | 0;
           if (!L.pool[di]) return;
           const col = LUDO_COLORS[L.players[pi].colorIdx];
-          ludoLog(col.name + " bỏ viên " + L.pool[di].v);
-          L.pool.splice(di, 1);
+          const v = L.pool[di].v;
+          ludoLog(col.name + " bỏ viên " + v);
           ludoSelPair = false;
-          if (ludoSelDie > L.pool.length - 1) ludoSelDie = Math.max(0, L.pool.length - 1);
-          ludoAfterPoolChange();
+          /* Bỏ viên vẫn tính là ĐÃ DÙNG viên đó: đi qua đúng đường kết
+             thúc một viên như đi quân — viên 6 bị bỏ vẫn tung lại đúng
+             viên đó; cặp đôi mà cả hai viên đều đã kết thúc (đi hoặc bỏ)
+             thì tung lại cả hai. */
+          ludoFinishAction(pi, di, v);
         }
       }
       /* Điểm vào duy nhất cho thao tác của người chơi trên máy này;
@@ -18648,6 +18595,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           L.busy = false;
           if (pair) {
             L.pool = [];
+            L.pairUsed = 2; // "Ra quân (đôi)" dùng hết cả cặp trong một hành động
             ludoAfterPoolChange();
           } else {
             ludoFinishAction(pi, di, v);
@@ -18684,21 +18632,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           L.pool[di] = { v: nv };
           ludoLog(col.name + " dùng xong viên 6 — tung lại đúng viên đó: " + nv);
         } else {
+          /* Viên đã kết thúc thật sự (đi quân / ra quân / bỏ viên đều qua
+             đây): nếu đang trong một cặp đôi thì đếm vào pairUsed — chỉ
+             khi CẢ HAI viên của cặp đều đã kết thúc mới được tung lại cả
+             hai (xem ludoAfterPoolChange). */
+          if (L.pairDbl) L.pairUsed++;
           L.pool.splice(di, 1);
         }
         if (ludoSelDie > L.pool.length - 1) ludoSelDie = Math.max(0, L.pool.length - 1);
         ludoSelPair = false;
         ludoAfterPoolChange();
       }
-      /* Pool rỗng: ra đôi thì tung lại cả 2, không thì hết lượt */
+      /* Pool rỗng: tung lại cả 2 CHỈ KHI cặp vừa rồi là đôi VÀ cả hai viên
+         đều đã kết thúc thật (pairUsed >= 2 — đi, ra quân hoặc bỏ đều đếm).
+         Cờ pairDbl đứng một mình không bao giờ tự sinh lượt tung thêm:
+         đây là khóa chống rò rỉ lượt tung của cả người lẫn Máy. */
       function ludoAfterPoolChange() {
         if (!L || L.over) return;
         if (L.pool.length === 0) {
-          if (L.pairDbl) {
+          if (L.pairDbl && L.pairUsed >= 2) {
             const a = ludoDice1(),
               b = ludoDice1();
             L.pool = [{ v: a }, { v: b }];
             L.pairDbl = a === b && a !== 6;
+            L.pairUsed = 0;
             ludoSelDie = 0;
             ludoSelPair = false;
             const col = LUDO_COLORS[L.players[L.turn].colorIdx];
@@ -18755,7 +18712,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         return set;
       }
       function ludoRenderPieces() {
+        /* Bàn 2D đã gỡ hẳn (cá ngựa chỉ còn bàn 3D): không còn lớp quân 2D
+           thì hàm này là no-op — lớp 3D bọc hàm này để đồng bộ quân 3D sau
+           mỗi lần gọi, nên mọi đường vẽ vẫn chạy qua đây như cũ. */
         const layer = $("#pieceLayer");
+        if (!layer) return;
         layer.innerHTML = "";
         if (!L) return;
         const hl = ludoHighlight();
@@ -18818,6 +18779,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             bt.className = "bot-tag";
             bt.textContent = "(Máy)";
             chip.appendChild(bt);
+          }
+          if (p.away) {
+            const at = document.createElement("span");
+            at.className = "bot-tag";
+            at.textContent = "💤 vắng — Máy đánh thay";
+            chip.appendChild(at);
           }
           if (isTurn) {
             const g = document.createElement("span");
@@ -18957,7 +18924,6 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         $("#ludoSetup").hidden = false;
         publishGameStatus("ludo", "Đang chọn người chơi…");
       });
-      ludoBuildBoard();
       ludoBuildSetup();
     </script>
     <script>
@@ -18969,38 +18935,19 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
          để đi. LUẬT GIỮ NGUYÊN 100% của khối cá ngựa ở trên: trạng thái vẫn
          là biến L, nước đi vẫn qua ludoPieceClick / ludoDispatch (sảnh nhiều
          người chơi không đổi), tuyệt đối không có nước đi dồn tổng.
-         Vị trí quân lấy đúng từ ludoPiecePos (cùng ánh xạ hàng/cột như bàn
-         2D) và quân được tô theo colorIdx của người chơi đó.
-         Canvas WebGL này CHỈ vẽ khi overlay cá ngựa đang mở ở chế độ 3D —
-         đóng overlay hoặc chuyển sang bàn 2D là vòng lặp bỏ qua lượt vẽ,
-         không thêm tải cho làng. Không mở được WebGL thì tự rơi về bàn 2D. */
+         Vị trí quân lấy đúng từ ludoPiecePos (cùng ánh xạ hàng/cột của
+         lưới 15×15) và quân được tô theo colorIdx của người chơi đó.
+         Cá ngựa CHỈ có bàn 3D (bàn 2D đã gỡ hẳn): canvas WebGL này chỉ vẽ
+         khi overlay cá ngựa đang mở — đóng overlay là vòng lặp bỏ qua lượt
+         vẽ, không thêm tải cho làng. Không mở được WebGL thì hiện thông
+         báo rõ ràng "thiết bị không hỗ trợ 3D" trong khung bàn. */
       (function () {
         const wrap = document.getElementById("ludo3dWrap");
         const canvas = document.getElementById("ludo3dCanvas");
         const fallback = document.getElementById("ludo3dFallback");
-        const board2d = document.getElementById("boardWrap");
-        const btn3d = document.getElementById("ludoView3d");
-        const btn2d = document.getElementById("ludoView2d");
-        const hint = document.getElementById("ludoViewHint");
         if (!wrap || !canvas) return;
-        let mode = "3d"; // "3d" | "2d" — chỉ là trạng thái UI trong phiên, không lưu trữ
         let D = null; // trạng thái 3D sau khi khởi tạo thành công
         let failed = false;
-
-        function setMode(m) {
-          mode = m;
-          const is3d = m === "3d" && !failed;
-          wrap.style.display = is3d ? "" : "none";
-          board2d.hidden = is3d;
-          btn3d.classList.toggle("sel", is3d);
-          btn2d.classList.toggle("sel", !is3d);
-          hint.textContent = is3d
-            ? "Kéo: xoay bàn · chạm đúp: căn bàn vừa màn · chạm quân đang nhấp nhô để đi · Space: tung xúc xắc"
-            : "Bàn 2D nhẹ cho máy yếu — luật và ván chơi giữ nguyên";
-          if (is3d) ensureInit();
-        }
-        btn3d.addEventListener("click", () => setMode("3d"));
-        btn2d.addEventListener("click", () => setMode("2d"));
 
         /* ---------- Khởi tạo scene (lười, ở lần đồng bộ đầu tiên khi overlay mở) ---------- */
         function ensureInit() {
@@ -19233,12 +19180,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
 
         /* ---------- Đồng bộ trạng thái ván L -> quân 3D (gọi mỗi lần game vẽ lại) ---------- */
         function sync() {
-          if (mode !== "3d" || failed) return;
+          if (failed) return;
           const st = ensureInit();
           if (!st) return;
           const seen = new Set();
           if (typeof L !== "undefined" && L) {
-            // Các quân đứng chung một ô thì tản nhẹ ra như bàn 2D
+            // Các quân đứng chung một ô thì tản nhẹ ra quanh ô đó
             const groups = new Map();
             L.players.forEach((p, pi) => {
               p.pieces.forEach((pc) => {
@@ -19327,11 +19274,11 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           }
         }
 
-        /* ---------- Vòng lặp vẽ: chỉ vẽ khi overlay cá ngựa đang mở ở chế độ 3D ---------- */
+        /* ---------- Vòng lặp vẽ: chỉ vẽ khi overlay cá ngựa đang mở ---------- */
         function loop(st, t) {
           requestAnimationFrame((nt) => loop(st, nt));
           const ov = document.getElementById("ludoOverlay");
-          if (mode !== "3d" || !ov || !ov.classList.contains("open")) return;
+          if (!ov || !ov.classList.contains("open")) return;
           const w = wrap.clientWidth,
             h = wrap.clientHeight;
           if (!w || !h) return;
@@ -19485,8 +19432,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           });
         }
 
-        /* Gắn vào đường vẽ của game: mỗi lần bàn 2D vẽ lại quân thì bàn 3D
-           đồng bộ theo (kể cả nhịp bước chân trong ludoDoMove và ảnh chụp
+        /* Gắn vào đường vẽ của game: mỗi lần game vẽ lại thì bàn 3D đồng
+           bộ theo (kể cả nhịp bước chân trong ludoDoMove và ảnh chụp
            trạng thái từ chủ sảnh) */
         const _renderPieces = ludoRenderPieces;
         ludoRenderPieces = function () {
@@ -19518,7 +19465,6 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           e.preventDefault();
           rb.click();
         });
-        setMode("3d");
       })();
     </script>
         <script>
@@ -21420,8 +21366,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
          ngang — bàn cờ là hình vuông, giữ nguyên hướng máy của người chơi.
          Nếu làng đã ở fullscreen từ trước (nút vào làng) thì giữ nguyên,
          thoát ván không đá người chơi khỏi fullscreen của làng. Canvas 3D
-         tự resize theo khung chứa trong vòng lặp vẽ của nó; bàn 2D là CSS
-         thuần nên tự theo khung. */
+         tự resize theo khung chứa trong vòng lặp vẽ của nó. */
       (function ludoFullscreen() {
         var ov = document.getElementById("ludoOverlay");
         if (!ov) return;
@@ -24668,6 +24613,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         const seed = (Math.random() * 1e9) | 0;
         const startAt = Date.now() + 2200;
         lob.started = true;
+        lob.away = []; // ván mới dựng ghế từ thành viên hiện tại — ghế vắng của trận cũ hết hiệu lực
         broadcastLobby(lob);
         lbSend("lobby-start", { lobbyId: lob.id, seed: seed, seats: seats, startAt: startAt });
         addFeed(
@@ -24713,6 +24659,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           lob.members = (lob.members || []).map((m) =>
             Object.assign({}, m, { name: cleanName(m.name) }),
           );
+          lob.away = (lob.away || []).map((a) =>
+            Object.assign({}, a, { name: cleanName(a.name) }),
+          );
           lob.seenAt = Date.now();
           const prev = LBS.lobbies.get(lob.id);
           LBS.lobbies.set(lob.id, lob);
@@ -24743,6 +24692,10 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               exitMP();
               toast("Chủ sảnh đã rời — ván chơi kết thúc");
             } else if (lob) toast("Sảnh “" + lob.name + "” đã giải tán");
+          } else if (window.__ludoSpec === msg.lobbyId && typeof ludoStopWatch === "function") {
+            // Người đang XEM trận của sảnh này: sảnh đóng = trận kết thúc
+            ludoStopWatch();
+            toast("Trận bạn đang xem đã kết thúc");
           }
           renderLobbyUI();
           return;
@@ -24808,6 +24761,59 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             broadcastLobby(lob);
             renderLobbyUI();
           }
+        } else if (kind === "lobby-rejoin") {
+          /* VÀO LẠI TRẬN (cá ngựa): người từng thoát giữa trận xin lấy lại
+             ghế. Ghế của họ vẫn được giữ (Máy đánh thay) — khớp theo id,
+             không có thì khớp theo tên (đổi phiên kết nối là id đổi).
+             Khớp được thì: trả ghế + trả quyền người chơi cho ghế đó và
+             phát lại "lobby-start" với danh sách ghế đã khôi phục để máy
+             của người quay lại dựng lại phiên và nhận ludo-state mới nhất.
+             Chủ sảnh KHÔNG tự startMatch (ván đang chạy không được reset). */
+          if (!lob.started || !MPS || MPS.lobbyId !== lob.id || MPS.game !== "ludo") return;
+          const away = lob.away || [];
+          let ai = away.findIndex((a) => a.id === msg.from);
+          if (ai < 0) ai = away.findIndex((a) => a.name === cleanName(msg.name));
+          if (ai < 0) return;
+          const rec = away[ai];
+          away.splice(ai, 1);
+          const seat = rec.seat;
+          if (!lob.members.some((m) => m.id === msg.from))
+            lob.members.push({ id: msg.from, name: cleanName(msg.name), ready: true });
+          if (MPS.seats[seat]) {
+            MPS.seats[seat].id = msg.from;
+            MPS.seats[seat].bot = false;
+            MPS.seats[seat].awayId = null;
+          }
+          if (L && L.players[seat]) {
+            L.players[seat].type = "human";
+            L.players[seat].away = false;
+            ludoLog(
+              "↩️ " +
+                cleanName(msg.name) +
+                " đã vào lại trận — lấy lại ghế quân " +
+                LUDO_COLORS[L.players[seat].colorIdx].name +
+                ", Máy thôi đánh thay.",
+            );
+            /* Nếu Máy đang GIỮ lượt của ghế này ở pha chờ tung mà hẹn giờ
+               tung còn treo: hẹn giờ đó tự hủy quyền vì ghế không còn là
+               Máy nữa (kiểm tra type khi cháy) — người chơi tự tung. */
+            ludoRenderAll();
+          }
+          broadcastLobby(lob);
+          lbSend("lobby-start", {
+            lobbyId: lob.id,
+            seed: (Math.random() * 1e9) | 0,
+            seats: MPS.seats.map((s) => ({ id: s.id, name: s.name, bot: s.bot })),
+            startAt: Date.now() + 1200,
+          });
+          addFeed(
+            "↩️ <b>" +
+              esc(cleanName(msg.name)) +
+              "</b> đã vào lại trận cá ngựa ở sảnh <b>" +
+              esc(lob.name) +
+              "</b>",
+          );
+          renderLobbyUI();
         }
       }
 
@@ -24892,6 +24898,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         LBS.lobbies.clear();
         LBS.myId = null;
         MPS = null;
+        window.__ludoSpec = null;
+        const sb0 = document.getElementById("ludoSpecBar");
+        if (sb0) sb0.hidden = true;
         renderLobbyUI();
       };
     </script>
@@ -24971,6 +24980,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               SOLO[game] = true;
               renderLobbyUI();
             } else if (act === "join") joinLobby(btn.dataset.id);
+            else if (act === "watch") ludoWatch(btn.dataset.id);
+            else if (act === "rejoin") ludoRejoin(btn.dataset.id);
             else if (act === "start") startLobby();
             else if (act === "ready") toggleReady();
             else if (act === "bots-") {
@@ -25055,6 +25066,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                 ? '<div class="p-chip"><span>🤖</span><span>' +
                   mine.bots +
                   ' Máy bù người</span><span class="home-n">tự chơi</span></div>'
+                : "") +
+              (mine.away && mine.game === "ludo"
+                ? mine.away
+                    .map(
+                      (a) =>
+                        '<div class="p-chip"><span>💤</span><span>' +
+                        esc(a.name) +
+                        ' đang vắng</span><span class="home-n">🤖 Máy đánh thay · ghế giữ tới hết trận</span></div>',
+                    )
+                    .join("")
                 : "");
             const startBtn = panel.querySelector('[data-act="start"]');
             const readyBtn = panel.querySelector('[data-act="ready"]');
@@ -25102,8 +25123,35 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                 '<div class="lb-empty">Chưa có sảnh nào đang mở cho trò này — tạo sảnh mới để rủ mọi người vào chơi cùng!</div>';
             } else {
               list.innerHTML = open
-                .map(
-                  (l) =>
+                .map((l) => {
+                  /* Cá ngựa đang có trận: người có ghế đang được giữ thì
+                     thấy "Vào lại trận"; người ngoài trận thấy "Xem trận"
+                     (chỉ xem). Đang ở trong một sảnh khác thì không nút nào. */
+                  const awayMine =
+                    l.started &&
+                    l.game === "ludo" &&
+                    (l.away || []).some(
+                      (a) => a.id === RoomState.me.id || a.name === RoomState.me.name,
+                    );
+                  let btn = "";
+                  if (!LBS.myId) {
+                    if (awayMine)
+                      btn =
+                        '<button class="btn" type="button" data-act="rejoin" data-id="' +
+                        l.id +
+                        '">↩️ Vào lại trận</button>';
+                    else if (l.started && l.game === "ludo")
+                      btn =
+                        '<button class="btn ghost" type="button" data-act="watch" data-id="' +
+                        l.id +
+                        '">👀 Xem trận</button>';
+                    else if (!l.started && l.members.length < l.max)
+                      btn =
+                        '<button class="btn" type="button" data-act="join" data-id="' +
+                        l.id +
+                        '">Vào sảnh</button>';
+                  }
+                  return (
                     '<div class="lb-item"><span class="lb-iname">🏠 ' +
                     esc(l.name) +
                     "</span>" +
@@ -25115,14 +25163,14 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                     l.max +
                     " người" +
                     (l.started ? " · 🎮 đang chơi" : " · đang chờ") +
+                    (l.away && l.away.length
+                      ? " · 💤 " + l.away.length + " ghế đang vắng (Máy đánh thay)"
+                      : "") +
                     "</span>" +
-                    (l.started || l.members.length >= l.max || LBS.myId
-                      ? ""
-                      : '<button class="btn" type="button" data-act="join" data-id="' +
-                        l.id +
-                        '">Vào sảnh</button>') +
-                    "</div>",
-                )
+                    btn +
+                    "</div>"
+                  );
+                })
                 .join("");
             }
           }
@@ -25286,15 +25334,30 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         startMatch(lob, seats, seed, startAt);
         toast("Đã mở ván mới cho cả sảnh");
       }
-      /* Một thành viên rời giữa ván: ghế của họ chuyển cho Máy chơi thay (trừ bi-a 2 người thì kết thúc ván) */
+      /* Một thành viên rời giữa ván: ghế của họ được GIỮ tới hết trận và
+         chuyển cho Máy chơi thay (trừ bi-a 2 người thì kết thúc ván).
+         Riêng cá ngựa: ghi lại danh tính người vắng vào ghế (awayId) và vào
+         sảnh (lob.away) để chính người đó quay lại trong cùng trận thì lấy
+         lại ghế — xem nhánh "lobby-rejoin" trong lbOnMsg. */
       function mpSeatVacated(memberId) {
         if (!MPS || !MPS.isHost) return;
         const seat = MPS.seats.findIndex((s) => s.id === memberId);
         if (seat < 0) return;
         MPS.seats[seat].bot = true;
+        MPS.seats[seat].awayId = memberId;
         MPS.seats[seat].id = null;
+        if (MPS.game === "ludo") {
+          const lobA = myLobby();
+          if (lobA && lobA.id === MPS.lobbyId) {
+            lobA.away = lobA.away || [];
+            if (!lobA.away.some((a) => a.seat === seat))
+              lobA.away.push({ id: memberId, name: MPS.seats[seat].name, seat: seat });
+            broadcastLobby(lobA);
+          }
+        }
         if (MPS.game === "ludo" && L && L.players[seat]) {
           L.players[seat].type = "bot";
+          L.players[seat].away = true;
           if (!L.over && L.turn === seat && !L.busy) {
             if (L.phase === "roll") setTimeout(ludoRoll, 700);
             else ludoStep();
@@ -25488,6 +25551,12 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           case "ludo-state":
             if (!MPS.isHost) applyLudoSnap(msg.snap);
             break;
+          case "ludo-watch":
+            /* Người xem trận xin trạng thái hiện tại: chủ sảnh xoá dấu ảnh
+               chụp để tick phát trạng thái kế tiếp gửi lại toàn bộ ván —
+               người xem nhận cùng luồng ludo-state như người trong trận */
+            if (MPS.isHost) MPS.lastSnap = "";
+            break;
           case "uno-state":
             if (!MPS.isHost) applyUnoSnap(msg.snap);
             break;
@@ -25613,6 +25682,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               turn: L.turn,
               pool: L.pool.map((d) => d.v),
               pairDbl: L.pairDbl,
+              pairUsed: L.pairUsed || 0,
               phase: L.busy ? "busy" : L.phase,
               over: L.over,
               ranks: L.ranks,
@@ -25670,6 +25740,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
          (ghế Máy/trống do ludoBotStep của chủ sảnh tự đánh). */
       ludoDispatch = function (a) {
         if (MPS && MPS.game === "ludo") {
+          /* Người xem trận (mySeat = -1): chặn cứng ở đây — không một
+             hành động nào của người xem được phát đi hay thực thi */
+          if (MPS.mySeat < 0) return;
           if (!MPS.isHost) {
             gsSend("action", a);
             return;
@@ -25689,6 +25762,8 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           busy: false,
           pool: (snap.pool || []).map((v) => ({ v: v })),
           pairDbl: !!snap.pairDbl,
+          pairUsed: snap.pairUsed | 0,
+          rollToken: 0,
           phase: snap.phase || "roll",
         };
         if (ludoSelDie > L.pool.length - 1) ludoSelDie = 0;
@@ -25697,9 +25772,97 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         b.textContent = snap.banner || "";
         b.classList.toggle("show", !!snap.bannerShow);
       }
+      /* ---------- VÀO LẠI TRẬN + THEO DÕI TRẬN (cá ngựa) ---------- */
+      /* Người từng thoát giữa trận xin lấy lại ghế: chủ sảnh khớp ghế đang
+         giữ (Máy đánh thay) rồi phát lại lobby-start — xem nhánh
+         "lobby-rejoin" trong lbOnMsg. */
+      function ludoRejoin(lobbyId) {
+        const lob = LBS.lobbies.get(lobbyId);
+        if (!lob || !lob.started) {
+          toast("Trận này đã kết thúc rồi");
+          return;
+        }
+        if (LBS.myId && LBS.myId !== lobbyId) {
+          toast("Bạn đang ở trong một sảnh khác — rời sảnh đó trước nhé");
+          return;
+        }
+        if (MPS) {
+          // Phiên của chính trận này vẫn còn trên máy (chỉ đóng bảng thôi):
+          // mở lại bảng là chơi tiếp ngay, không cần xin vào lại
+          if (MPS.game === "ludo" && MPS.lobbyId === lobbyId) {
+            openOverlay("ludoOverlay");
+            return;
+          }
+          toast("Bạn đang trong một ván khác rồi");
+          return;
+        }
+        LBS.myId = lobbyId;
+        lbSend("lobby-rejoin", { lobbyId: lobbyId, name: RoomState.me.name });
+        toast("↩️ Đang xin vào lại trận — chờ chủ sảnh xác nhận…");
+        renderLobbyUI();
+      }
+      /* Chế độ theo dõi: dựng một phiên MPS chỉ-xem (mySeat = -1, không
+         ghế, không ở trong sảnh) — nhận cùng luồng ludo-state của chủ sảnh
+         như người trong trận; mọi nút điều khiển tự tắt vì ludoLocalTurn()
+         luôn sai, và ludoDispatch chặn cứng người xem ở trên. */
+      function ludoWatch(lobbyId) {
+        const lob = LBS.lobbies.get(lobbyId);
+        if (!lob || !lob.started || lob.game !== "ludo") {
+          toast("Trận này đã kết thúc rồi");
+          return;
+        }
+        if (!RoomState.inRoom) {
+          toast("Vào Làng Mèo trước rồi mới xem trận được nhé");
+          return;
+        }
+        if (LBS.myId) {
+          toast("Bạn đang ở trong một sảnh — rời sảnh đó trước khi xem trận nhé");
+          return;
+        }
+        if (MPS) {
+          toast("Bạn đang trong một ván khác — thoát ván đó trước khi xem trận nhé");
+          return;
+        }
+        MPS = {
+          game: "ludo",
+          lobbyId: lobbyId,
+          isHost: false,
+          seats: [],
+          mySeat: -1,
+          seed: 0,
+          lastSnap: "",
+        };
+        window.__ludoSpec = lobbyId;
+        ludoNet = { mySeat: -1, isHost: false };
+        $("#ludoSetup").hidden = true;
+        $("#ludoGame").hidden = false;
+        $("#winnerBanner").className = "winner-banner";
+        const sb = $("#ludoSpecBar");
+        if (sb) sb.hidden = false;
+        openOverlay("ludoOverlay");
+        Transport.send("game-sync", { game: "ludo", lobbyId: lobbyId, sub: "ludo-watch" });
+        toast("👀 Đang xem trận ở sảnh “" + lob.name + "” — chỉ xem, không tham gia chơi");
+        renderLobbyUI();
+      }
+      function ludoStopWatch() {
+        if (!window.__ludoSpec) return;
+        window.__ludoSpec = null;
+        exitMP();
+        ludoNet = null;
+        L = null;
+        const sb = $("#ludoSpecBar");
+        if (sb) sb.hidden = true;
+        $("#ludoGame").hidden = true;
+        $("#ludoSetup").hidden = false;
+        ludoRenderAll();
+        renderLobbyUI();
+      }
+      const ludoSpecExitBtn = document.getElementById("ludoSpecExit");
+      if (ludoSpecExitBtn) ludoSpecExitBtn.addEventListener("click", () => ludoStopWatch());
       lbIntercept("ludoOverlay", "#ludoRestart, #ludoSetupBtn", () => {
         if (!MPS || MPS.game !== "ludo") return false;
-        if (MPS.isHost) restartMatch();
+        if (MPS.mySeat < 0) toast("👀 Bạn đang xem trận — không tham gia chơi được");
+        else if (MPS.isHost) restartMatch();
         else toast("Ván mới do chủ sảnh mở — chờ chút nhé");
         return true;
       });
