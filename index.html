@@ -13066,7 +13066,7 @@ function makeAvatar3D(member) {
     hSy: 0.95, hSz: 0.96, // đầu hơi dẹt
     bodyY: 0.66, bodyR: 0.37,
     hipX: 0.145, hipY: 0.4, legLen: 0.3,
-    shX: 0.43, shY: 0.88, armLen: 0.3,
+    shX: 0.43, shY: 0.88, armLen: 0.36,
     joint: 0.115, // khớp cầu chồng sâu vào thân → xoay không hở khe
   };
   P.headY = P.headTop - 0.5 * P.headK * P.hSy;
@@ -13121,11 +13121,11 @@ function makeAvatar3D(member) {
   const legL = makeLeg(-1), legR = makeLeg(1);
 
   /* ---- thân + viền + chi tiết áo ---- */
-  const bs = [1.08, 0.92, 0.88];
+  const bs = [1.02, 0.98, 0.84]; // thân thuôn hơn theo chiều dọc, bớt cảm giác quả bóng tròn (chiều cao tổng không đổi)
   put(grp, sp(P.bodyR, 20, 16), shirtM, [0, P.bodyY, 0], bs);
   put(grp, sp(P.bodyR * 1.05, 16, 12), OL, [0, P.bodyY, 0], bs).userData.ns = 1;
-  put(grp, tr(0.265, 0.03, 6, 18), lam(shade(pantsC, 0.85)), [0, 0.41, 0], [1, 0.8, 1], [Math.PI / 2, 0, 0]); // thắt lưng
-  put(grp, tr(0.21, 0.035, 6, 18), lam(shade(a.shirt, 0.78)), [0, 0.955, 0], [1, 0.82, 1], [Math.PI / 2, 0, 0]); // cổ áo
+  put(grp, tr(0.272, 0.03, 6, 18), lam(shade(pantsC, 0.85)), [0, 0.41, 0], [1, 0.8, 1], [Math.PI / 2, 0, 0]); // thắt lưng
+  put(grp, tr(0.218, 0.035, 6, 18), lam(shade(a.shirt, 0.78)), [0, 0.955, 0], [1, 0.82, 1], [Math.PI / 2, 0, 0]); // cổ áo
   put(grp, sp(0.13, 10, 8), skin, [0, 0.99, 0]);
 
   /* ---- tay: trục tại vai ---- */
@@ -13160,34 +13160,39 @@ function makeAvatar3D(member) {
     const D = "#2b1c11", f = a.face || "cuoi", ey = 104;
     const eye = (x, y, rx, ry) => {
       g.fillStyle = D; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill();
-      g.fillStyle = "#7a5238"; g.beginPath(); g.ellipse(x, y + ry * 0.35, rx * 0.8, ry * 0.5, 0, 0, 7); g.fill();
-      g.fillStyle = "#fff"; g.beginPath(); g.arc(x + rx * 0.35, y - ry * 0.35, rx * 0.36, 0, 7); g.fill();
-      g.beginPath(); g.arc(x - rx * 0.4, y + ry * 0.4, rx * 0.18, 0, 7); g.fill();
+      g.fillStyle = "#7a5238"; g.beginPath(); g.ellipse(x, y + ry * 0.35, rx * 0.82, ry * 0.52, 0, 0, 7); g.fill();
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(x + rx * 0.34, y - ry * 0.36, rx * 0.44, 0, 7); g.fill();
+      g.beginPath(); g.arc(x - rx * 0.4, y + ry * 0.42, rx * 0.22, 0, 7); g.fill();
     };
     g.lineCap = "round";
     [74, 182].forEach((x, i) => {
       const s = i ? 1 : -1;
-      let ry = 23;
+      let ry = 26;
       if (f === "ngau") {
-        g.save(); g.beginPath(); g.rect(x - 26, ey - 6, 52, 50); g.clip(); eye(x, ey + 3, 17, 22); g.restore();
+        g.save(); g.beginPath(); g.rect(x - 27, ey - 6, 54, 54); g.clip(); eye(x, ey + 3, 19, 24); g.restore();
         g.strokeStyle = D; g.lineWidth = 7; g.beginPath(); g.moveTo(x - 20, ey - 6); g.lineTo(x + 20, ey - 6); g.stroke();
-      } else if (f === "ngac") { ry = 26; eye(x, ey + 2, 19, ry); }
-      else eye(x, ey, 17, ry);
+      } else if (f === "ngac") { ry = 29; eye(x, ey + 2, 21, ry); }
+      else eye(x, ey, 19, ry);
       const by = ey - ry - 12 - (f === "ngac" ? 8 : 0), tilt = f === "ngau" ? 7 : 0;
       g.strokeStyle = "rgba(60,40,30,.75)"; g.lineWidth = 5;
       g.beginPath(); g.moveTo(x + s * 13, by); g.quadraticCurveTo(x, by - 4, x - s * 13, by + tilt); g.stroke();
     });
     g.strokeStyle = D; g.lineWidth = 5;
-    if (f === "cuoi") { g.beginPath(); g.arc(128, 150, 13, 0.2, Math.PI - 0.2); g.stroke(); }
+    if (f === "cuoi") { g.lineWidth = 5.5; g.beginPath(); g.arc(128, 152, 10.5, 0.2, Math.PI - 0.2); g.stroke(); g.lineWidth = 5; }
     else if (f === "vui") {
       g.fillStyle = "#7a3b2e"; g.beginPath(); g.moveTo(111, 150); g.quadraticCurveTo(128, 180, 145, 150); g.closePath(); g.fill();
       g.fillStyle = "#e77fb0"; g.beginPath(); g.ellipse(128, 166, 8, 5, 0, 0, 7); g.fill();
     } else if (f === "ngau") { g.beginPath(); g.moveTo(117, 158); g.lineTo(139, 158); g.stroke(); }
-    else { g.beginPath(); g.arc(128, 158, 7, 0, 7); g.stroke(); }
+    else { g.beginPath(); g.arc(128, 158, 6, 0, 7); g.stroke(); }
     g.fillStyle = "rgba(150,90,60,.45)"; g.beginPath(); g.ellipse(128, 132, 4, 2.5, 0, 0, 7); g.fill();
     if (a.blush !== false) {
-      g.fillStyle = "rgba(242,160,181,.7)";
-      [28, 228].forEach((x) => { g.beginPath(); g.ellipse(x, 134, 17, 9, 0, 0, 7); g.fill(); });
+      [28, 228].forEach((x) => {
+        const bg = g.createRadialGradient(x, 134, 2, x, 134, 22);
+        bg.addColorStop(0, "rgba(244,150,175,.6)");
+        bg.addColorStop(1, "rgba(244,150,175,0)");
+        g.fillStyle = bg;
+        g.beginPath(); g.ellipse(x, 134, 22, 12.5, 0, 0, 7); g.fill();
+      });
     }
     if (a.freckles) {
       g.fillStyle = "#b57748";
@@ -13204,16 +13209,55 @@ function makeAvatar3D(member) {
 
   /* Tóc: khối sau + mũ tóc + mái + tóc mai, tùy kiểu */
   const sty = a.style || "ngan";
-  const hz = (x, y) => 0.96 * Math.sqrt(Math.max(0, 0.25 - x * x - (y / 0.95) * (y / 0.95))) + 0.03;
   if (sty !== "hoi") {
-    H(G("hback", () => new THREE.SphereGeometry(0.512, 18, 14, Math.PI / 2 + 1.0, Math.PI * 2 - 2.0, 0, Math.PI * 0.62)), hairM, [0, 0.015, -0.01], hs); // vỏ tóc sau: chừa cửa sổ mặt ±1.0 rad quanh +Z (mảng mặt chỉ rộng ±0.62) và chỉ phủ tới 0.62π — không nuốt cả đầu, gáy dưới hở da như tóc ngắn thật
+    H(G("hback2", () => {
+      // vỏ tóc sau: cửa sổ mặt ±1.0 rad quanh +Z giữ nguyên (v67), nhưng mép dưới không còn
+      // cắt ngang thẳng kiểu bát úp: đỉnh vỏ dựng tới 0.80π rồi uốn mép dưới theo góc phương vị —
+      // sau gáy (phương vị π) giữ dài 0.80π, hai bên ~0.70π, gần cửa sổ mặt thu về 0.64π —
+      // chuyển tiếp tóc–gáy bo cong mềm ở góc sau và sau-bên, gáy dưới vẫn hở một dải da nhỏ
+      const hg = new THREE.SphereGeometry(0.512, 26, 18, Math.PI / 2 + 1.0, Math.PI * 2 - 2.0, 0, Math.PI * 0.8);
+      const hp = hg.attributes.position;
+      for (let i = 0; i < hp.count; i++) {
+        const x = hp.getX(i), y = hp.getY(i), z = hp.getZ(i);
+        const r = Math.sqrt(x * x + y * y + z * z) || 1;
+        const th = Math.acos(Math.max(-1, Math.min(1, y / r)));
+        if (th < Math.PI * 0.35) continue;
+        const az = Math.abs(Math.atan2(x, z)); // 0 = mặt trước, π = sau gáy
+        const u = Math.max(0, Math.min(1, (az - 1.0) / (Math.PI - 1.0)));
+        const tMax = Math.PI * (0.64 + 0.16 * Math.sin((u * Math.PI) / 2));
+        let w = Math.max(0, Math.min(1, (th - Math.PI * 0.35) / (Math.PI * 0.45)));
+        w = w * w * (3 - 2 * w);
+        const th2 = th * (1 + (tMax / (Math.PI * 0.8) - 1) * w);
+        const sn = Math.sin(th), s = sn > 1e-4 ? Math.sin(th2) / sn : 1;
+        hp.setXYZ(i, x * s, r * Math.cos(th2), z * s);
+      }
+      hg.computeVertexNormals();
+      return hg;
+    }), hairM, [0, 0.015, -0.01], hs);
     H(G("hcap", () => new THREE.SphereGeometry(0.525, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.42)), hairM, [0, 0.055, 0], hs);
     if (!["dung", "mohawk", "chemat"].includes(sty)) {
-      [[-0.28, 0.2], [-0.1, 0.23], [0.1, 0.23], [0.28, 0.2]].forEach((p) =>
-        H(sp(0.13, 10, 8), hairM, [p[0], p[1] + 0.05, hz(p[0], p[1]) - 0.01], [1, 1.15, 0.5], [0, 0, -p[0] * 0.6]));
+      // mái trán: một dải cong LIỀN ôm trán (thay hàng múi cầu rời như chuỗi bi),
+      // mép dưới gợn nhẹ 3 múi mềm bằng cách uốn theta theo phương vị
+      H(G("hfringe", () => {
+        const fg = new THREE.SphereGeometry(0.535, 26, 8, Math.PI / 2 - 1.04, 2.08, Math.PI * 0.27, Math.PI * 0.17);
+        const fp = fg.attributes.position;
+        for (let i = 0; i < fp.count; i++) {
+          const x = fp.getX(i), y = fp.getY(i), z = fp.getZ(i);
+          const r = Math.sqrt(x * x + y * y + z * z) || 1;
+          const th = Math.acos(Math.max(-1, Math.min(1, y / r)));
+          const t = (th - Math.PI * 0.27) / (Math.PI * 0.17); // 0 = mép trên, 1 = mép dưới
+          if (t <= 0) continue;
+          const az = Math.atan2(x, z);
+          const th2 = th + t * t * 0.055 * Math.cos(az * 4.62);
+          const sn = Math.sin(th), s = sn > 1e-4 ? Math.sin(th2) / sn : 1;
+          fp.setXYZ(i, x * s, r * Math.cos(th2), z * s);
+        }
+        fg.computeVertexNormals();
+        return fg;
+      }), hairM, [0, 0.055, 0], hs);
     }
     if (["ngan", "bui", "bui2", "xoan", "chemat"].includes(sty))
-      [-1, 1].forEach((s) => H(sp(0.09, 8, 6), hairM, [s * 0.46, -0.02, 0.03], [0.6, 1.7, 0.9]));
+      [-1, 1].forEach((s) => H(sp(0.095, 8, 6), hairM, [s * 0.45, -0.03, 0.03], [0.7, 1.9, 0.95])); // tóc mai: to/dài hơn, đỉnh chạm mép dải mái và thân chìm vào vỏ tóc — không khe hở/bậc thang
   }
   if (sty === "dai") {
     H(bx(0.76, 0.72, 0.16), hairM, [0, -0.26, -0.34]);
@@ -13363,29 +13407,45 @@ function makeAvatar3D(member) {
     put(grp, bx(0.1, 0.3, 0.03), tm, [0, 0.72, 0.325], null, [-0.08, 0, 0]);
   }
 
-  /* ---- Đuôi: 4 đốt nhỏ dần, cong theo đoạn; game chỉ xoay tailG.rotation.z ---- */
+  /* ---- Đuôi: khôi phục ngôn ngữ đuôi CŨ (v64) — MỘT khối cong liền mạch + chóp cầu,
+     group nghiêng rotation.x sẵn, game vẫy bằng rotation.z quanh gốc qua parts.tail.
+     Làm đẹp trên nền cũ: thân là ống trụ được uốn cong mềm theo cung tròn (không còn
+     chuỗi đốt), bán kính thon dần về chóp theo lũy thừa, chóp cầu bo tròn hơi sáng tông.
+     Gốc giữ vị trí v67 (z −0.34, y 0.52) — ngoài mặt lưng ở mọi dáng. ---- */
   const tailK = a.tail || "cong";
   let tailG = null;
   if (tailK === "tho") {
     tailG = new THREE.Group();
-    tailG.position.set(0, 0.52, -0.32);
+    tailG.position.set(0, 0.52, -0.34);
     grp.add(tailG);
     put(tailG, sp(0.1, 10, 8), lam(0xfdf6e3), [0, 0.02, -0.09]);
   } else if (tailK !== "khong") {
     tailG = new THREE.Group();
     tailG.position.set(0, 0.52, -0.34);
-    tailG.rotation.x = tailK === "dai" ? -1.1 : -0.65;
+    tailG.rotation.x = tailK === "dai" ? -1.05 : -0.55;
     grp.add(tailG);
-    const fl = tailK === "bong", len = tailK === "dai" ? 0.55 : 0.36, n = 4, seg = len / n;
-    const curl = tailK === "dai" ? 0.32 : 0.5;
-    let par = tailG;
-    for (let i = 0; i < n; i++) {
-      const r0 = (fl ? 0.1 : 0.052) * (1 - i * 0.16), r1 = (fl ? 0.1 : 0.052) * (1 - (i + 1) * 0.16);
-      put(par, cy(r1, r0, seg * 1.15, 8, seg / 2), hairM);
-      const nx = new THREE.Group();
-      nx.position.y = seg; nx.rotation.x = curl; par.add(nx); par = nx;
-    }
-    put(par, sp(fl ? 0.105 : 0.055, 8, 8), hairM);
+    const fl = tailK === "bong";
+    const tLen = tailK === "dai" ? 0.55 : 0.36;
+    const tCurl = tailK === "dai" ? 0.6 : fl ? 0.7 : 0.85; // tổng góc uốn tích lũy dọc thân đuôi
+    const tGeo = G("tg" + [tLen, fl, tCurl], () => {
+      const rB = fl ? 0.1 : 0.056, rT = fl ? 0.078 : 0.03;
+      const tg = new THREE.CylinderGeometry(1, 1, tLen, 10, 14);
+      tg.translate(0, tLen / 2, 0);
+      const tp = tg.attributes.position, R = tLen / tCurl;
+      for (let i = 0; i < tp.count; i++) {
+        const x = tp.getX(i), y = tp.getY(i), z = tp.getZ(i);
+        const t = Math.max(0, Math.min(1, y / tLen)), th = tCurl * t;
+        const r = rB + (rT - rB) * Math.pow(t, 0.8);
+        const sn = Math.sin(th), cs = Math.cos(th);
+        tp.setXYZ(i, x * r, R * sn + z * r * sn, -R * (1 - cs) + z * r * cs);
+      }
+      tg.computeVertexNormals();
+      return tg;
+    });
+    put(tailG, tGeo, hairM);
+    const tR = tLen / tCurl;
+    put(tailG, sp(fl ? 0.098 : 0.04, 10, 8), lam(shade(a.hairColor, 1.18)),
+      [0, tR * Math.sin(tCurl), -tR * (1 - Math.cos(tCurl))]); // chóp bo tròn, sáng hơn thân một tông
   }
 
   /* ---- Lưng / tay: ba lô, cánh, áo choàng, đồ cầm (gắn vào armR) ---- */
@@ -13412,19 +13472,19 @@ function makeAvatar3D(member) {
   } else if (extraK === "aochoang") {
     put(grp, G("cape", () => new THREE.CylinderGeometry(0.34, 0.58, 0.88, 14, 1, true)), lam(0xb03050, true), [0, 0.58, -0.14], null, [0.12, 0, 0]);
   } else if (extraK === "camca") {
-    put(armR, co(0.075, 0.27, 8), orM, [0, -0.44, 0.06], null, [0, 0, Math.PI / 2]);
-    put(armR, co(0.06, 0.12, 4), orM, [-0.17, -0.44, 0.06], null, [0, 0, -Math.PI / 2]);
+    put(armR, co(0.075, 0.27, 8), orM, [0, -0.5, 0.06], null, [0, 0, Math.PI / 2]);
+    put(armR, co(0.06, 0.12, 4), orM, [-0.17, -0.5, 0.06], null, [0, 0, -Math.PI / 2]);
   } else if (extraK === "camkem") {
-    put(armR, co(0.07, 0.17, 10), lam(0xd9a066), [0, -0.47, 0.05], null, [Math.PI, 0, 0]);
-    put(armR, sp(0.085, 10, 8), pinkM, [0, -0.365, 0.05]);
-    put(armR, sp(0.03, 8, 8), bas(0xe0393e), [0, -0.285, 0.05]);
+    put(armR, co(0.07, 0.17, 10), lam(0xd9a066), [0, -0.53, 0.05], null, [Math.PI, 0, 0]);
+    put(armR, sp(0.085, 10, 8), pinkM, [0, -0.425, 0.05]);
+    put(armR, sp(0.03, 8, 8), bas(0xe0393e), [0, -0.345, 0.05]);
   } else if (extraK === "camo") {
-    put(armR, cy(0.016, 0.016, 0.85, 6, 0.28), lam(0x8a5a2b), [0.05, -0.4, 0.05]);
-    put(armR, co(0.37, 0.16, 14), lam(0xe0393e), [0.05, 0.72, 0.05]);
+    put(armR, cy(0.016, 0.016, 0.85, 6, 0.28), lam(0x8a5a2b), [0.05, -0.46, 0.05]);
+    put(armR, co(0.37, 0.16, 14), lam(0xe0393e), [0.05, 0.66, 0.05]);
   } else if (extraK === "bongbay") {
-    put(armR, cy(0.008, 0.008, 1.15, 4, 0.575), bas(0x999999), [0.02, -0.38, 0.04], null, [0, 0, -0.08]);
-    put(armR, sp(0.17, 14, 12), lam(0xe0393e), [0.115, 0.92, 0.04], [1, 1.15, 1]);
-    put(armR, sp(0.05, 8, 8), bas(0xff8f96), [0.06, 1.0, 0.17]);
+    put(armR, cy(0.008, 0.008, 1.15, 4, 0.575), bas(0x999999), [0.02, -0.44, 0.04], null, [0, 0, -0.08]);
+    put(armR, sp(0.17, 14, 12), lam(0xe0393e), [0.115, 0.86, 0.04], [1, 1.15, 1]);
+    put(armR, sp(0.05, 8, 8), bas(0xff8f96), [0.06, 0.94, 0.17]);
   }
 
   /* ---- prop (đạo cụ game bật/tắt) ---- */
