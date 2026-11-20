@@ -13120,12 +13120,55 @@ function makeAvatar3D(member) {
   }
   const legL = makeLeg(-1), legR = makeLeg(1);
 
-  /* ---- thân + viền + chi tiết áo ---- */
-  const bs = [1.02, 0.98, 0.84]; // thân thuôn hơn theo chiều dọc, bớt cảm giác quả bóng tròn (chiều cao tổng không đổi)
-  put(grp, sp(P.bodyR, 20, 16), shirtM, [0, P.bodyY, 0], bs);
-  put(grp, sp(P.bodyR * 1.05, 16, 12), OL, [0, P.bodyY, 0], bs).userData.ns = 1;
-  put(grp, tr(0.272, 0.03, 6, 18), lam(shade(pantsC, 0.85)), [0, 0.41, 0], [1, 0.8, 1], [Math.PI / 2, 0, 0]); // thắt lưng
-  put(grp, tr(0.218, 0.035, 6, 18), lam(shade(a.shirt, 0.78)), [0, 0.955, 0], [1, 0.82, 1], [Math.PI / 2, 0, 0]); // cổ áo
+  /* ---- thân HỘP bo góc (superellipsoid) + viền + chi tiết áo ----
+     Thân cũ là ellipsoid tròn như quả bóng; nay là hộp chibi bo góc nhẹ:
+     ngang 0.62, cao 0.55 (y 0.41→0.96), sâu 0.42. Mặt bên phẳng cho tay bám,
+     mặt lưng phẳng cho ba lô/đuôi, đáy có đai quần + trên có yoke cổ áo ôm
+     mặt trên hộp (áo bỏ vào quần). Chiều cao tổng 1.76 không đổi (đầu/chân giữ nguyên). */
+  const rbox = (w, h, d, e) =>
+    G("rb" + [w, h, d, e], () => {
+      const su = 24, sv = 16, pos = [], idx = [];
+      const pw = (v, k) => (v < 0 ? -1 : 1) * Math.pow(Math.abs(v), k);
+      for (let j = 0; j <= sv; j++) {
+        const v = -Math.PI / 2 + (Math.PI * j) / sv, cv = Math.cos(v), a = pw(cv, e);
+        for (let i = 0; i <= su; i++) {
+          const u = -Math.PI / 2 + (Math.PI * 2 * i) / su;
+          pos.push((w / 2) * a * pw(Math.cos(u), e), (h / 2) * pw(Math.sin(v), e), (d / 2) * a * pw(Math.sin(u), e));
+        }
+      }
+      for (let j = 0; j < sv; j++)
+        for (let i = 0; i < su; i++) {
+          const A = j * (su + 1) + i, B = A + 1, Cc = A + su + 1, D = Cc + 1;
+          idx.push(A, Cc, B, B, Cc, D);
+        }
+      const g2 = new THREE.BufferGeometry();
+      g2.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      g2.setIndex(idx);
+      g2.computeVertexNormals();
+      const np = g2.attributes.normal, pp = g2.attributes.position;
+      for (let j = 0; j <= sv; j++) {
+        // hàn pháp tuyến tại seam u (cột 0 trùng cột su) cho mặt liền mạch
+        const i0 = j * (su + 1), i1 = i0 + su;
+        const nx = np.getX(i0) + np.getX(i1), ny = np.getY(i0) + np.getY(i1), nz = np.getZ(i0) + np.getZ(i1);
+        const nl = Math.hypot(nx, ny, nz) || 1;
+        np.setXYZ(i0, nx / nl, ny / nl, nz / nl);
+        np.setXYZ(i1, nx / nl, ny / nl, nz / nl);
+      }
+      for (let i = 0; i < np.count; i++) {
+        // vá pháp tuyến suy biến ở 2 cực (tam giác quạt diện tích 0)
+        const nx = np.getX(i), ny = np.getY(i), nz = np.getZ(i);
+        if (!(nx * nx + ny * ny + nz * nz > 0.25)) {
+          const px = pp.getX(i), py = pp.getY(i), pz = pp.getZ(i), pl = Math.hypot(px, py, pz) || 1;
+          np.setXYZ(i, px / pl, py / pl, pz / pl);
+        }
+      }
+      return g2;
+    });
+  const BD = { w: 0.62, h: 0.55, d: 0.42, cy: 0.685, e: 0.32 };
+  put(grp, rbox(BD.w, BD.h, BD.d, BD.e), shirtM, [0, BD.cy, 0]);
+  put(grp, rbox(BD.w, BD.h, BD.d, BD.e), OL, [0, BD.cy, 0], [1.05, 1.045, 1.06]).userData.ns = 1;
+  put(grp, rbox(0.65, 0.1, 0.45, 0.3), lam(shade(pantsC, 0.85)), [0, 0.44, 0]); // đai quần ôm đáy hộp
+  put(grp, rbox(0.64, 0.15, 0.44, 0.3), lam(shade(a.shirt, 0.78)), [0, 0.9, 0]); // yoke cổ áo trên mặt trên hộp
   put(grp, sp(0.13, 10, 8), skin, [0, 0.99, 0]);
 
   /* ---- tay: trục tại vai ---- */
@@ -13267,8 +13310,12 @@ function makeAvatar3D(member) {
   else if (sty === "dung")
     [-0.17, 0, 0.17].forEach((x, i) => H(co(0.095, 0.32, 6), hairM, [x, 0.57, 0], null, [0, 0, (1 - i) * 0.25]));
   else if (sty === "xoan")
-    [[-0.3, 0.29], [-0.2, 0.42], [0, 0.47], [0.2, 0.42], [0.3, 0.29], [-0.4, 0.16], [0.4, 0.16]].forEach((p) =>
-      H(sp(0.135, 10, 8), hairM, [p[0], p[1], -0.02]));
+    // cặp lọn thấp cũ (±0.40, 0.16) nằm giữa đầu, chọc qua vỏ tóc sau + mép mũ tóc
+    // thành một mảng thoi/lá đậm lẻ loi ở góc sau-bên — nay nâng lên (±0.36, 0.27),
+    // bán kính 0.13, nhập vào cụm lọn trên đỉnh: độ nhô qua mũ tóc ngang các lọn
+    // đỉnh (≈0.025), phía sau và sau-bên tóc liền một khối, không mảng lạ giữa đầu
+    [[-0.3, 0.29], [-0.2, 0.42], [0, 0.47], [0.2, 0.42], [0.3, 0.29], [-0.36, 0.27, 0.13], [0.36, 0.27, 0.13]].forEach((p) =>
+      H(sp(p[2] || 0.135, 10, 8), hairM, [p[0], p[1], -0.02]));
   else if (sty === "mohawk") {
     H(bx(0.11, 0.16, 0.62), hairM, [0, 0.5, -0.02]);
     [-0.18, -0.06, 0.06, 0.18].forEach((z) => H(co(0.055, 0.2, 5), hairM, [0, 0.62, z]));
@@ -13387,87 +13434,104 @@ function makeAvatar3D(member) {
   const goldM = lam(0xf2b705);
   if (neckK === "chuong" || neckK === "chuongnho") {
     const big = neckK === "chuong";
-    put(grp, tr(0.315, big ? 0.04 : 0.028, 8, 20), lam(big ? 0xc22f2f : 0x2470c7), [0, 0.93, 0], null, [Math.PI / 2 - 0.18, 0, 0]);
-    put(grp, sp(big ? 0.085 : 0.055, 12, 10), goldM, [0, big ? 0.8 : 0.83, big ? 0.3 : 0.295]);
+    // vòng cổ nay là vành elip ôm chu vi mặt trên hộp (thân vuông), chuông treo trước ngực
+    put(grp, tr(0.24, big ? 0.04 : 0.028, 8, 20), lam(big ? 0xc22f2f : 0x2470c7), [0, 0.925, 0], [1.3, 0.95, 1], [Math.PI / 2 - 0.18, 0, 0]);
+    put(grp, sp(big ? 0.085 : 0.055, 12, 10), goldM, [0, big ? 0.845 : 0.855, big ? 0.245 : 0.24]);
   } else if (neckK === "khan") {
     const sm = lam(0xc22f2f);
-    put(grp, tr(0.33, 0.085, 10, 20), sm, [0, 0.94, 0], null, [Math.PI / 2 - 0.12, 0, 0]);
-    put(grp, bx(0.15, 0.3, 0.05), sm, [0.13, 0.64, 0.31], null, [0, 0, 0.15]);
+    put(grp, tr(0.25, 0.08, 10, 20), sm, [0, 0.935, 0], [1.32, 0.98, 1], [Math.PI / 2 - 0.12, 0, 0]);
+    put(grp, bx(0.15, 0.3, 0.05), sm, [0.13, 0.64, 0.225], null, [0, 0, 0.15]); // vạt khăn áp mặt trước hộp
   } else if (neckK === "noco") {
-    [-1, 1].forEach((s) => put(grp, co(0.065, 0.15, 8), lam(0xe0393e), [s * 0.07, 0.88, 0.295], null, [0, 0, s * 1.35]));
-    put(grp, sp(0.045, 8, 8), lam(0xb02a30), [0, 0.88, 0.31]);
+    [-1, 1].forEach((s) => put(grp, co(0.065, 0.15, 8), lam(0xe0393e), [s * 0.07, 0.88, 0.215], null, [0, 0, s * 1.35]));
+    put(grp, sp(0.045, 8, 8), lam(0xb02a30), [0, 0.88, 0.24]);
   } else if (neckK === "vongca") {
-    put(grp, tr(0.3, 0.018, 6, 20), lam(0xb97f06), [0, 0.92, 0.01], null, [Math.PI / 2 - 0.3, 0, 0]);
+    put(grp, tr(0.235, 0.018, 6, 20), lam(0xb97f06), [0, 0.92, 0], [1.3, 0.95, 1], [Math.PI / 2 - 0.3, 0, 0]);
     const o = lam(0xf07f13);
-    put(grp, co(0.055, 0.16, 8), o, [0, 0.76, 0.325], null, [0, 0, Math.PI / 2]);
-    put(grp, co(0.045, 0.09, 4), o, [-0.115, 0.76, 0.325], null, [0, 0, -Math.PI / 2]);
+    put(grp, co(0.055, 0.16, 8), o, [0, 0.775, 0.245], null, [0, 0, Math.PI / 2]); // cá treo áp mặt trước hộp
+    put(grp, co(0.045, 0.09, 4), o, [-0.115, 0.775, 0.245], null, [0, 0, -Math.PI / 2]);
   } else if (neckK === "cavat") {
     const tm = lam(0x5b4a9e);
-    put(grp, bx(0.1, 0.08, 0.04), tm, [0, 0.9, 0.265]);
-    put(grp, bx(0.1, 0.3, 0.03), tm, [0, 0.72, 0.325], null, [-0.08, 0, 0]);
+    put(grp, bx(0.1, 0.08, 0.04), tm, [0, 0.9, 0.215]);
+    put(grp, bx(0.1, 0.3, 0.03), tm, [0, 0.72, 0.222], null, [-0.08, 0, 0]); // thân cà vạt áp mặt trước hộp
   }
 
-  /* ---- Đuôi: khôi phục ngôn ngữ đuôi CŨ (v64) — MỘT khối cong liền mạch + chóp cầu,
-     group nghiêng rotation.x sẵn, game vẫy bằng rotation.z quanh gốc qua parts.tail.
-     Làm đẹp trên nền cũ: thân là ống trụ được uốn cong mềm theo cung tròn (không còn
-     chuỗi đốt), bán kính thon dần về chóp theo lũy thừa, chóp cầu bo tròn hơi sáng tông.
-     Gốc giữ vị trí v67 (z −0.34, y 0.52) — ngoài mặt lưng ở mọi dáng. ---- */
+  /* ---- Đuôi: MỘT khối cong liền mạch + chóp cầu (ngôn ngữ đuôi cũ v64/v69),
+     game vẫy bằng rotation.z quanh gốc qua parts.tail. Đường cong nay là Bézier
+     dáng đuôi mèo ĐỨNG: gốc bám mặt lưng hộp (0, 0.55, −0.21) vòng XUỐNG nhẹ
+     rồi vồng LÊN cao sau lưng, chóp móc mềm về trước — không còn chĩa ngang ra
+     sau như ống cứng (bản cũ: chóp chỉ cao hơn gốc 0.20 mà vươn ra sau 0.29).
+     Thân ống quét dọc đường cong, bán kính thon dần về chóp theo lũy thừa,
+     chóp cầu bo tròn hơi sáng tông. Đủ kiểu cong/dai/bong/tho/khong. ---- */
   const tailK = a.tail || "cong";
   let tailG = null;
   if (tailK === "tho") {
     tailG = new THREE.Group();
-    tailG.position.set(0, 0.52, -0.34);
+    tailG.position.set(0, 0.55, -0.21);
     grp.add(tailG);
-    put(tailG, sp(0.1, 10, 8), lam(0xfdf6e3), [0, 0.02, -0.09]);
+    put(tailG, sp(0.1, 10, 8), lam(0xfdf6e3), [0, 0.02, -0.08]);
   } else if (tailK !== "khong") {
     tailG = new THREE.Group();
-    tailG.position.set(0, 0.52, -0.34);
-    tailG.rotation.x = tailK === "dai" ? -1.05 : -0.55;
+    tailG.position.set(0, 0.55, -0.21);
     grp.add(tailG);
     const fl = tailK === "bong";
-    const tLen = tailK === "dai" ? 0.55 : 0.36;
-    const tCurl = tailK === "dai" ? 0.6 : fl ? 0.7 : 0.85; // tổng góc uốn tích lũy dọc thân đuôi
-    const tGeo = G("tg" + [tLen, fl, tCurl], () => {
-      const rB = fl ? 0.1 : 0.056, rT = fl ? 0.078 : 0.03;
-      const tg = new THREE.CylinderGeometry(1, 1, tLen, 10, 14);
-      tg.translate(0, tLen / 2, 0);
-      const tp = tg.attributes.position, R = tLen / tCurl;
+    const ys = tailK === "dai" ? 1.28 : fl ? 0.92 : 1; // dai: vồng cao hơn nhưng vẫn cong lên, không chĩa thẳng
+    const zs = tailK === "dai" ? 1.18 : 1;
+    const cps = [[0, 0], [-0.16 * ys, -0.05 * zs], [0.1 * ys, -0.21 * zs], [0.47 * ys, -0.11 * zs]]; // [y, z] các điểm điều khiển Bézier
+    const bz = (t) => {
+      const s = 1 - t, w0 = s * s * s, w1 = 3 * s * s * t, w2 = 3 * s * t * t, w3 = t * t * t;
+      return [
+        w0 * cps[0][0] + w1 * cps[1][0] + w2 * cps[2][0] + w3 * cps[3][0],
+        w0 * cps[0][1] + w1 * cps[1][1] + w2 * cps[2][1] + w3 * cps[3][1],
+      ];
+    };
+    const bzd = (t) => {
+      const s = 1 - t;
+      return [
+        3 * s * s * (cps[1][0] - cps[0][0]) + 6 * s * t * (cps[2][0] - cps[1][0]) + 3 * t * t * (cps[3][0] - cps[2][0]),
+        3 * s * s * (cps[1][1] - cps[0][1]) + 6 * s * t * (cps[2][1] - cps[1][1]) + 3 * t * t * (cps[3][1] - cps[2][1]),
+      ];
+    };
+    const tGeo = G("tgS" + [ys, zs, fl], () => {
+      const rB = fl ? 0.098 : 0.056, rT = fl ? 0.075 : 0.03;
+      const tg = new THREE.CylinderGeometry(1, 1, 1, 10, 20);
+      tg.translate(0, 0.5, 0);
+      const tp = tg.attributes.position;
       for (let i = 0; i < tp.count; i++) {
         const x = tp.getX(i), y = tp.getY(i), z = tp.getZ(i);
-        const t = Math.max(0, Math.min(1, y / tLen)), th = tCurl * t;
+        const t = Math.max(0, Math.min(1, y));
+        const c = bz(t), dv = bzd(t), dl = Math.hypot(dv[0], dv[1]) || 1;
+        const ty = dv[0] / dl, tz = dv[1] / dl; // tiếp tuyến (y,z) đã chuẩn hoá
         const r = rB + (rT - rB) * Math.pow(t, 0.8);
-        const sn = Math.sin(th), cs = Math.cos(th);
-        tp.setXYZ(i, x * r, R * sn + z * r * sn, -R * (1 - cs) + z * r * cs);
+        tp.setXYZ(i, x * r, c[0] - z * r * tz, c[1] + z * r * ty);
       }
       tg.computeVertexNormals();
       return tg;
     });
     put(tailG, tGeo, hairM);
-    const tR = tLen / tCurl;
-    put(tailG, sp(fl ? 0.098 : 0.04, 10, 8), lam(shade(a.hairColor, 1.18)),
-      [0, tR * Math.sin(tCurl), -tR * (1 - Math.cos(tCurl))]); // chóp bo tròn, sáng hơn thân một tông
+    const tipC = bz(1);
+    put(tailG, sp(fl ? 0.095 : 0.04, 10, 8), lam(shade(a.hairColor, 1.18)), [0, tipC[0], tipC[1]]); // chóp bo tròn, sáng hơn thân một tông
   }
 
   /* ---- Lưng / tay: ba lô, cánh, áo choàng, đồ cầm (gắn vào armR) ---- */
   const extraK = a.extra || "khong", orM = lam(0xf07f13);
   if (extraK === "balo" || extraK === "balogau") {
     const bear = extraK === "balogau", pm = lam(bear ? 0x9a6a44 : 0x5f7a5e);
-    put(grp, bx(0.5, bear ? 0.52 : 0.56, 0.24), pm, [0, 0.68, -0.4]);
+    put(grp, bx(0.5, bear ? 0.52 : 0.56, 0.24), pm, [0, 0.68, -0.3]); // ba lô áp phẳng mặt lưng hộp (mặt lưng z −0.21)
     if (bear) {
       [-0.17, 0.17].forEach((x) => {
-        put(grp, sp(0.085, 10, 8), pm, [x, 0.97, -0.4]);
-        put(grp, sp(0.028, 6, 6), bas(0x2b1c11), [x * 0.55, 0.72, -0.525]);
+        put(grp, sp(0.085, 10, 8), pm, [x, 0.97, -0.3]);
+        put(grp, sp(0.028, 6, 6), bas(0x2b1c11), [x * 0.55, 0.72, -0.425]);
       });
-      put(grp, sp(0.075, 10, 8), lam(0xd9b98c), [0, 0.62, -0.515], [1, 1, 0.55]);
+      put(grp, sp(0.075, 10, 8), lam(0xd9b98c), [0, 0.62, -0.425], [1, 1, 0.55]);
     } else {
-      put(grp, co(0.09, 0.3, 8), orM, [0, 0.7, -0.55], null, [0, 0, Math.PI / 2]);
-      put(grp, co(0.07, 0.14, 4), orM, [-0.2, 0.7, -0.55], null, [0, 0, -Math.PI / 2]);
+      put(grp, co(0.09, 0.3, 8), orM, [0, 0.7, -0.45], null, [0, 0, Math.PI / 2]);
+      put(grp, co(0.07, 0.14, 4), orM, [-0.2, 0.7, -0.45], null, [0, 0, -Math.PI / 2]);
     }
   } else if (extraK === "canh") {
     const wm = lam(0xfdfdf8, true);
     [-1, 1].forEach((s) => {
-      put(grp, sp(0.3, 12, 10), wm, [s * 0.33, 0.82, -0.28], [0.5, 1.1, 0.16], [0, 0, -s * 0.45]);
-      put(grp, sp(0.24, 10, 8), wm, [s * 0.31, 0.58, -0.29], [0.45, 0.85, 0.15], [0, 0, -s * 0.3]);
+      put(grp, sp(0.3, 12, 10), wm, [s * 0.3, 0.84, -0.2], [0.5, 1.1, 0.16], [0, 0, -s * 0.45]); // cánh bám góc trên mặt lưng hộp
+      put(grp, sp(0.24, 10, 8), wm, [s * 0.28, 0.58, -0.21], [0.45, 0.85, 0.15], [0, 0, -s * 0.3]);
     });
   } else if (extraK === "aochoang") {
     put(grp, G("cape", () => new THREE.CylinderGeometry(0.34, 0.58, 0.88, 14, 1, true)), lam(0xb03050, true), [0, 0.58, -0.14], null, [0.12, 0, 0]);
