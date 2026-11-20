@@ -7080,6 +7080,526 @@
     </div>
 
     <div class="toast" id="toast" role="status"></div>
+<script>
+/* =====================================================================
+   LMZONES — TÁCH LÀNG THÀNH 6 KHU RIÊNG (2026-11-20, lệnh chủ nhân)
+   Chỉ khu đang đứng mới được dựng vào cảnh; sang khu khác CHỈ bằng
+   dịch chuyển nhanh. Tọa độ thế giới giữ nguyên tuyệt đối — khu của
+   một vị trí suy ra từ chính vị trí đó qua 6 hình chữ nhật lát kín
+   biên toàn cục x[-172,172] × z[-65,248] (không hở, không chồng):
+     house: x[-38,58] z[-65,-11]   chỉ biệt thự (hiên trước khép ở z≈-12)
+     garden: x[-38,58] z[-11,68]   hồ bơi + 2 cầu tụt + ao koi + quảng
+                                   trường đài phun + pergola + lửa trại
+     west: x[-172,-38] z[-65,120]  đường + bar lục giác + khách sạn + spa
+     east: x[58,172]  z[-65,120]   phố đi bộ + karaoke + họp + fanart + cà phê
+     park: x[-38,58]  z[68,120]    công viên + vòng quay lớn
+     game: z[120,248] (mọi x)      khu trò chơi phía nam
+   Đường chia lấy từ footprint thật: vườn khép ở bụi cây z=65.2 (ghế
+   BN2 z=63.5 thuộc nhà; quầy công viên z=74.6 thuộc công viên); đường
+   tây chạy tới x=-38 (ghế đường đông nhất R4 x=-46); phố bắt đầu x=74
+   (cổng), vành vòng quay lớn khép ở x≈37.3; cổng khu game ở z=120,
+   ray tàu công viên khép ở z=112.
+   Cơ chế: mỗi script dựng khu đăng ký một "producer" qua
+   __lmRegisterProducer(tên, [khu...], fn). Khi cần dựng một khu,
+   LMZones chạy các producer liên quan DƯỚI CƠ CHẾ CHỤP SCENE (ghi
+   các con trực tiếp mới của scene + delta của OBSTACLES /
+   UPPER_OBSTACLES / VILLA_UPPER), rồi phân phối từng vật vào group
+   của khu theo tâm hộp bao của chính nó. Rời khu = tháo group +
+   traverse dispose geometry/material/texture THẬT + rút vật cản
+   của khu khỏi các mảng toàn cục + lọc __lmRoomRoofs. Dựng lỗi thì
+   giữ nguyên khu hiện tại (dựng xong xuôi mới tháo khu cũ).
+   ===================================================================== */
+window.LMZones = (function () {
+  "use strict";
+  var RECTS = {
+    house: { minX: -38, maxX: 58, minZ: -65, maxZ: -11 },
+    garden: { minX: -38, maxX: 58, minZ: -11, maxZ: 68 },
+    west: { minX: -172, maxX: -38, minZ: -65, maxZ: 120 },
+    east: { minX: 58, maxX: 172, minZ: -65, maxZ: 120 },
+    park: { minX: -38, maxX: 58, minZ: 68, maxZ: 120 },
+    game: { minX: -172, maxX: 172, minZ: 120, maxZ: 248 },
+  };
+  var NAMES = {
+    house: "🏠 Nhà chính",
+    garden: "🌳 Vườn & hồ bơi",
+    west: "🍸 Khu bar · Khách sạn · Spa",
+    east: "🌆 Phố giải trí",
+    park: "🎡 Công viên",
+    game: "🎮 Khu trò chơi",
+  };
+  var ORDER = ["house", "garden", "west", "east", "park", "game"];
+  function zoneOf(x, z) {
+    if (z >= 120) return "game";
+    if (x < -38) return "west";
+    if (x >= 58) return "east";
+    if (z >= 68) return "park";
+    if (z >= -11) return "garden";
+    return "house";
+  }
+  function inRect(id, x, z) {
+    var r = RECTS[id];
+    return x >= r.minX && x < r.maxX && z >= r.minZ && z < r.maxZ;
+  }
+
+  var producers = {}; // name -> {zones:[], fn}
+  var partCache = {}; // name -> {zoneId: Group} (detached, chưa gắn)
+  var zoneGroups = {}; // zoneId -> Group đang gắn vào scene
+  var zoneParts = {}; // zoneId -> [{producer, group}]
+  var built = {}; // zoneId -> true
+  var zoneObs = {}; // zoneId -> {obs:Set, upper:Set, villa:Set}
+  ORDER.forEach(function (id) {
+    zoneObs[id] = { obs: new Set(), upper: new Set(), villa: new Set() };
+  });
+  var current = "house";
+  var globalGroup = null; // rào chu vi + vòm trời: sống toàn cục
+  var session = null; // theo dõi 1 lượt dựng để rollback khi lỗi
+
+  window.__lmRoomRoofs = window.__lmRoomRoofs || [];
+
+  function scene() {
+    return typeof three !== "undefined" && three && three.scene ? three.scene : null;
+  }
+  function getGlobalGroup() {
+    var sc = scene();
+    if (!sc) return null;
+    if (!globalGroup) {
+      globalGroup = new THREE.Group();
+      globalGroup.name = "LM_GlobalPerimeter";
+      sc.add(globalGroup);
+    }
+    return globalGroup;
+  }
+  function partGroup(name, zid) {
+    if (!partCache[name]) partCache[name] = {};
+    if (!partCache[name][zid]) {
+      var g = new THREE.Group();
+      g.name = "LMPart_" + name + "_" + zid;
+      partCache[name][zid] = g;
+      if (session) session.newParts.push({ producer: name, zone: zid, group: g });
+    }
+    return partCache[name][zid];
+  }
+
+  /* ---------- chụp scene quanh một lượt dựng ---------- */
+  function snapArr(a) {
+    return new Set(a || []);
+  }
+  function diffArr(a, before) {
+    var out = [];
+    (a || []).forEach(function (o) {
+      if (!before.has(o)) out.push(o);
+    });
+    return out;
+  }
+  function removeFrom(arr, item) {
+    var i = (arr || []).indexOf(item);
+    if (i >= 0) arr.splice(i, 1);
+  }
+  function obsZone(o) {
+    return zoneOf((o.minX + o.maxX) / 2, (o.minZ + o.maxZ) / 2);
+  }
+  function stashObs(list, storeKey) {
+    list.forEach(function (o) {
+      removeFrom(storeKey === "obs" ? OBSTACLES : storeKey === "upper" ? UPPER_OBSTACLES : VILLA_UPPER, o);
+      var zid = obsZone(o);
+      zoneObs[zid][storeKey].add(o);
+      if (session) session.newObs.push({ zone: zid, key: storeKey, item: o });
+    });
+  }
+  function captureRun(fn) {
+    var sc = scene();
+    var before = new Set(sc.children);
+    var obB = typeof OBSTACLES !== "undefined" ? snapArr(OBSTACLES) : new Set();
+    var upB = typeof UPPER_OBSTACLES !== "undefined" ? snapArr(UPPER_OBSTACLES) : new Set();
+    var vuB = typeof VILLA_UPPER !== "undefined" ? snapArr(VILLA_UPPER) : new Set();
+    fn();
+    var added = sc.children.filter(function (c) {
+      return !before.has(c);
+    });
+    if (typeof OBSTACLES !== "undefined") stashObs(diffArr(OBSTACLES, obB), "obs");
+    if (typeof UPPER_OBSTACLES !== "undefined") stashObs(diffArr(UPPER_OBSTACLES, upB), "upper");
+    if (typeof VILLA_UPPER !== "undefined") stashObs(diffArr(VILLA_UPPER, vuB), "villa");
+    return added;
+  }
+
+  /* ---------- phân phối vật thể vào group khu theo vị trí ---------- */
+  var _box = null;
+  function bboxOf(o) {
+    if (!_box) _box = new THREE.Box3();
+    _box.makeEmpty();
+    try {
+      _box.setFromObject(o);
+    } catch (e) {}
+    if (_box.isEmpty()) return null;
+    return _box;
+  }
+  function isIdentity(o) {
+    return (
+      o.position.x === 0 &&
+      o.position.y === 0 &&
+      o.position.z === 0 &&
+      o.rotation.x === 0 &&
+      o.rotation.y === 0 &&
+      o.rotation.z === 0 &&
+      o.scale.x === 1 &&
+      o.scale.y === 1 &&
+      o.scale.z === 1
+    );
+  }
+  function spansZones(b) {
+    var z1 = zoneOf(b.min.x, b.min.z),
+      z2 = zoneOf(b.max.x, b.min.z),
+      z3 = zoneOf(b.min.x, b.max.z),
+      z4 = zoneOf(b.max.x, b.max.z),
+      zc = zoneOf((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2);
+    return !(z1 === z2 && z2 === z3 && z3 === z4 && z4 === zc);
+  }
+  var buildingZone = null; // khu đang được dựng (hoặc đang gắn bổ sung) — đích hợp lệ duy nhất cho vật mới
+  function distribute(name, obj, depth) {
+    var sc = scene();
+    // Vòm trời: toàn cục, bám camera — không thuộc khu nào
+    if (typeof three !== "undefined" && three && obj === three.skyGroup) return;
+    var b = bboxOf(obj);
+    // Group không biến đổi mà hộp bao vắt qua nhiều khu → tách con ra
+    // phân phối từng cái TRƯỚC khi xét luật toàn cục (group G của
+    // ComplexB chứa cả rào chu vi lẫn phố/công viên trong một group).
+    if (obj.isGroup && depth < 3 && isIdentity(obj) && b && spansZones(b)) {
+      var kids = obj.children.slice();
+      kids.forEach(function (k) {
+        distribute(name, k, depth + 1);
+      });
+      if (obj.parent) obj.parent.remove(obj);
+      return;
+    }
+    var sizeX = b ? b.max.x - b.min.x : 0,
+      sizeZ = b ? b.max.z - b.min.z : 0;
+    // Rào chu vi (tấm dài >300 m) + cọc rào InstancedMesh: toàn cục
+    if (sizeX > 300 || sizeZ > 300 || (obj.isInstancedMesh && obj.count >= 600)) {
+      var gg = getGlobalGroup();
+      if (gg) gg.add(obj);
+      return;
+    }
+    var cx, cz;
+    if (b) {
+      cx = (b.min.x + b.max.x) / 2;
+      cz = (b.min.z + b.max.z) / 2;
+    } else {
+      cx = obj.position.x;
+      cz = obj.position.z;
+    }
+    var zid = zoneOf(cx, cz);
+    // Vật thuộc một khu ĐANG dựng sẵn (đang đứng) là bản trùng của nội
+    // dung đang sống — hủy ngay thay vì cộng dồn vào group đang gắn.
+    if (built[zid] && zid !== buildingZone) {
+      disposeGroup(obj);
+      return;
+    }
+    partGroup(name, zid).add(obj);
+  }
+  function runProducer(name) {
+    var P = producers[name];
+    if (!P) return;
+    // Dọn phần cất cũ của producer này ở các khu CHƯA dựng: lượt chạy
+    // mới sẽ phân phối lại từ đầu, tránh cộng dồn qua mỗi lần chạy lại.
+    P.zones.forEach(function (zid) {
+      if (built[zid]) return;
+      if (partCache[name] && partCache[name][zid]) {
+        disposeGroup(partCache[name][zid]);
+        delete partCache[name][zid];
+      }
+    });
+    var added = captureRun(P.fn);
+    added.forEach(function (o) {
+      distribute(name, o, 0);
+    });
+  }
+
+  /* ---------- dựng / hủy khu ---------- */
+  function pushObs(id) {
+    var st = zoneObs[id];
+    st.obs.forEach(function (o) {
+      if (OBSTACLES.indexOf(o) < 0) OBSTACLES.push(o);
+    });
+    st.upper.forEach(function (o) {
+      if (UPPER_OBSTACLES.indexOf(o) < 0) UPPER_OBSTACLES.push(o);
+    });
+    st.villa.forEach(function (o) {
+      if (VILLA_UPPER.indexOf(o) < 0) VILLA_UPPER.push(o);
+    });
+  }
+  function pullObs(id) {
+    var st = zoneObs[id];
+    st.obs.forEach(function (o) {
+      removeFrom(OBSTACLES, o);
+    });
+    st.upper.forEach(function (o) {
+      removeFrom(UPPER_OBSTACLES, o);
+    });
+    st.villa.forEach(function (o) {
+      removeFrom(VILLA_UPPER, o);
+    });
+    zoneObs[id] = { obs: new Set(), upper: new Set(), villa: new Set() };
+  }
+  function buildZone(id) {
+    if (built[id]) return zoneGroups[id];
+    var sc = scene();
+    if (!sc) throw new Error("scene chưa sẵn sàng");
+    session = { newParts: [], newObs: [] };
+    buildingZone = id;
+    try {
+      Object.keys(producers).forEach(function (name) {
+        var P = producers[name];
+        if (P.zones.indexOf(id) < 0) return;
+        if (partCache[name] && partCache[name][id]) return;
+        runProducer(name);
+      });
+      var zg = new THREE.Group();
+      zg.name = "LMZone_" + id;
+      var parts = [];
+      Object.keys(producers).forEach(function (name) {
+        var P = producers[name];
+        if (P.zones.indexOf(id) < 0) return;
+        var part = partCache[name] && partCache[name][id];
+        if (part) {
+          zg.add(part);
+          parts.push({ producer: name, group: part });
+        }
+      });
+      sc.add(zg);
+      zoneGroups[id] = zg;
+      zoneParts[id] = parts;
+      pushObs(id);
+      built[id] = true;
+      session = null;
+      buildingZone = null;
+      if (window.__lmZonePost && typeof window.__lmZonePost[id] === "function") {
+        try {
+          window.__lmZonePost[id](zg);
+        } catch (e) {
+          if (window.console) console.warn("LMZones post", id, e);
+        }
+      }
+      return zg;
+    } catch (e) {
+      // Rollback: hủy mọi phần vừa dựng trong lượt này, giữ nguyên hiện trạng
+      var s = session;
+      session = null;
+      buildingZone = null;
+      if (s) {
+        s.newObs.forEach(function (r) {
+          zoneObs[r.zone][r.key].delete(r.item);
+        });
+        s.newParts.forEach(function (r) {
+          disposeGroup(r.group);
+          if (partCache[r.producer]) delete partCache[r.producer][r.zone];
+        });
+      }
+      throw e;
+    }
+  }
+  function disposeGroup(g) {
+    var meshes = new Set();
+    g.traverse(function (o) {
+      o.userData.__lmDead = true;
+      if (o.isMesh || o.isPoints || o.isSprite || o.isLine) {
+        meshes.add(o);
+        if (o.geometry && o.geometry.dispose) o.geometry.dispose();
+        var mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+        mats.forEach(function (m) {
+          for (var k in m) {
+            var v = m[k];
+            if (v && v.isTexture && v.dispose) v.dispose();
+          }
+          if (m.dispose) m.dispose();
+        });
+      }
+    });
+    return meshes;
+  }
+  function teardownHooks(id) {
+    try {
+      if (id === "house" && typeof three !== "undefined" && three) {
+        three.cats = [];
+        three.fish = [];
+        three.dust = null;
+      }
+      if (id === "garden" && typeof three !== "undefined" && three) {
+        three.gardenV2 = null;
+        three.yardStars = null;
+        three.yardMoon = null;
+        three.yardMoonGlow = null;
+        three.fire = null;
+        three.fireflies = null;
+        three.fireLight = null;
+      }
+      if (id === "park" || id === "east") {
+        window.__bcFountain = null;
+        window.__bcCarousel = null;
+        window.__bcSwings = null;
+        window.__bcHorses = null;
+        window.__bcGondolas = null;
+        window.__bcWheel = null;
+        window.__bcCoaster = null;
+        window.__lmParkPool = null;
+      }
+      if (id === "west") {
+        window.__lmBarFx = null;
+      }
+      if (id === "game") {
+        window.__zoneV2 = null;
+        window.__poolWorld = null; /* bàn bi-a thế giới đã hủy — handler đồng bộ tự no-op qua chốt guard sẵn có */
+        window.__lmGZGen = (window.__lmGZGen || 0) + 1; /* tắt vòng hoạt họa của lượt dựng vừa hủy */
+      }
+    } catch (e) {}
+  }
+  function disposeZone(id) {
+    if (!built[id]) return;
+    var sc = scene();
+    var zg = zoneGroups[id];
+    var meshes = new Set();
+    (zoneParts[id] || []).forEach(function (p) {
+      var ms = disposeGroup(p.group);
+      ms.forEach(function (m) {
+        meshes.add(m);
+      });
+      if (partCache[p.producer]) delete partCache[p.producer][id];
+    });
+    if (zg && sc) sc.remove(zg);
+    delete zoneGroups[id];
+    delete zoneParts[id];
+    built[id] = false;
+    pullObs(id);
+    if (Array.isArray(window.__lmRoomRoofs) && meshes.size) {
+      for (var i = window.__lmRoomRoofs.length - 1; i >= 0; i--) {
+        if (meshes.has(window.__lmRoomRoofs[i].mesh)) window.__lmRoomRoofs.splice(i, 1);
+      }
+    }
+    teardownHooks(id);
+  }
+
+  /* ---------- chuyển khu (chỉ qua dịch chuyển) ---------- */
+  var veil = null;
+  function showVeil(id) {
+    if (!veil) {
+      var st = document.createElement("style");
+      st.textContent =
+        "#lmZoneVeil{position:fixed;inset:0;z-index:240;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:radial-gradient(120% 120% at 50% 20%,#3a2a1c 0%,#1d130c 70%);color:#ffe9c9;font-family:'Be Vietnam Pro',sans-serif;text-align:center;padding:24px}" +
+        "#lmZoneVeil.on{display:flex}" +
+        "#lmZoneVeil .zv-name{font:800 clamp(26px,6vw,44px) 'Baloo 2',sans-serif;line-height:1.15}" +
+        "#lmZoneVeil .zv-sub{font-size:14px;opacity:.75}" +
+        "#lmZoneVeil .zv-spin{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,220,180,.25);border-top-color:#ffb36b;animation:lmzv 0.8s linear infinite}" +
+        "@keyframes lmzv{to{transform:rotate(360deg)}}";
+      document.head.appendChild(st);
+      veil = document.createElement("div");
+      veil.id = "lmZoneVeil";
+      veil.innerHTML = '<div class="zv-spin"></div><div class="zv-name"></div><div class="zv-sub">Đang dựng khu…</div>';
+      document.body.appendChild(veil);
+    }
+    veil.querySelector(".zv-name").textContent = NAMES[id] || id;
+    veil.classList.add("on");
+  }
+  function hideVeil() {
+    if (veil) veil.classList.remove("on");
+  }
+  var switching = false;
+  function switchTo(id, arriveFn) {
+    if (switching) return;
+    if (id === current || !built[current]) {
+      if (arriveFn) arriveFn();
+      return;
+    }
+    switching = true;
+    showVeil(id);
+    setTimeout(function () {
+      try {
+        buildZone(id); // dựng khu mới TRƯỚC (đang tháo rời khỏi scene là không — group gắn sau khi xong)
+      } catch (e) {
+        if (window.console) console.warn("LMZones build", id, e);
+        hideVeil();
+        switching = false;
+        if (typeof toast === "function")
+          toast("⚠️ Không dựng được " + (NAMES[id] || id) + " — vẫn ở khu hiện tại nhé");
+        return;
+      }
+      // Khu mới đã gắn vào scene trong buildZone; giờ mới hủy khu cũ
+      var old = current;
+      current = id;
+      disposeZone(old);
+      try {
+        if (arriveFn) arriveFn();
+      } catch (e) {
+        if (window.console) console.warn("LMZones arrive", e);
+      }
+      hideVeil();
+      switching = false;
+      if (typeof syncAvatars3D === "function") {
+        try {
+          syncAvatars3D();
+        } catch (e) {}
+      }
+    }, 40);
+  }
+
+  /* ---------- đăng ký producer ---------- */
+  function registerProducer(name, zones, fn) {
+    producers[name] = { zones: zones, fn: fn };
+    // Nếu khu đang đứng thuộc producer này mà chưa có phần của nó → dựng bổ sung ngay
+    if (built[current] && zones.indexOf(current) >= 0 && !(partCache[name] && partCache[name][current])) {
+      try {
+        session = { newParts: [], newObs: [] };
+        buildingZone = current;
+        runProducer(name);
+        buildingZone = null;
+        var part = partCache[name] && partCache[name][current];
+        if (part && zoneGroups[current]) {
+          zoneGroups[current].add(part);
+          (zoneParts[current] = zoneParts[current] || []).push({ producer: name, group: part });
+          pushObs(current);
+        }
+        session = null;
+      } catch (e) {
+        session = null;
+        buildingZone = null;
+        if (window.console) console.warn("LMZones late producer", name, e);
+      }
+    }
+  }
+  window.__lmRegisterProducer = registerProducer;
+
+  return {
+    RECTS: RECTS,
+    NAMES: NAMES,
+    ORDER: ORDER,
+    zoneOf: zoneOf,
+    inRect: inRect,
+    buildZone: buildZone,
+    disposeZone: disposeZone,
+    switchTo: switchTo,
+    registerProducer: registerProducer,
+    get current() {
+      return current;
+    },
+    set current(v) {
+      current = v;
+    },
+      partGroup: function (name, id) {
+      return partCache[name] && partCache[name][id];
+    },
+    isBuilt: function (id) {
+      return !!built[id];
+    },
+    meshCount: function (id) {
+      var g = zoneGroups[id];
+      if (!g) return 0;
+      var n = 0;
+      g.traverse(function (o) {
+        if (o.isMesh || o.isPoints || o.isSprite) n++;
+      });
+      return n;
+    },
+  };
+})();
+</script>
     <script>
       "use strict";
       /* =====================================================================
@@ -11320,7 +11840,13 @@
         buildCampfireYard();
         buildSecondFloor();
         buildVilla();
-        buildSkyDome();
+        /* LMZONES: vòm trời là hệ toàn cục — chỉ dựng MỘT lần dù khu nhà
+           bị hủy/dựng lại bao nhiêu lần (skyGroup được LMZones giữ ở
+           gốc scene, không nằm trong group khu nhà). */
+        if (!window.__lmSkyBuilt) {
+          window.__lmSkyBuilt = true;
+          buildSkyDome();
+        }
         buildExterior();
         buildDustMotes();
       }
@@ -16415,13 +16941,18 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             fireLight: null,
             dust: null,
           };
-          buildHouse();
-          scene.traverse((o) => {
-            if (o.isMesh) {
-              o.receiveShadow = true;
-              o.castShadow = !(o.material && o.material.transparent) && !o.userData.noCast;
-            }
-          });
+          /* LMZONES (2026-11-20): nhà chính + vườn + lõi bar lục giác
+             (trong buildVilla) do producer "main" dựng dưới cơ chế chụp
+             scene của LMZones — chỉ phần khu nhà được gắn vào cảnh khi
+             vào làng; phần bar (group HG) được cất làm phần của khu tây.
+             Các bước hậu dựng cũ (cờ đổ bóng, khóa bóng trong nhà, đóng
+             băng ma trận tĩnh) chuyển vào __lmZonePost.home bên dưới và
+             chạy lại sau MỖI lần khu nhà được dựng. */
+          window.__lmHomeBuild = function () {
+            if (three.polish) three.polish.glows.length = 0;
+            buildHouse();
+            __lmLampFixtures();
+          };
           /* GIẢM LAG: điểm áp chất lượng cho nút gạt "Giảm lag (điện thoại)"
              trong menu ☰ — đổi chế độ là áp ngay pixelRatio + shadow map +
              đổ bóng vật trang trí nhỏ, không cần tải lại trang. */
@@ -16453,7 +16984,9 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
           /* Chao đèn trần cho 5 đèn điểm mới của nhà chính: dây treo từ xà
              trần 8.7 xuống + đĩa phát sáng (MeshBasic — luôn sáng rõ). Vị
              trí khớp từng đèn: thư viện tây, quầy trà, phòng ăn, gác đông,
-             gác giường (gác treo thấp hơn vì không gian mở tới mái). */
+             gác giường (gác treo thấp hơn vì không gian mở tới mái).
+             LMZONES: bọc thành hàm để producer "main" gọi trong lượt chụp. */
+          const __lmLampFixtures = () => {
           [
             [-26, -35, 7.5],
             [-25, -47, 7.5],
@@ -16480,6 +17013,22 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             bulb.position.set(lp[0], lp[2] - 0.22, lp[1]);
             scene.add(bulb);
           });
+          };
+          /* LMZONES: hậu dựng khu nhà — chạy sau mỗi lần group khu nhà
+             được dựng (gắn qua window.__lmZonePost). Nội dung là ba bước
+             cũ áp lên phần "main" của khu: cờ đổ/nhận bóng, khóa bóng
+             trong dấu chân nhà + tắt castShadow cho đèn point/spot, và
+             đóng băng ma trận các mesh tĩnh con trực tiếp của phần. */
+          window.__lmZonePost = window.__lmZonePost || {};
+          window.__lmZonePost.house = function () {
+            const part = window.LMZones.partGroup("main", "house");
+            if (!part) return;
+            part.traverse((o) => {
+              if (o.isMesh) {
+                o.receiveShadow = true;
+                o.castShadow = !(o.material && o.material.transparent) && !o.userData.noCast;
+              }
+            });
           /* NHÀ CHÍNH KHÔNG ĐỔ BÓNG — luật chủ nhân (chỉ giữ đổ bóng ngoài
              trời): gỡ cờ đổ/nhận bóng của MỌI mesh nằm trong dấu chân nhà
              chính (x ±33, z -53.5..-17), gồm cả mái và nội thất, để bóng
@@ -16487,7 +17036,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
              map toàn cục hiện đang tắt nên đây là lớp khóa cấu trúc: sau
              này có bật lại bóng ngoài trời thì trong nhà vẫn sạch bóng. */
           const _wpTmp = new THREE.Vector3(); /* ĐỢT G (6): vector đệm dùng chung, khỏi cấp phát mỗi mesh */
-          scene.traverse((o) => {
+          part.traverse((o) => {
             if (o.isMesh) {
               o.getWorldPosition(_wpTmp);
               if (_wpTmp.x >= -33 && _wpTmp.x <= 33 && _wpTmp.z >= -53.5 && _wpTmp.z <= -17) {
@@ -16499,19 +17048,17 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
                point/spot trong cảnh chính tắt castShadow tường minh. */
             if (o.isPointLight || o.isSpotLight) o.castShadow = false;
           });
-          /* ĐỢT G (3): ĐÓNG BĂNG MA TRẬN TĨNH — mesh con TRỰC TIẾP của scene
-             thuộc kiến trúc/đồ tĩnh (tường, sàn, kệ, mái mờ chỉ đổi opacity,
-             màn hình chỉ đổi vật liệu...) thì tính ma trận MỘT lần rồi tắt
-             matrixAutoUpdate: mỗi khung three khỏi nhân lại ma trận cho
-             hàng nghìn nút bất động. LOẠI TRỪ theo thiết kế:
-             - skyGroup (bám theo camera mỗi khung);
-             - bóng len (mèo vờn, di chuyển), cá trong bể + mèo NPC (nằm
-               trong Group riêng — con của group không bị đóng băng);
-             - MỌI con của Group (đu quay, vòng quay ngựa, cabin, cá koi,
-               cửa quay... đều sống trong group) — không đụng tới;
-             - người chơi: avatar dựng SAU bước này (syncAvatars3D) nên
-               luôn giữ matrixAutoUpdate = true.
-             Đồ do các script khu vực dựng sau init cũng không bị đóng băng. */
+          /* ĐỢT G (3): ĐÓNG BĂNG MA TRẬN TĨNH — mesh con TRỰC TIẾP của
+             phần nhà thuộc kiến trúc/đồ tĩnh (tường, sàn, kệ, mái mờ chỉ
+             đổi opacity, màn hình chỉ đổi vật liệu...) thì tính ma trận
+             MỘT lần rồi tắt matrixAutoUpdate: mỗi khung three khỏi nhân
+             lại ma trận cho hàng nghìn nút bất động. LOẠI TRỪ theo thiết
+             kế: skyGroup (toàn cục, không nằm trong phần này); bóng len
+             (mèo vờn, di chuyển), cá trong bể + mèo NPC (nằm trong Group
+             riêng — con của group không bị đóng băng); MỌI con của Group
+             (đu quay, vòng quay ngựa, cabin, cá koi, cửa quay... đều sống
+             trong group) — không đụng tới; người chơi: avatar dựng ở gốc
+             scene nên luôn giữ matrixAutoUpdate = true. */
           window.__lmFrozenCount = (function () {
             var dyn = new Set();
             function mark(o) {
@@ -16528,7 +17075,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
               dyn.add(f);
             });
             var n = 0;
-            scene.children.forEach(function (o) {
+            part.children.forEach(function (o) {
               if (!o.isMesh || dyn.has(o)) return;
               o.updateMatrix();
               o.matrixAutoUpdate = false;
@@ -16536,6 +17083,13 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             });
             return n;
           })();
+          };
+          /* LMZONES: đăng ký producer "main" rồi dựng KHU XUẤT PHÁT
+             (nhà & vườn) — các khu khác chỉ dựng khi dịch chuyển tới. */
+          window.LMZones.registerProducer("main", ["house", "garden", "west", "east"], window.__lmHomeBuild);
+          window.LMZones.buildZone("house");
+          window.__lmWorldReady = true;
+          if (!three.bcomplex) three.bcomplex = { fountain: null };
           sizeRenderer();
           window.addEventListener("resize", sizeRenderer);
           bindCameraControls();
@@ -26082,30 +26636,23 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         if (viewBtn) cluster.appendChild(viewBtn);
         stage.appendChild(cluster);
 
-        /* Dịch chuyển nhanh: gom vào 1 nút "bay" 🧭 ở cạnh phải giữa màn */
+        /* Dịch chuyển nhanh TRÊN ĐIỆN THOẠI (2026-11-20, lệnh chủ nhân):
+           KHÔNG còn nút bay 🧭 nổi ngoài màn hình chơi — toàn bộ điểm đến
+           nằm TRONG menu ☰ (giống desktop): dời #vlNav vào #sysMenuPanels
+           kèm nhãn, giữ nguyên chữ đầy đủ của từng điểm đến để người chơi
+           đọc và bấm theo khu. Bấm một điểm đến là menu tự đóng (listener
+           đóng menu do các script đích + LMZones gắn). */
         var nav = document.getElementById("vlNav");
         if (nav) {
-          /* Trên cảm ứng các nút dịch chuyển chỉ còn icon tròn: giữ lại emoji đầu */
-          nav.querySelectorAll("button").forEach(function (b) {
-            b.textContent = b.textContent.trim().split(/\s+/)[0];
-            b.setAttribute("aria-label", "Dịch chuyển nhanh");
-          });
-          var fly = document.createElement("button");
-          fly.type = "button";
-          fly.id = "mFlyBtn";
-          fly.textContent = "🧭";
-          fly.setAttribute("aria-label", "Dịch chuyển nhanh tới các khu");
-          fly.addEventListener("click", function () {
-            var open = nav.classList.toggle("open");
-            fly.classList.toggle("on", open);
-          });
-          nav.addEventListener("click", function (e) {
-            if (e.target && e.target.tagName === "BUTTON") {
-              nav.classList.remove("open");
-              fly.classList.remove("on");
-            }
-          });
-          stage.appendChild(fly);
+          var navHost = document.getElementById("sysMenuPanels");
+          if (navHost && nav.parentNode !== navHost) {
+            var navLbl = document.createElement("div");
+            navLbl.textContent = "🧭 Dịch chuyển nhanh";
+            navLbl.style.cssText = "margin-top:12px;font-weight:800;font-size:.85rem;color:#ffd9a8";
+            navHost.appendChild(navLbl);
+            navHost.appendChild(nav);
+          }
+          nav.classList.remove("open");
         }
 
         /* Chat: bong bóng 1 dòng dưới-trái (trên vùng joystick) ↔ khung chat trượt lên */
@@ -26391,31 +26938,25 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
         else addTeleports();
         setTimeout(addTeleports, 1500);
 
-        /* ---------- Chờ sân khấu 3D sẵn sàng rồi xây ---------- */
+        /* ---------- LMZONES: producer cho PHỐ GIẢI TRÍ + CÔNG VIÊN ----------
+           Không tự dựng khi tải trang nữa: LMZones chỉ gọi hàm này khi
+           người chơi lần đầu dịch chuyển tới phố hoặc công viên (và mỗi
+           lần khu bị hủy rồi vào lại). build() dựng cả hai khu vào một
+           group G — LMZones phân phối từng vật vào đúng khu theo vị trí;
+           vòng tick toàn cục chỉ khởi động một lần, đọc các biến
+           window.__bc* nên tự no-op khi khu tương ứng chưa dựng. */
         var built = false;
-        var iv = setInterval(function () {
-          if (built) return;
+        var tickStarted = false;
+        window.__lmRegisterProducer("complexb", ["east", "park"], function () {
           var th = T();
-          if (
-            th &&
-            typeof three !== "undefined" &&
-            three &&
-            three.scene &&
-            three.scene.children.length > 12
-          ) {
-            built = true;
-            clearInterval(iv);
-            try {
-              build(th);
-            } catch (e) {
-              if (window.console) console.warn("ComplexB build", e);
-            }
+          if (!th) throw new Error("THREE chưa sẵn sàng");
+          built = true;
+          build(th);
+          if (!tickStarted) {
+            tickStarted = true;
             startTick(th);
           }
-        }, 400);
-        setTimeout(function () {
-          clearInterval(iv);
-        }, 60000);
+        });
 
         function build(th) {
           var S = three.scene;
@@ -26560,7 +27101,7 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
             TERRA = 0xa9704b,
             CREAM2 = 0xe9d9be;
           // Interiors must remain visible in third-person camera; roofs fade when player enters.
-          window.__lmRoomRoofs = [];
+          window.__lmRoomRoofs = window.__lmRoomRoofs || [];
           function roomRoof(mesh, minX, maxX, minZ, maxZ) {
             mesh.material = mesh.material.clone();
             mesh.material.transparent = true;
@@ -27722,30 +28263,16 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
       (function GameZoneV2() {
         "use strict";
         var built = false;
-        var startedAt = Date.now();
-        var iv = setInterval(function () {
-          if (built) return;
-          var ready =
-            typeof THREE !== "undefined" &&
-            typeof three !== "undefined" &&
-            three &&
-            three.scene &&
-            three.scene.children.length > 12;
-          /* Chờ ComplexB dựng xong để window.__lmRoomRoofs đã được khởi tạo
-             (mảng đó được gán trong build() của ComplexB); quá 20 giây thì dựng luôn. */
-          if (ready && (three.bcomplex || Date.now() - startedAt > 20000)) {
-            built = true;
-            clearInterval(iv);
-            try {
-              buildZone();
-            } catch (e) {
-              if (window.console) console.warn("GameZoneV2 build", e);
-            }
-          }
-        }, 400);
-        setTimeout(function () {
-          clearInterval(iv);
-        }, 90000);
+        /* LMZONES: producer của KHU GAME — chỉ dựng khi người chơi dịch
+           chuyển tới khu game; hủy thật khi rời, dựng lại khi quay lại.
+           __lmRoomRoofs do LMZones khởi tạo sẵn nên không cần chờ
+           ComplexB nữa. */
+        window.__lmRegisterProducer("gamezone", ["game"], function () {
+          if (typeof THREE === "undefined" || typeof three === "undefined" || !three || !three.scene)
+            throw new Error("scene chưa sẵn sàng");
+          built = true;
+          buildZone();
+        });
 
         function buildZone() {
           var th = THREE;
@@ -28094,7 +28621,11 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
           /* Vòng hoạt ảnh riêng của khu: quầng sáng nhấp nháy + đu quay quay chậm
              (mã khung/animate của bản độc lập không ghép — dùng vòng lặp này). */
           var zt0 = performance.now();
+          var myGen = (window.__lmGZGen = (window.__lmGZGen || 0) + 1);
           (function zoneAnim() {
+            /* LMZONES: vòng lặp của lượt dựng cũ tự tắt khi khu đã bị
+               hủy/dựng lại (tránh vòng lặp tích lũy chạy trên đồ đã hủy) */
+            if (myGen !== window.__lmGZGen) return;
             requestAnimationFrame(zoneAnim);
             var t = (performance.now() - zt0) / 1000;
             for (var i = 0; i < pulses.length; i++) {
@@ -28221,34 +28752,16 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
         if (window.__lmLuxePathsAndHouseV4Loaded) return;
         window.__lmLuxePathsAndHouseV4Loaded = true;
 
-        var built = false;
-        function waitAndBuild() {
-          if (built) return;
-          if (
-            typeof THREE === "undefined" ||
-            typeof three === "undefined" ||
-            !three ||
-            !three.scene
-          )
-            return;
-          if (!three.scene.children || three.scene.children.length < 18) return;
-          built = true;
-          try {
-            buildEnhancements();
-          } catch (e) {
-            if (window.console) console.warn("LuxePathsAndHouseV4", e);
-          }
-        }
-        var iv = setInterval(waitAndBuild, 450);
-        setTimeout(function () {
-          clearInterval(iv);
-          waitAndBuild();
-        }, 25000);
-        if (document.readyState === "complete") setTimeout(waitAndBuild, 1200);
-        else
-          window.addEventListener("load", function () {
-            setTimeout(waitAndBuild, 1200);
-          });
+        /* LMZONES: lớp cảnh quan này có phần ở MỌI khu — đăng ký làm
+           producer dùng chung cho cả 6 khu. Mỗi lượt dựng khu, LMZones
+           chạy lại buildEnhancements() rồi phân phối từng vật vào đúng
+           khu theo vị trí (phần của khu khác được hủy ngay trong lượt
+           phân phối khi khu đó chưa dựng). */
+        window.__lmRegisterProducer("luxe", ["house", "garden", "west", "east", "park", "game"], function () {
+          if (typeof THREE === "undefined" || typeof three === "undefined" || !three || !three.scene)
+            throw new Error("scene chưa sẵn sàng");
+          buildEnhancements();
+        });
 
         function buildEnhancements() {
           var th = THREE,
@@ -29052,6 +29565,8 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
   var lastFwAt = 0;
   var FW_POS = { x: CX + 2.97, z: CZ + 2.97 }; // hộp pháo ở đỉnh bể, góc 45°, r 4.2
   function spawnFireworks(x, z) {
+    /* LMZONES: pháo hoa thuộc khu tây — khu chưa dựng thì no-op an toàn */
+    if (window.LMZones && window.LMZones.current !== "west") return;
     if (typeof THREE === "undefined" || !three || !three.scene) return;
     var ecoN = window.__lmEco ? 46 : 72;
     var cols = [[1, 0.35, 0.55], [0.3, 0.9, 1], [1, 0.8, 0.3], [0.65, 0.5, 1], [0.45, 1, 0.6]];
@@ -29297,16 +29812,17 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
   }
   requestAnimationFrame(tick);
 
-  /* ---------- Dựng hình: đường + khách sạn + spa + VIP đỉnh bể + đèn sàn ---------- */
+  /* ---------- Dựng hình: đường + khách sạn + spa + VIP đỉnh bể + đèn sàn ----------
+     LMZONES: producer của KHU TÂY — chỉ dựng khi người chơi dịch chuyển
+     tới khu tây (lõi bar lục giác do producer "main" dựng kèm), hủy thật
+     khi rời khu và dựng lại khi quay lại. */
   var built = false;
-  var iv = setInterval(function () {
-    if (built) return;
-    if (typeof THREE === "undefined" || typeof three === "undefined" || !three || !three.scene) return;
+  window.__lmRegisterProducer("dotb", ["west"], function () {
+    if (typeof THREE === "undefined" || typeof three === "undefined" || !three || !three.scene)
+      throw new Error("scene chưa sẵn sàng");
     built = true;
-    clearInterval(iv);
-    try { buildWorld(); } catch (e) { if (window.console) console.warn("DotB build", e); }
-  }, 400);
-  setTimeout(function () { clearInterval(iv); }, 60000);
+    buildWorld();
+  });
 
   function buildWorld() {
     var th = THREE, S = three.scene;
@@ -29344,6 +29860,7 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
       m.material = m.material.clone();
       m.material.transparent = true;
       var ensure = function () {
+        if (m.userData && m.userData.__lmDead) return; /* LMZONES: mái đã hủy cùng khu — không đăng ký lại */
         if (!Array.isArray(window.__lmRoomRoofs)) return;
         for (var i = 0; i < window.__lmRoomRoofs.length; i++) if (window.__lmRoomRoofs[i].mesh === m) return;
         window.__lmRoomRoofs.push({ mesh: m, minX: minX, maxX: maxX, minZ: minZ, maxZ: maxZ });
@@ -29768,5 +30285,214 @@ buildGround(); ROOMS.forEach(buildRoom); buildAvenueDecor(); buildOuter(); build
   setTimeout(wrapActions, 1200);
 })();
     </script>
+    <script>
+      /* =====================================================================
+   LMZONES — LỚP NỐI (2026-11-20): bọc các hàm toàn cục của làng để áp
+   luật khu mà không sửa giao thức/hành vi gốc:
+   - vlTP: đích thuộc khu khác → LMZones.switchTo (màn chuyển cảnh →
+     dựng khu mới → hủy khu cũ → hạ cánh bằng chính vlTP gốc). Đang ngồi
+     ghế / chưa vào làng thì giữ nguyên hành vi cũ (vlTP gốc tự báo).
+   - inWorld2 / collide: kẹp thêm trong hình chữ nhật khu hiện tại —
+     đi bộ không sang được khu khác, va chạm cũ giữ nguyên.
+   - syncAvatars3D: chỉ giữ avatar (kèm bảng tên) của người cùng khu;
+     rà lại mỗi 1.5 s để đón người vừa dịch chuyển vào khu mình.
+   - nearestPlayer: chỉ xét người cùng khu.
+   - #vlNav: gom các điểm đến theo khu bằng tiêu đề nhóm (cả desktop
+     lẫn điện thoại — trên điện thoại nav đã nằm trong menu ☰).
+   ===================================================================== */
+      (function LMZonesInstall() {
+        "use strict";
+        var Z = window.LMZones;
+        if (!Z) return;
+
+        /* ---------- vlTP: chuyển khu khi đích thuộc khu khác ---------- */
+        if (typeof vlTP === "function") {
+          var vlTP0 = vlTP;
+          vlTP = function (x, z, y, rotY, yaw) {
+            var zid = Z.zoneOf(x, z);
+            if (zid === Z.current) {
+              vlTP0(x, z, y, rotY, yaw);
+              return;
+            }
+            /* Chưa vào làng / đang ngồi ghế: để vlTP gốc xử lý (báo như cũ),
+               TUYỆT ĐỐI không chuyển khu trong các trường hợp đó. */
+            if (
+              typeof RoomState === "undefined" ||
+              !RoomState.inRoom ||
+              (RoomState.me && RoomState.me.seat)
+            ) {
+              vlTP0(x, z, y, rotY, yaw);
+              return;
+            }
+            Z.switchTo(zid, function () {
+              vlTP0(x, z, y, rotY, yaw);
+            });
+          };
+        }
+
+        /* ---------- Kẹp di chuyển trong khu hiện tại ---------- */
+        if (typeof inWorld2 === "function") {
+          var inWorld0 = inWorld2;
+          inWorld2 = function (x, z) {
+            if (!inWorld0(x, z)) return false;
+            if (!Z.isBuilt(Z.current)) return true;
+            return Z.zoneOf(x, z) === Z.current;
+          };
+        }
+        if (typeof collide === "function") {
+          collide = function (p) {
+            var R = Z.RECTS[Z.current];
+            if (!R) return;
+            var minX = R.minX <= -172 ? -171.6 : R.minX + 0.01,
+              maxX = R.maxX >= 172 ? 171.6 : R.maxX - 0.01,
+              minZ = R.minZ <= -65 ? -64.6 : R.minZ + 0.01,
+              maxZ = R.maxZ >= 248 ? 247.6 : R.maxZ - 0.01;
+            p.x = Math.max(minX, Math.min(maxX, p.x));
+            p.z = Math.max(minZ, Math.min(maxZ, p.z));
+          };
+        }
+
+        /* ---------- Avatar chỉ trong cùng khu ---------- */
+        function memberZone(m) {
+          if (m.seat && typeof SEAT_POS !== "undefined" && SEAT_POS[m.seat])
+            return Z.zoneOf(SEAT_POS[m.seat].x, SEAT_POS[m.seat].z);
+          if (typeof m.x === "number") return Z.zoneOf(m.x, m.z);
+          return "house"; /* chưa có vị trí → coi như ở điểm xuất phát (nhà chính) */
+        }
+        if (typeof syncAvatars3D === "function") {
+          var sync0 = syncAvatars3D;
+          syncAvatars3D = function () {
+            sync0();
+            try {
+              if (typeof avatars3D === "undefined" || typeof three === "undefined" || !three) return;
+              var zid = Z.current;
+              avatars3D.forEach(function (rec, id) {
+                if (typeof RoomState !== "undefined" && RoomState.me && id === RoomState.me.id) return;
+                var m = RoomState.members.get(id);
+                if (!m) return;
+                if (memberZone(m) !== zid) {
+                  three.scene.remove(rec.group);
+                  avatars3D.delete(id);
+                }
+              });
+            } catch (e) {}
+          };
+          setInterval(function () {
+            if (typeof RoomState !== "undefined" && RoomState.inRoom) {
+              try {
+                syncAvatars3D();
+              } catch (e) {}
+            }
+          }, 1500);
+        }
+        if (typeof nearestPlayer === "function") {
+          nearestPlayer = function () {
+            var zid = Z.current,
+              best = null;
+            RoomState.members.forEach(function (m) {
+              if (m.id === RoomState.me.id) return;
+              if (memberZone(m) !== zid) return;
+              var mp = memberPos(m);
+              var d = Math.hypot(mp.x - myPos.x, mp.z - myPos.z);
+              if (d < 2.4 && (!best || d < best.dist)) best = { id: m.id, name: m.name, dist: d };
+            });
+            return best;
+          };
+        }
+
+        /* ---------- Gom nhóm điểm đến theo khu trong #vlNav ---------- */
+        var LABEL_ZONE = [
+          ["🏠 Nhà", "house"],
+          ["🔥 Lửa trại", "garden"],
+          ["🏊 Hồ bơi", "garden"],
+          ["🛝 Cầu tụt", "garden"],
+          ["🍸 Khu bar", "west"],
+          ["🏨 Khách sạn", "west"],
+          ["💆 Spa", "west"],
+          ["🌆 Phố giải trí", "east"],
+          ["🎤 Karaoke", "east"],
+          ["🏢 Phòng họp", "east"],
+          ["🎨 Phòng tranh", "east"],
+          ["☕ Cà phê", "east"],
+          ["🎡 Công viên", "park"],
+          ["🎡 Vòng quay lớn", "park"],
+          ["⛲ Đài phun nước", "park"],
+          ["🎮 Khu game", "game"],
+        ];
+        function zoneOfButton(b) {
+          var t = (b.textContent || "").trim();
+          for (var i = 0; i < LABEL_ZONE.length; i++)
+            if (t.indexOf(LABEL_ZONE[i][0]) === 0) return LABEL_ZONE[i][1];
+          return null;
+        }
+        var navStyleDone = false;
+        function groupNav() {
+          var nav = document.getElementById("vlNav");
+          if (!nav) return;
+          if (!navStyleDone) {
+            navStyleDone = true;
+            var st = document.createElement("style");
+            st.textContent =
+              "#vlNav .lmz-nav-head{flex:1 0 100%;font:800 11px 'Be Vietnam Pro',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffb36b;padding:6px 4px 0;pointer-events:none}" +
+              "#vlNav .lmz-nav-head:first-child{padding-top:0}";
+            document.head.appendChild(st);
+          }
+          var btns = Array.prototype.slice.call(nav.querySelectorAll("button"));
+          if (!btns.length) return;
+          var byZone = {};
+          btns.forEach(function (b) {
+            var zid = zoneOfButton(b);
+            if (zid) (byZone[zid] = byZone[zid] || []).push(b);
+            if (!b.dataset.lmzClose) {
+              b.dataset.lmzClose = "1";
+              b.addEventListener("click", function () {
+                if (typeof closeSysMenu === "function") closeSysMenu();
+              });
+            }
+          });
+          var zones = Object.keys(byZone);
+          if (!zones.length) return;
+          // Đã gom đúng thứ tự rồi thì thôi (tránh xáo trộn lặp lại)
+          var heads = nav.querySelectorAll(".lmz-nav-head");
+          if (heads.length === zones.length && nav.dataset.lmzGrouped === zones.join(",")) return;
+          heads.forEach(function (h) {
+            h.remove();
+          });
+          Z.ORDER.forEach(function (zid) {
+            var list = byZone[zid];
+            if (!list) return;
+            var head = document.createElement("div");
+            head.className = "lmz-nav-head";
+            head.textContent = Z.NAMES[zid];
+            nav.appendChild(head);
+            list.forEach(function (b) {
+              nav.appendChild(b);
+            });
+          });
+          nav.dataset.lmzGrouped = zones.join(",");
+        }
+        groupNav();
+        setTimeout(groupNav, 800);
+        setTimeout(groupNav, 2000);
+        setTimeout(groupNav, 4500);
+        if (window.MutationObserver) {
+          var mo = new MutationObserver(function () {
+            groupNav();
+          });
+          var watchNav = setInterval(function () {
+            var nav = document.getElementById("vlNav");
+            if (nav) {
+              mo.observe(nav, { childList: true });
+              groupNav();
+              clearInterval(watchNav);
+            }
+          }, 500);
+          setTimeout(function () {
+            clearInterval(watchNav);
+          }, 20000);
+        }
+      })();
+    </script>
   </body>
 </html>
+
