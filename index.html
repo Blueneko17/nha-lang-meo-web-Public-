@@ -7780,232 +7780,131 @@ window.LMZones = (function () {
          dưới), mặt + lông mày + họa tiết trán vẽ thẳng lên cầu đầu, onesie chỉ
          phủ cầu thân, chân núm dẹt màu quần, tai to. */
       function avatarSVG(a) {
-        const ink = "#3a2a20";
-        const earsK = a.ears || "meo";
-        const tailK = a.tail || "cong";
-        const neckK =
-          a.neck || (a.accessory === "chuong" || a.accessory === "taichuong" ? "chuong" : "khong");
-        const HC = a.hairColor;
-        const HCD = (() => {
-          const n = parseInt(String(HC).replace("#", ""), 16);
-          const f = (v) => Math.round(v * 0.68);
-          return "rgb(" + f((n >> 16) & 255) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")";
-        })();
-        /* ---- Tai (sau cầu đầu): to theo tỉ lệ Chiikawa ---- */
-        let catEars = "";
-        if (earsK === "meo") {
-          catEars =
-            '<path d="M24 30 L16 2 L46 14 Z" fill="' + HC + '"/><path d="M76 30 L84 2 L54 14 Z" fill="' + HC + '"/>' +
-            '<path d="M26 22 L21.5 9 L38 15.5 Z" fill="#e77fb0"/><path d="M74 22 L78.5 9 L62 15.5 Z" fill="#e77fb0"/>';
-        } else if (earsK === "cup") {
-          catEars =
-            '<path d="M20 26 Q2 30 7 48 Q19 41 24 31 Z" fill="' + HC + '"/><path d="M80 26 Q98 30 93 48 Q81 41 76 31 Z" fill="' + HC + '"/>';
-        } else if (earsK === "tho") {
-          catEars =
-            '<ellipse cx="41" cy="13" rx="6.5" ry="19" transform="rotate(-5 41 13)" fill="' + a.skin + '"/><ellipse cx="59" cy="13" rx="6.5" ry="19" transform="rotate(5 59 13)" fill="' + a.skin + '"/>' +
-            '<ellipse cx="41" cy="15" rx="3" ry="12" transform="rotate(-5 41 15)" fill="#e77fb0"/><ellipse cx="59" cy="15" rx="3" ry="12" transform="rotate(5 59 15)" fill="#e77fb0"/>';
-        } else if (earsK === "gau") {
-          catEars =
-            '<circle cx="36.5" cy="17" r="5.5" fill="' + a.skin + '"/><circle cx="63.5" cy="17" r="5.5" fill="' + a.skin + '"/>' +
-            '<circle cx="36.5" cy="17" r="2.8" fill="#e77fb0"/><circle cx="63.5" cy="17" r="2.8" fill="#e77fb0"/>';
-        } else if (earsK === "cao") {
-          catEars =
-            '<path d="M23 30 L15 0 L45 12 Z" fill="' + HC + '"/><path d="M77 30 L85 0 L55 12 Z" fill="' + HC + '"/>' +
-            '<path d="M20.5 8 L18.5 2 L27 5.5 Z" fill="#fdf6e3"/><path d="M79.5 8 L81.5 2 L73 5.5 Z" fill="#fdf6e3"/>' +
-            '<path d="M25.5 21 L23.5 8 L37 14 Z" fill="#e77fb0"/><path d="M74.5 21 L76.5 8 L63 14 Z" fill="#e77fb0"/>';
-        }
-        /* ---- Đuôi: cục bông tròn sau cầu thân ---- */
-        let tailS = "";
-        if (tailK === "bong")
-          tailS = '<circle cx="76" cy="90" r="7.5" fill="' + a.skin + '"/><circle cx="72" cy="83" r="5" fill="' + a.skin + '"/>';
-        else if (tailK === "tho")
-          tailS = '<circle cx="76" cy="92" r="6.5" fill="#fdf6e3" stroke="#e3d3b8" stroke-width="1.5"/>';
-        else if (tailK === "cong") tailS = '<circle cx="76" cy="92" r="5.5" fill="' + a.skin + '"/>';
-        else if (tailK === "dai")
-          tailS = '<path d="M72 96 Q84 92 81 74" stroke="' + a.skin + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
-        /* ---- Đồ sau lưng ---- */
-        let baloS = "";
-        if (a.extra === "balo")
-          baloS =
-            '<rect x="18" y="62" width="64" height="40" rx="11" fill="#5f7a5e"/><path d="M80 76 L89 82 L80 88 Z" fill="#f07f13"/>';
-        else if (a.extra === "balogau")
-          baloS =
-            '<rect x="18" y="62" width="64" height="40" rx="12" fill="#9a6a44"/><circle cx="24" cy="64" r="6" fill="#9a6a44"/><circle cx="76" cy="64" r="6" fill="#9a6a44"/><ellipse cx="81" cy="82" rx="3.6" ry="5" fill="#d9b98c"/>';
-        else if (a.extra === "canh")
-          baloS =
-            '<path d="M21 64 Q3 52 9 72 Q1 76 13 84 Q7 92 21 90 Z" fill="#fdfdf8" stroke="#d9d4c5" stroke-width="1.5"/><path d="M79 64 Q97 52 91 72 Q99 76 87 84 Q93 92 79 90 Z" fill="#fdfdf8" stroke="#d9d4c5" stroke-width="1.5"/>';
-        else if (a.extra === "aochoang")
-          baloS = '<path d="M22 62 Q50 52 78 62 L84 106 L16 106 Z" fill="#b03050"/>';
-        /* ---- Họa tiết trán trên cầu đầu (màu tóc) ---- */
-        let hairTop = "";
-        if (a.style === "dai")
-          hairTop =
-            '<path d="M16 44 A37 26 0 0 1 84 44 Q67 33 50 40 Q33 33 16 44 Z" fill="' + HCD + '"/>' +
-            '<path d="M50 12 A37 26 0 0 1 84 44 Q67 33 50 40 Z" fill="' + HC + '"/>';
-        else if (a.style === "bui")
-          hairTop = '<circle cx="50" cy="13" r="5.5" fill="' + HC + '"/><path d="M46.5 15.5 A4 4 0 0 1 53 12" stroke="' + HCD + '" stroke-width="1.4" fill="none"/>';
-        else if (a.style === "bui2")
-          hairTop = '<circle cx="30" cy="17" r="5" fill="' + HC + '"/><circle cx="70" cy="17" r="5" fill="' + HC + '"/>';
-        else if (a.style === "dung")
-          hairTop = '<path d="M17 40 Q20 14 50 12 Q80 14 83 40 L74 30 L66 39 L58 28 L50 38 L42 28 L34 39 L26 30 Z" fill="' + HC + '"/>';
-        else if (a.style === "xoan")
-          hairTop = '<path d="M16 42 A37 26 0 0 1 84 42 Q78 34 71 40 Q64 32 57 39 Q50 31 43 39 Q36 32 29 40 Q22 34 16 42 Z" fill="' + HC + '"/>';
-        else if (a.style === "mohawk") hairTop = '<rect x="46.8" y="10" width="6.4" height="16" rx="3" fill="' + HC + '"/>';
-        else if (a.style === "chemat")
-          hairTop = '<path d="M16 46 A37 26 0 0 1 84 36 Q58 26 36 32 Q22 37 16 46 Z" fill="' + HC + '"/>';
-        else if (a.style === "hoi")
-          hairTop = '<path d="M50 13 Q58 5 53 12" stroke="' + HC + '" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="50" cy="30" r="1.8" fill="' + HC + '"/>';
-        /* ---- Mặt Chiikawa: mắt hạt nhỏ cách ~35% bề rộng đầu + LÔNG MÀY xếch
-           + miệng ω tí hon, cụm gọn ở trung-tâm-thấp của cầu đầu ---- */
-        let face = "";
-        if (a.face === "cuoi") {
-          face =
-            '<path d="M31.5 46 Q37.5 39 43.5 46" stroke="' + ink + '" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-            '<path d="M56.5 46 Q62.5 39 68.5 46" stroke="' + ink + '" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-            '<path d="M30.5 35.5 L44 33" stroke="' + ink + '" stroke-width="3" stroke-linecap="round"/>' +
-            '<path d="M69.5 35.5 L56 33" stroke="' + ink + '" stroke-width="3" stroke-linecap="round"/>' +
-            '<path d="M43.5 55 Q46.8 58.5 50 55 Q53.2 58.5 56.5 55" stroke="' + ink + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>' +
-            '<path d="M47 59.5 Q50 61 53 59.5" stroke="' + ink + '" stroke-width="1.3" opacity="0.55" fill="none" stroke-linecap="round"/>';
-        } else if (a.face === "vui") {
-          face =
-            '<ellipse cx="37.5" cy="45" rx="5.5" ry="7" fill="' + ink + '"/><ellipse cx="62.5" cy="45" rx="5.5" ry="7" fill="' + ink + '"/>' +
-            '<ellipse cx="39.5" cy="42.5" rx="2.4" ry="3.2" fill="#fff"/><ellipse cx="64.5" cy="42.5" rx="2.4" ry="3.2" fill="#fff"/>' +
-            '<path d="M30.5 34.5 L44 32.5" stroke="' + ink + '" stroke-width="3" stroke-linecap="round"/>' +
-            '<path d="M69.5 34.5 L56 32.5" stroke="' + ink + '" stroke-width="3" stroke-linecap="round"/>' +
-            '<path d="M43.5 54 Q50 63 56.5 54 Q50 57.5 43.5 54 Z" fill="#7a3b2e"/><ellipse cx="50" cy="58.5" rx="3.6" ry="2" fill="#f2a0b5"/>';
-        } else if (a.face === "ngau") {
-          face =
-            '<circle cx="37.5" cy="45.5" r="2.8" fill="' + ink + '"/><circle cx="62.5" cy="45.5" r="2.8" fill="' + ink + '"/>' +
-            '<path d="M31 35.5 L44 34.8" stroke="' + ink + '" stroke-width="2.7" stroke-linecap="round"/>' +
-            '<path d="M69 35.5 L56 34.8" stroke="' + ink + '" stroke-width="2.7" stroke-linecap="round"/>' +
-            '<path d="M45.5 56.5 L54.5 56.5" stroke="' + ink + '" stroke-width="2.2" stroke-linecap="round"/>';
-        } else {
-          face =
-            '<ellipse cx="37.5" cy="44.5" rx="6" ry="7.2" fill="' + ink + '"/><ellipse cx="62.5" cy="44.5" rx="6" ry="7.2" fill="' + ink + '"/>' +
-            '<ellipse cx="39.6" cy="42" rx="2.5" ry="3.3" fill="#fff"/><ellipse cx="64.6" cy="42" rx="2.5" ry="3.3" fill="#fff"/>' +
-            '<path d="M30.5 34 Q37.5 31.8 44.5 34" stroke="' + ink + '" stroke-width="2.7" fill="none" stroke-linecap="round"/>' +
-            '<path d="M55.5 34 Q62.5 31.8 69.5 34" stroke="' + ink + '" stroke-width="2.7" fill="none" stroke-linecap="round"/>' +
-            '<circle cx="50" cy="57" r="3.4" fill="none" stroke="' + ink + '" stroke-width="2.4"/>';
-        }
-        if (a.blush !== false)
-          face +=
-            '<ellipse cx="28" cy="51" rx="7" ry="4.6" fill="#f194b5" opacity="0.8"/><ellipse cx="72" cy="51" rx="7" ry="4.6" fill="#f194b5" opacity="0.8"/>' +
-            '<path d="M24.5 48.5 L23 53.5 M28.5 48.2 L27 53.8 M32.5 48.5 L31 53.5 M75.5 48.5 L77 53.5 M71.5 48.2 L73 53.8 M67.5 48.5 L69 53.5" stroke="#cf4f78" stroke-width="1.6" stroke-linecap="round"/>';
-        if (a.freckles)
-          face +=
-            '<circle cx="31" cy="47" r="1.3" fill="#b57748"/><circle cx="35.5" cy="50" r="1.3" fill="#b57748"/><circle cx="29.5" cy="53.5" r="1.3" fill="#b57748"/><circle cx="69" cy="47" r="1.3" fill="#b57748"/><circle cx="64.5" cy="50" r="1.3" fill="#b57748"/><circle cx="70.5" cy="53.5" r="1.3" fill="#b57748"/>';
-        /* ---- Mũ tí hon trên đỉnh cầu đầu ---- */
-        let hatS = "";
-        if (a.hat === "len")
-          hatS =
-            '<path d="M26 30 Q50 4 74 30 L74 33 L26 33 Z" fill="#c22f2f"/><rect x="23" y="28" width="54" height="6" rx="3" fill="#a92323"/><circle cx="50" cy="5" r="4.2" fill="#fdf6e3"/><path d="M33 16 L31 7 L40 12 Z" fill="#c22f2f"/><path d="M67 16 L69 7 L60 12 Z" fill="#c22f2f"/>';
-        else if (a.hat === "rom")
-          hatS =
-            '<ellipse cx="50" cy="26" rx="26" ry="5" fill="#e8c877"/><path d="M37 26 Q50 11 63 26 Z" fill="#e8c877"/><path d="M37 23.5 Q50 18.5 63 23.5" stroke="#c9a24d" stroke-width="2" fill="none"/>';
-        else if (a.hat === "bongchay")
-          hatS =
-            '<path d="M27 30 Q50 8 73 30 Z" fill="#2470c7"/><rect x="22" y="28" width="56" height="5" rx="2.5" fill="#1b56a0"/>';
-        else if (a.hat === "vuongmien")
-          hatS =
-            '<path d="M36 25 L36 11 L43 19 L50 9 L57 19 L64 11 L64 25 Z" fill="#f2b705" stroke="#b97f06" stroke-width="1.2"/>';
-        else if (a.hat === "bongchaynguoc")
-          hatS =
-            '<path d="M27 30 Q50 8 73 30 Z" fill="#e0393e"/><rect x="23" y="26" width="10" height="4.5" rx="2.2" fill="#b02a30"/><circle cx="50" cy="12" r="2.4" fill="#b02a30"/>';
-        else if (a.hat === "sinhnhat")
-          hatS =
-            '<path d="M42 28 L50 2 L58 28 Z" fill="#e77fb0"/><path d="M45.5 15 L54.5 15 L52.5 20 L47.5 20 Z" fill="#fde9b8"/><circle cx="50" cy="3" r="3.2" fill="#f2b705"/><rect x="40" y="26" width="20" height="4" rx="2" fill="#c95d8f"/>';
-        else if (a.hat === "daubep")
-          hatS =
-            '<rect x="35" y="22" width="30" height="7" rx="3" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><circle cx="42" cy="18" r="7" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><circle cx="50" cy="14.5" r="8" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><circle cx="58" cy="18" r="7" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/>';
-        else if (a.hat === "vonghoa")
-          hatS =
-            '<circle cx="34" cy="23" r="3.2" fill="#e77fb0"/><circle cx="42" cy="18.5" r="3.2" fill="#f2b705"/><circle cx="50" cy="17" r="3.2" fill="#fdfdf8"/><circle cx="58" cy="18.5" r="3.2" fill="#e77fb0"/><circle cx="66" cy="23" r="3.2" fill="#f2b705"/><circle cx="34" cy="23" r="1.2" fill="#fdf6e3"/><circle cx="42" cy="18.5" r="1.2" fill="#e0393e"/><circle cx="50" cy="17" r="1.2" fill="#f2b705"/><circle cx="58" cy="18.5" r="1.2" fill="#fdf6e3"/><circle cx="66" cy="23" r="1.2" fill="#e0393e"/>';
-        /* ---- Kính / phụ kiện mặt ---- */
-        let glassS = "";
-        if (a.glasses === "tron")
-          glassS =
-            '<circle cx="38" cy="46" r="7" fill="none" stroke="#333" stroke-width="1.7"/><circle cx="62" cy="46" r="7" fill="none" stroke="#333" stroke-width="1.7"/><path d="M45 46 L55 46" stroke="#333" stroke-width="1.7"/>';
-        else if (a.glasses === "ram")
-          glassS = '<rect x="28.5" y="40.5" width="43" height="10" rx="4.5" fill="#20242c"/>';
-        else if (a.glasses === "traitim")
-          glassS =
-            '<path d="M38 52.5 C33.5 47.3 30.4 44.7 32.1 41.5 C33.5 38.8 37.2 39.4 38 42.1 C38.8 39.4 42.5 38.8 43.9 41.5 C45.6 44.7 42.5 47.3 38 52.5 Z" fill="#e0393e"/><path d="M62 52.5 C57.5 47.3 54.4 44.7 56.1 41.5 C57.5 38.8 61.2 39.4 62 42.1 C62.8 39.4 66.5 38.8 67.9 41.5 C69.6 44.7 66.5 47.3 62 52.5 Z" fill="#e0393e"/>';
-        else if (a.glasses === "ngoisao")
-          glassS =
-            '<polygon points="38,38.5 39.8,44 45.2,44.8 41,48.1 42.5,53.3 38,50.4 33.5,53.3 35,48.1 30.8,44.8 36.2,44" fill="#f2b705" stroke="#b97f06" stroke-width="0.9"/><polygon points="62,38.5 63.8,44 69.2,44.8 65,48.1 66.5,53.3 62,50.4 57.5,53.3 59,48.1 54.8,44.8 60.2,44" fill="#f2b705" stroke="#b97f06" stroke-width="0.9"/>';
-        else if (a.glasses === "bitmat")
-          glassS =
-            '<path d="M17 36 L83 49" stroke="#20242c" stroke-width="2.4"/><circle cx="62" cy="47" r="7.2" fill="#20242c"/><path d="M59.6 44.6 L64.4 49.4 M64.4 44.6 L59.6 49.4" stroke="#fdf6e3" stroke-width="1.4" stroke-linecap="round"/>';
-        else if (a.glasses === "noma")
-          glassS =
-            '<path d="M74 52 L67 47.5 L67 56.5 Z" fill="#e77fb0"/><path d="M74 52 L81 47.5 L81 56.5 Z" fill="#e77fb0"/><circle cx="74" cy="52" r="2.3" fill="#c95d8f"/>';
-        else if (a.glasses === "matnanua")
-          glassS =
-            '<path d="M17 34 Q50 24 83 34 L83 42 Q50 32 17 42 Z" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><path d="M29 26 L26.5 13 L39 19.5 Z" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><path d="M71 26 L73.5 13 L61 19.5 Z" fill="#fdfdf8" stroke="#ddd6c4" stroke-width="1"/><path d="M47.5 51.5 L52.5 51.5 L50 54.5 Z" fill="#e77fb0"/>';
-        const maskS =
-          a.extra === "matna"
-            ? '<ellipse cx="50" cy="44" rx="25" ry="24" fill="#fdfdf8"/>' +
-              '<path d="M33 26 L30 10 L44 18 Z" fill="#fdfdf8"/><path d="M67 26 L70 10 L56 18 Z" fill="#fdfdf8"/>' +
-              '<circle cx="41" cy="43" r="2.2" fill="' + ink + '"/><circle cx="59" cy="43" r="2.2" fill="' + ink + '"/>' +
-              '<path d="M47 50 L53 50 L50 54 Z" fill="#e77fb0"/>' +
-              '<path d="M43.5 57.5 Q46.8 60.5 50 57.5 Q53.2 60.5 56.5 57.5" stroke="' + ink + '" stroke-width="1.5" fill="none" stroke-linecap="round"/>' +
-              '<path d="M28 48 L37 50 M29 54 L37 53 M72 48 L63 50 M71 54 L63 53" stroke="' + ink + '" stroke-width="1.1" stroke-linecap="round"/>'
-            : "";
-        /* ---- Cổ: áp quanh khớp nối hai cầu ---- */
-        let neckS = "";
-        if (neckK === "chuong")
-          neckS =
-            '<rect x="38" y="66" width="24" height="4.6" rx="2.3" fill="#c22f2f"/><circle cx="50" cy="74" r="4.6" fill="#f2b705" stroke="#b97f06" stroke-width="1"/><path d="M47 74 L53 74" stroke="#b97f06" stroke-width="0.9"/>';
-        else if (neckK === "chuongnho")
-          neckS =
-            '<rect x="39.5" y="66" width="21" height="3.8" rx="1.9" fill="#2470c7"/><circle cx="50" cy="72" r="2.9" fill="#f2b705" stroke="#b97f06" stroke-width="0.8"/>';
-        else if (neckK === "khan")
-          neckS =
-            '<rect x="36" y="64" width="28" height="7.5" rx="3.7" fill="#c22f2f"/><rect x="55" y="68" width="7.5" height="16" rx="3" fill="#a92323"/>';
-        else if (neckK === "noco")
-          neckS =
-            '<path d="M50 69.5 L40.5 64.5 L40.5 74.5 Z" fill="#e0393e"/><path d="M50 69.5 L59.5 64.5 L59.5 74.5 Z" fill="#e0393e"/><circle cx="50" cy="69.5" r="2.9" fill="#b02a30"/>';
-        else if (neckK === "vongca")
-          neckS =
-            '<path d="M38 66 Q50 75 62 66" stroke="#b97f06" stroke-width="1.8" fill="none"/><path d="M45 73 L55 73 L50 78.5 Z" fill="#f07f13"/><circle cx="52.6" cy="74.4" r="0.9" fill="#3a2a20"/>';
-        else if (neckK === "cavat")
-          neckS = '<path d="M46.8 66 L53.2 66 L52.2 70 L53.8 81 L50 86 L46.2 81 L47.8 70 Z" fill="#5b4a9e"/>';
-        /* ---- Đồ cầm tay phải ---- */
-        let heldS = "";
-        if (a.extra === "camca")
-          heldS =
-            '<path d="M84 76 L84 94" stroke="#8a5a2b" stroke-width="2.4" stroke-linecap="round"/><path d="M79.5 94 L79.5 104 M88.5 94 L88.5 104 M79.5 94 L88.5 94" stroke="#b9c0c7" stroke-width="2.1" fill="none" stroke-linecap="round"/>';
-        else if (a.extra === "camkem")
-          heldS =
-            '<path d="M78.5 92 L89.5 92 L84 104 Z" fill="#d9a066"/><circle cx="84" cy="88" r="6.2" fill="#e77fb0"/><circle cx="84" cy="80.5" r="1.8" fill="#e0393e"/>';
-        else if (a.extra === "camo")
-          heldS =
-            '<path d="M62 32 Q83 12 98 28 Q90.5 24 86 29 Q81.5 23.5 76.5 28.5 Q69.5 23.5 62 32 Z" fill="#e0393e"/><path d="M83 28 L83 88 Q83 95 77.5 93" stroke="#8a5a2b" stroke-width="2.3" fill="none" stroke-linecap="round"/>';
-        else if (a.extra === "bongbay")
-          heldS =
-            '<path d="M83 94 Q78 68 85 46" stroke="#999" stroke-width="1.2" fill="none"/><ellipse cx="86" cy="32" rx="10" ry="12" fill="#e0393e"/><path d="M83 44 L89 44 L86 48 Z" fill="#b02a30"/><ellipse cx="82.5" cy="26" rx="3" ry="4.3" fill="#ff8f96"/>';
-        return (
-          '<svg viewBox="0 0 100 118" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nhân vật">' +
-          tailS +
-          baloS +
-          catEars +
-          '<ellipse cx="50" cy="84" rx="20" ry="15" fill="' + a.shirt + '"/>' +
-          '<ellipse cx="29" cy="84" rx="3.6" ry="9" transform="rotate(6 29 84)" fill="' + a.skin + '"/><ellipse cx="71" cy="84" rx="3.6" ry="9" transform="rotate(-6 71 84)" fill="' + a.skin + '"/>' +
-          '<ellipse cx="41" cy="101" rx="6" ry="3" fill="' + (a.pants || "#3a3f4a") + '"/><ellipse cx="59" cy="101" rx="6" ry="3" fill="' + (a.pants || "#3a3f4a") + '"/>' +
-          '<ellipse cx="50" cy="42" rx="37" ry="26" fill="' + a.skin + '"/>' +
-          hairTop +
-          face +
-          hatS +
-          glassS +
-          maskS +
-          neckS +
-          heldS +
-          (a.emote && EMOTE_GLYPH[a.emote]
-            ? '<text x="84" y="14" font-size="13" text-anchor="middle">' + EMOTE_GLYPH[a.emote] + "</text>"
-            : "") +
-          "</svg>"
-        );
-      }
+  const A = Object.assign({}, AVATAR_DEFAULTS, { skin: SKINS[0], shirt: SHIRTS[0], hairColor: HAIR_COLORS[0], face: "vui", style: "ngan" }, a || {});
+  const S = 100, CX = 120, GND = 262, OL = "#3b2a26", PI = Math.PI;
+  const f = v => +v.toFixed(1);
+  const X = x => f(CX + x * S), Y = y => f(GND - y * S);
+  const HX = xf => X(xf * 1.56), HY = yf => Y(0.38 + yf * 1.29); // he % cua dau
+  const st = ` stroke="${OL}" stroke-width="3" stroke-linejoin="round"`;
+  const el = (cx, cy, rx, ry, fill, ex) => `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="${fill}"${ex || ""}/>`;
+  const poly = (pts, fill, ex) => `<polygon points="${pts.map(p => f(p[0]) + "," + f(p[1])).join(" ")}" fill="${fill}"${ex || ""}/>`;
+  const rect = (x, y, w, h, r, fill, ex) => `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${f(r)}" fill="${fill}"${ex || ""}/>`;
+  const hc = A.hairColor, sk = A.skin, ink = "#2a1812", PINK = "#f7b6c8";
+  let back = "", mid = "", front = "", ears = "", hair = "", hat = "", gl = "", neck = "", held = "";
+
+  // tai (ve truoc dau)
+  [-1, 1].forEach(s => {
+    switch (A.ears) {
+      case "gau": ears += el(X(s * 0.45), Y(1.59), 10.5, 11.5, sk, st); break;
+      case "meo": ears += poly([[X(s * 0.374 - 0.195), Y(1.5)], [X(s * 0.374 + s * 0.08), Y(2.095)], [X(s * 0.374 + 0.195), Y(1.5)]], sk, st) + poly([[X(s * 0.374 - 0.1), Y(1.55)], [X(s * 0.374 + s * 0.07), Y(1.95)], [X(s * 0.374 + 0.1), Y(1.55)]], PINK); break;
+      case "tho": ears += el(X(s * 0.203), Y(1.96), 9, 45.8, sk, st + ` transform="rotate(${-s * 4} ${X(s * 0.203)} ${Y(1.96)})"`) + el(X(s * 0.203), Y(1.96), 4, 34, PINK); break;
+      case "cup": ears += el(X(s * 0.72), Y(1.35), 10, 16, sk, st + ` transform="rotate(${s * 17} ${X(s * 0.72)} ${Y(1.35)})"`); break;
+      case "cao": ears += poly([[X(s * 0.406 - 0.12), Y(1.5)], [X(s * 0.406 + s * 0.03), Y(1.84)], [X(s * 0.406 + 0.12), Y(1.5)]], sk, st); break;
+    }
+  });
+
+  // tay, chan, than
+  const arm = s => `<g transform="translate(${X(s * 0.49)} ${Y(0.58)}) rotate(${-s * 6.9})">${rect(-10, -15.5, 20, 56, 10, sk, st)}</g>`;
+  const leg = s => rect(X(s * 0.18) - 11.5, Y(0.34), 23, 34, 11.5, A.pants, st);
+  const bp = [[0.001, 0.14], [0.33, 0.14], [0.385, 0.155], [0.415, 0.185]];
+  for (let k = 0; k < 9; k++) { const y = 0.22 + k * 0.05; bp.push([0.445 - 0.085 * Math.pow((y - 0.4) / 0.32, 2), y]); }
+  bp.push([0.38, 0.69], [0.3, 0.75], [0.001, 0.77]);
+  const bodyPts = bp.map(q => [X(q[0]), Y(q[1])]).concat(bp.slice().reverse().map(q => [X(-q[0]), Y(q[1])]));
+  const body = poly(bodyPts, A.shirt, st);
+
+  // dau + toc/tran + mat
+  const hcx = X(0), hcy = Y(1.025);
+  const headEl = el(hcx, hcy, 78, 64.5, sk, st);
+  const clip = `<clipPath id="avh"><ellipse cx="${hcx}" cy="${hcy}" rx="78" ry="64.5"/></clipPath>`;
+  let cap = "";
+  if (A.style === "dai") {
+    cap = `<g clip-path="url(#avh)">${rect(hcx - 80, hcy - 70, 160, 70 + (HY(0.8) - hcy), 0, hc)}`;
+    [-0.34, -0.2, 0.2, 0.34].forEach(k => { cap += poly([[HX(k - 0.07), HY(0.8)], [HX(k + 0.07), HY(0.8)], [HX(k), HY(0.69)]], hc); });
+    cap += poly([[HX(-0.12), HY(0.8)], [HX(0.12), HY(0.8)], [HX(0), HY(0.66)]], "#ffffff", ' opacity="0.55"') + `</g>`;
+  } else if (A.style === "chemat") {
+    cap = `<g clip-path="url(#avh)">${rect(hcx - 80, hcy - 70, 160, 70 + (HY(0.82) - hcy), 0, hc)}` + poly([[HX(-0.5), HY(0.82)], [HX(0.45), HY(0.82)], [HX(0.4), HY(0.72)], [HX(0.12), HY(0.75)], [HX(-0.22), HY(0.68)], [HX(-0.5), HY(0.7)]], hc) + `</g>`;
+  }
+  switch (A.style) {
+    case "bui": hair += el(X(0), Y(1.72), 11, 11, hc, st); break;
+    case "dung": hair += poly([[X(-0.09), Y(1.66)], [X(0.02), Y(1.9)], [X(0.09), Y(1.66)]], hc, st); break;
+    case "bui2": [-1, 1].forEach(s => { hair += el(X(s * 0.3), Y(1.65), 9, 9, hc, st); }); break;
+    case "xoan": hair += el(X(0), Y(1.72), 13, 13, hc, st); break;
+    case "mohawk": hair += poly([[X(-0.12), Y(1.66)], [X(-0.06), Y(1.9)], [X(0), Y(1.72)], [X(0.06), Y(1.92)], [X(0.12), Y(1.66)]], hc, st); break;
+    case "hoi": hair += `<path d="M${X(0)} ${Y(1.66)} Q${X(0.03)} ${Y(1.9)} ${X(-0.06)} ${Y(1.9)} T${X(-0.12)} ${Y(1.84)}" fill="none" stroke="${hc}" stroke-width="4" stroke-linecap="round"/>`; break;
+  }
+  const fc = A.face, k = fc === "ngac" ? 1.25 : 1;
+  let face = "";
+  [-1, 1].forEach(s => {
+    const ex = HX(s * 0.164), ey = HY(0.54);
+    face += el(ex, ey, 7.8 * k, 11 * k, ink);
+    if (fc === "ngau") face += rect(ex - 9, ey - 13, 18, 13, 0, sk) + `<line x1="${f(ex - 8)}" y1="${f(ey)}" x2="${f(ex + 8)}" y2="${f(ey)}" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`;
+    else face += el(HX(s * 0.164 - s * 0.013), HY(0.54 + 0.031 * k), 2.6 * k, 3.6 * k, "#fff");
+    face += el(HX(s * 0.164 + s * 0.02), HY(0.495), 1.2, 1.7, "#fff");
+    face += el(HX(s * 0.153), HY(0.64 + (fc === "ngac" ? 0.035 : 0)), 8.6, 2.8, "#3a2418", ` transform="rotate(${s * (fc === "ngau" ? 3 : 10)} ${HX(s * 0.153)} ${HY(0.64)})"`);
+    if (A.blush) {
+      const bx = HX(s * 0.283), by = HY(0.39);
+      face += el(bx, by, 12.2, 7, "#ff9db4", ' opacity="0.85"');
+      for (let j = -1; j <= 1; j++) face += `<line x1="${f(bx + j * 5.5)}" y1="${f(by - 4)}" x2="${f(bx + j * 5.5)}" y2="${f(by + 4)}" stroke="#d96b8f" stroke-width="1.6" stroke-linecap="round"/>`;
+    }
+  });
+  if (A.freckles) [[-0.05, 0.45], [0, 0.47], [0.05, 0.45], [-0.025, 0.43], [0.025, 0.43]].forEach(q => { face += el(HX(q[0]), HY(q[1]), 1.6, 2, "#b5714f"); });
+  const mx = HX(0), my = HY(0.36);
+  if (fc === "cuoi") face += `<path d="M${f(mx - 6)} ${f(my - 1)} Q${f(mx)} ${f(my + 6)} ${f(mx + 6)} ${f(my - 1)}" fill="none" stroke="#5a2418" stroke-width="2.6" stroke-linecap="round"/>`;
+  else if (fc === "ngau") face += `<line x1="${f(mx - 7)}" y1="${f(my)}" x2="${f(mx + 7)}" y2="${f(my)}" stroke="#5a2418" stroke-width="2.6" stroke-linecap="round"/>`;
+  else if (fc === "ngac") face += el(mx, my, 4, 6, "#5a2418");
+  else face += `<clipPath id="avm"><ellipse cx="${mx}" cy="${my}" rx="9.8" ry="7.4"/></clipPath>` + el(mx, my, 9.8, 7.4, "#5a2418", ' stroke="#3a1a14" stroke-width="1.6"') + `<g clip-path="url(#avm)">${el(mx - 2.5, my + 6, 5.4, 3.7, "#f08aa0")}</g>`;
+
+  // mu
+  switch (A.hat) {
+    case "len": hat = `<path d="M${X(-0.46)} ${Y(1.48)} A46 30 0 0 1 ${X(0.46)} ${Y(1.48)} Z" fill="#e4572e"${st}/>` + el(X(0), Y(1.82), 7, 7, "#fff3e0", st); break;
+    case "rom": hat = el(X(0), Y(1.58), 48, 5, "#e8c872", st) + `<path d="M${X(-0.3)} ${Y(1.58)} A30 20 0 0 1 ${X(0.3)} ${Y(1.58)} Z" fill="#e8c872"${st}/>`; break;
+    case "bongchay": hat = `<path d="M${X(-0.45)} ${Y(1.48)} A45 27 0 0 1 ${X(0.45)} ${Y(1.48)} Z" fill="#2470c7"${st}/>` + el(X(0), Y(1.5), 28, 5, "#1b559a", st); break;
+    case "bongchaynguoc": hat = `<path d="M${X(-0.45)} ${Y(1.48)} A45 27 0 0 1 ${X(0.45)} ${Y(1.48)} Z" fill="#2470c7"${st}/>`; break;
+    case "vuongmien": hat = poly([[X(-0.2), Y(1.76)], [X(-0.2), Y(1.66)], [X(0.2), Y(1.66)], [X(0.2), Y(1.76)], [X(0.12), Y(1.84)], [X(0.06), Y(1.77)], [X(0), Y(1.86)], [X(-0.06), Y(1.77)], [X(-0.12), Y(1.84)]], "#f5c542", st); break;
+    case "sinhnhat": hat = poly([[X(-0.16), Y(1.66)], [X(0.16), Y(1.66)], [X(-0.04), Y(2.05)]], "#ff7eb6", st) + el(X(-0.04), Y(2.06), 5, 5, "#fff3a0"); break;
+    case "daubep": hat = rect(X(-0.3), Y(1.76), 60, 10, 3, "#fff", st) + el(X(0), Y(1.9), 36, 26, "#fff", st) + rect(X(-0.3) + 1, Y(1.76) + 1, 58, 8, 3, "#fff"); break;
+    case "vonghoa": hat = `<ellipse cx="${X(0)}" cy="${Y(1.6)}" rx="38" ry="12" fill="none" stroke="#5fa85a" stroke-width="4"/>` + [[0, 0.33], [-0.3, 0.2], [0.3, 0.2]].map(q => el(X(q[0]), Y(1.55) + 6, 6, 6, "#ff9fc0")).join(""); break;
+  }
+
+  // kinh / mat
+  const gyY = HY(0.54), gxo = 25.6;
+  switch (A.glasses) {
+    case "tron": gl = [-1, 1].map(s => `<circle cx="${f(CX + s * gxo)}" cy="${gyY}" r="10" fill="none" stroke="#222" stroke-width="2"/>`).join("") + `<line x1="${CX - 15}" y1="${gyY}" x2="${CX + 15}" y2="${gyY}" stroke="#222" stroke-width="2"/>`; break;
+    case "ram": gl = [-1, 1].map(s => el(CX + s * gxo, gyY, 13, 10, "#1a1a1a")).join("") + `<line x1="${CX - 13}" y1="${gyY}" x2="${CX + 13}" y2="${gyY}" stroke="#1a1a1a" stroke-width="2"/>`; break;
+    case "traitim": gl = [-1, 1].map(s => `<path d="M${f(CX + s * gxo)} ${gyY + 11} C${f(CX + s * gxo - 20)} ${gyY - 1} ${f(CX + s * gxo - 11)} ${gyY - 16} ${f(CX + s * gxo)} ${gyY - 6} C${f(CX + s * gxo + 11)} ${gyY - 16} ${f(CX + s * gxo + 20)} ${gyY - 1} ${f(CX + s * gxo)} ${gyY + 11}Z" fill="#ff5c8a"/>`).join(""); break;
+    case "ngoisao": gl = [-1, 1].map(s => poly(Array.from({ length: 10 }, (_, i) => { const r = i % 2 ? 6 : 14, an = -PI / 2 + i * PI / 5; return [CX + s * gxo + Math.cos(an) * r, gyY + Math.sin(an) * r]; }), "#ffd23f")).join(""); break;
+    case "bitmat": gl = el(CX + gxo, gyY, 14, 13, "#111") + `<line x1="${CX - 78}" y1="${gyY - 6}" x2="${CX + 78}" y2="${gyY + 4}" stroke="#111" stroke-width="2" clip-path="url(#avh)"/>`; break;
+    case "noma": gl = el(X(0.5), Y(0.98), 5, 5, "#ff7aa8") + el(X(0.5) - 7, Y(0.98), 6, 4, "#ff7aa8") + el(X(0.5) + 7, Y(0.98), 6, 4, "#ff7aa8"); break;
+    case "matnanua": gl = `<ellipse cx="${X(0)}" cy="${Y(1.4)}" rx="64" ry="7" fill="none" stroke="#ff7aa8" stroke-width="5" clip-path="url(#avh)"/>` + el(X(0), Y(1.4), 5, 5, "#ffe066"); break;
+  }
+
+  // co
+  const nr = (c, t) => `<ellipse cx="${X(0)}" cy="${Y(0.64)}" rx="42" ry="5" fill="none" stroke="${c}" stroke-width="${t}"/>`;
+  switch (A.neck) {
+    case "chuong": neck = nr("#d94f30", 3) + el(X(0), Y(0.58), 6, 6, "#f5c542", st); break;
+    case "khan": neck = nr("#e4572e", 7) + rect(X(0.18), Y(0.62), 7, 20, 2, "#e4572e"); break;
+    case "chuongnho": neck = nr("#333", 1.5) + el(X(0), Y(0.6), 4, 4, "#f5c542"); break;
+    case "noco": neck = el(X(0), Y(0.6), 4, 4, "#ff7aa8") + el(X(-0.07), Y(0.6), 7, 5, "#ff7aa8") + el(X(0.07), Y(0.6), 7, 5, "#ff7aa8"); break;
+    case "vongca": neck = nr("#8a6f4d", 1.5) + el(X(0), Y(0.54), 9, 4, "#9bb7c9") + poly([[X(0.09), Y(0.54)], [X(0.14), Y(0.58)], [X(0.14), Y(0.5)]], "#9bb7c9"); break;
+    case "cavat": neck = el(X(0), Y(0.63), 4, 4, "#c22b3a") + poly([[X(-0.03), Y(0.61)], [X(0.03), Y(0.61)], [X(0.04), Y(0.45)], [X(0), Y(0.42)], [X(-0.04), Y(0.45)]], "#c22b3a"); break;
+  }
+
+  // phu kien ngoai than
+  const hx = X(0.55), hy = Y(0.22);
+  switch (A.extra) {
+    case "canh": back = [-1, 1].map(s => el(X(s * 0.52), Y(0.62), 18, 30, "#fff", st + ` transform="rotate(${-s * 28} ${X(s * 0.52)} ${Y(0.62)})"`)).join(""); break;
+    case "aochoang": back = poly([[X(-0.4), Y(0.72)], [X(0.4), Y(0.72)], [X(0.52), Y(0.14)], [X(-0.52), Y(0.14)]], "#c2303a", st); break;
+    case "matna": gl += el(X(0.35), Y(1.5), 14, 12, "#fff", st) + poly([[X(0.21), Y(1.56)], [X(0.23), Y(1.7)], [X(0.31), Y(1.6)]], "#fff", st) + poly([[X(0.39), Y(1.6)], [X(0.47), Y(1.7)], [X(0.49), Y(1.56)]], "#fff", st); break;
+    case "camca": held = `<g transform="rotate(17 ${hx} ${hy})">` + rect(hx - 1.4, hy - 32, 2.8, 36, 1, "#d0d4da") + rect(hx - 5, hy - 32, 10, 2, 1, "#d0d4da") + rect(hx - 5, hy - 45, 2, 14, 1, "#d0d4da") + rect(hx + 3, hy - 45, 2, 14, 1, "#d0d4da") + `</g>`; break;
+    case "camkem": held = `<g transform="rotate(17 ${hx} ${hy})">` + poly([[hx - 6.5, hy - 14], [hx + 6.5, hy - 14], [hx, hy + 2]], "#e6b86a", st) + el(hx, hy - 20, 8, 8, "#ff9fc0", st) + el(hx, hy - 29, 6.5, 6.5, "#fff", st) + `</g>`; break;
+    case "camo": held = `<g transform="rotate(43 ${hx} ${hy})">` + rect(hx - 1.2, hy - 70, 2.4, 74, 1, "#555") + `<path d="M${hx - 28} ${hy - 62} A28 18 0 0 1 ${hx + 28} ${hy - 62} Z" fill="#ff9fb8"${st}/></g>`; break;
+    case "bongbay": held = `<g transform="rotate(26 ${hx} ${hy})">` + rect(hx - 0.5, hy - 80, 1, 80, 0, "#ddd") + el(hx, hy - 98, 16, 19, "#e0393e", st) + `</g>`; break;
+  }
+
+  // ghep theo thu tu lop (sau -> truoc); chan truoc than, than, tay, co, tai, dau, mat, toc, mu, kinh, dao cu
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="100%" height="100%"><defs>${clip}</defs>` +
+    back + leg(-1) + leg(1) + body + arm(-1) + arm(1) + neck + ears + headEl + cap + face + hair + hat + gl + held + `</svg>`;
+}
 
 
       /* ---------------- Room state ---------------- */
@@ -13008,514 +12907,252 @@ window.__lmHouseV2 = { seats: SEAT_POS, obstacles: HOB, roof: HouseRoof, screenC
    nameSprite (y 2.12) và micSprite (y 2.52, ẩn mặc định) không đổi; sprite
    biểu cảm giữ cơ chế cũ; mọi id/bảng lựa chọn giữ nguyên. */
 function makeAvatar3D(member) {
-  const a = member.avatar;
-  const grp = new THREE.Group();
-
-  /* ---- cache geometry/material dùng chung mọi nhân vật ---- */
-  const C = makeAvatar3D._c || (makeAvatar3D._c = { g: {}, m: {} });
+  const A = Object.assign({}, AVATAR_DEFAULTS, { skin: SKINS[0], shirt: SHIRTS[0], hairColor: HAIR_COLORS[0], face: "vui", style: "ngan" }, (member && member.avatar) || {});
+  const C = makeAvatar3D._c || (makeAvatar3D._c = { g: {}, m: {}, t: {} });
+  const PI = Math.PI;
   const G = (k, f) => C.g[k] || (C.g[k] = f());
-  const sp = (r, w, h) => G("s" + [r, w, h], () => new THREE.SphereGeometry(r, w || 12, h || 10));
-  const dm = (r, w, h) =>
-    G("d" + [r, w, h], () => new THREE.SphereGeometry(r, w, h, 0, Math.PI * 2, 0, Math.PI / 2));
-  const cy = (t, b, h, s, dy) =>
-    G("c" + [t, b, h, s, dy], () => {
-      const g = new THREE.CylinderGeometry(t, b, h, s || 10);
-      if (dy) g.translate(0, dy, 0);
-      return g;
-    });
-  const ocy = (t, b, h, s) => G("oc" + [t, b, h, s], () => new THREE.CylinderGeometry(t, b, h, s, 1, true));
-  const co = (r, h, s) => G("o" + [r, h, s], () => new THREE.ConeGeometry(r, h, s || 6));
-  const bx = (w, h, d) => G("b" + [w, h, d], () => new THREE.BoxGeometry(w, h, d));
-  const tr = (R, t, s1, s2) => G("t" + [R, t, s1, s2], () => new THREE.TorusGeometry(R, t, s1 || 8, s2 || 20));
-  const lam = (c, ds) => {
-    const k = "l" + c + (ds ? 1 : 0);
-    return C.m[k] || (C.m[k] = new THREE.MeshLambertMaterial(ds ? { color: c, side: THREE.DoubleSide } : { color: c }));
-  };
-  const bas = (c) => C.m["b" + c] || (C.m["b" + c] = new THREE.MeshBasicMaterial({ color: c }));
-  const OL = C.m.ol || (C.m.ol = new THREE.MeshBasicMaterial({ color: 0x3a2a22, side: THREE.BackSide }));
-  const shade = (c, f) => new THREE.Color(c).multiplyScalar(f).getHex();
-  const shadeCss = (hex, f) => {
-    const n = parseInt(String(hex).replace("#", ""), 16);
-    const m = (v) => Math.round(v * f);
-    return "rgb(" + m((n >> 16) & 255) + "," + m((n >> 8) & 255) + "," + m(n & 255) + ")";
-  };
-  const put = (par, g, m, p, s, r) => {
+  const lam = (c, ds) => { const k = "L" + c + (ds ? "d" : ""); return C.m[k] || (C.m[k] = new THREE.MeshLambertMaterial({ color: c, side: ds ? THREE.DoubleSide : THREE.FrontSide })); };
+  const bas = (c, ds) => { const k = "B" + c + (ds ? "d" : ""); return C.m[k] || (C.m[k] = new THREE.MeshBasicMaterial({ color: c, side: ds ? THREE.DoubleSide : THREE.FrontSide })); };
+  const OLM = C.m.OL || (C.m.OL = new THREE.MeshBasicMaterial({ color: 0x3b2a26, side: THREE.BackSide }));
+  const mk = (g, m, x, y, z, sx, sy, sz) => {
     const o = new THREE.Mesh(g, m);
-    if (p) o.position.set(p[0], p[1], p[2]);
-    if (s) o.scale.set(s[0], s[1], s[2]);
-    if (r) o.rotation.set(r[0], r[1], r[2]);
-    par.add(o);
+    o.position.set(x || 0, y || 0, z || 0);
+    if (sx !== undefined) o.scale.set(sx, sy === undefined ? sx : sy, sz === undefined ? sx : sz);
     return o;
   };
+  const SPH = G("sph", () => new THREE.SphereGeometry(1, 16, 12));
+  const CONE = G("cone", () => new THREE.ConeGeometry(1, 1, 14));
+  const CYL = G("cyl", () => new THREE.CylinderGeometry(1, 1, 1, 16));
+  const BOX = G("box", () => new THREE.BoxGeometry(1, 1, 1));
+  const DOME = G("dome", () => new THREE.SphereGeometry(1, 16, 8, 0, PI * 2, 0, PI / 2));
+  const ICO = G("ico", () => new THREE.IcosahedronGeometry(1, 1));
+  const torus = (r, t) => G("tor" + r + "_" + t, () => new THREE.TorusGeometry(r, t, 8, 28));
+  const heart = G("heart", () => { const s = new THREE.Shape(); s.moveTo(0, -0.5); s.bezierCurveTo(-0.9, 0.1, -0.5, 0.8, 0, 0.35); s.bezierCurveTo(0.5, 0.8, 0.9, 0.1, 0, -0.5); return new THREE.ShapeGeometry(s); });
+  const star = G("star", () => { const s = new THREE.Shape(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.22 : 0.5, a = PI / 2 + i * PI / 5; if (i) s.lineTo(Math.cos(a) * r, Math.sin(a) * r); else s.moveTo(Math.cos(a) * r, Math.sin(a) * r); } return new THREE.ShapeGeometry(s); });
+  // vien con nhong: ban kinh R, dai L, hinh hoc tu y0 len; swell = phinh giot nuoc 1/3 duoi
+  const capsule = (key, R, L, y0, swell) => G(key, () => {
+    const pts = [], N = 6;
+    const add = (r, s) => { const f = swell ? 1 + 0.1 * Math.max(0, 1 - Math.abs(s / L - 0.3) / 0.3) : 1; pts.push(new THREE.Vector2(Math.max(r, 0.001) * f, s + y0)); };
+    for (let i = 0; i <= N; i++) { const t = i / N * PI / 2; add(Math.sin(t) * R, R - R * Math.cos(t)); }
+    for (let i = 1; i < 4; i++) add(R, R + (L - 2 * R) * i / 4);
+    for (let i = 0; i <= N; i++) { const t = i / N * PI / 2; add(Math.cos(t) * R, L - R + R * Math.sin(t)); }
+    return new THREE.LatheGeometry(pts, 16);
+  });
+  const bodyGeo = G("body", () => {
+    const p = [[0.001, 0.14], [0.33, 0.14], [0.385, 0.155], [0.415, 0.185]];
+    for (let k = 0; k < 9; k++) { const y = 0.22 + k * 0.05; p.push([0.445 - 0.085 * Math.pow((y - 0.4) / 0.32, 2), y]); }
+    p.push([0.38, 0.69], [0.3, 0.75], [0.001, 0.77]);
+    return new THREE.LatheGeometry(p.map(q => new THREE.Vector2(q[0], q[1])), 32);
+  });
 
-  const skin = lam(a.skin), hairM = lam(a.hairColor), shirtM = lam(a.shirt);
-  const pantsC = a.pants || PANTS[0];
-  const pantsM = lam(pantsC), pinkM = lam(0xe77fb0), whiteM = lam(0xfdfdf8);
-  const hairDk = lam(shade(a.hairColor, 0.68));
-  const goldM = lam(0xf2b705);
-
-  /* ---- HAI CẦU ---- */
-  const HCY = 1.21, HS = [1.35, 0.98, 1.05]; /* đầu: tâm y + tỉ lệ cầu r=0.5 — đo thật: rộng ≈0.77×tổng cao */
-  const BCY = 0.45, BDS = [0.77, 0.56, 0.69]; /* thân: tâm y + tỉ lệ cầu r=0.5 — rộng 57% bề rộng đầu */
-  const sphG = G("sphHi", () => new THREE.SphereGeometry(0.5, 28, 20));
-  const sphLo = G("sphLo", () => new THREE.SphereGeometry(0.5, 20, 14));
-
-  /* ---- TEXTURE ĐẦU DUY NHẤT: lông + họa tiết trán + mặt trên cùng một canvas.
-     Cầu UV: u=0.25 là giữa mặt trước, v=0 là đỉnh đầu. Canvas 1024×512:
-     mặt trước chiếm x 0..512 (giữa 256), đỉnh đầu là hàng y=0. ---- */
-  function makeHeadTexture() {
-    const cv = document.createElement("canvas");
-    cv.width = 1024; cv.height = 512;
-    const g = cv.getContext("2d");
-    const D = "#3a2a20", HC = a.hairColor, HD = shadeCss(HC, 0.68);
-    g.fillStyle = a.skin; g.fillRect(0, 0, 1024, 512);
-    g.lineCap = "round"; g.lineJoin = "round";
-
-    /* Họa tiết trán theo kiểu tóc: mảng màu ôm cầu, mép dưới là đường cong
-       theo góc δ quanh đầu (δ=0 mặt trước, ±π sau gáy). */
-    const capPath = (yFn) => {
-      const p = new Path2D();
-      p.moveTo(0, 0);
-      p.lineTo(1024, 0);
-      for (let x = 1024; x >= 0; x -= 4) {
-        let d = (x / 1024) * Math.PI * 2 - Math.PI / 2; /* φ − π/2 */
-        if (d > Math.PI) d -= Math.PI * 2;
-        p.lineTo(x, yFn(d, x));
-      }
-      p.closePath();
-      return p;
-    };
-    const base = (yF, yB) => (d) => yF + (yB - yF) * Math.pow(Math.abs(d) / Math.PI, 1.15);
-    const sty = a.style || "ngan";
-    if (sty === "dai") {
-      /* bát úp Hachiware hai tông: phủ trán + rãnh trắng giữa trán */
-      const fn = (d) => base(178, 196)(d) - 58 * Math.exp(-Math.pow(d / 0.3, 2));
-      const p = capPath(fn);
-      g.fillStyle = HC; g.fill(p);
-      g.save();
-      g.beginPath(); g.rect(256, 0, 512, 512); g.clip();
-      g.fillStyle = HD; g.fill(p);
-      g.restore();
-      g.strokeStyle = HC; g.lineWidth = 3;
-      g.beginPath();
-      for (let x = 0; x <= 1024; x += 4) {
-        let d = (x / 1024) * Math.PI * 2 - Math.PI / 2;
-        if (d > Math.PI) d -= Math.PI * 2;
-        const y = fn(d);
-        if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke();
-    } else if (sty === "xoan") {
-      /* chỏm xù bông phủ vòng qua đỉnh xuống trán (kiểu Kurimanju) */
-      const p = capPath((d, x) => base(150, 172)(d) + 8 * Math.sin((x / 1024) * Math.PI * 12));
-      g.fillStyle = HC; g.fill(p);
-    } else if (sty === "chemat") {
-      /* mái lệch: mép trán xéo một bên */
-      const p = capPath((d) => base(160, 182)(d) + 42 * Math.sin(d) * Math.max(0, 1 - Math.abs(d) / Math.PI));
-      g.fillStyle = HC; g.fill(p);
-    } else if (sty === "dung") {
-      /* chỏm dựng: dải trán răng cưa */
-      const p = capPath((d) => {
-        const f = Math.max(0, 1 - Math.abs(d) / 1.15);
-        const tri = Math.abs((((d / 0.17) % 2) + 2) % 2 - 1);
-        return base(140, 160)(d) + tri * 16 * f;
-      });
-      g.fillStyle = HC; g.fill(p);
-    } else if (sty === "bui") {
-      g.fillStyle = HC;
-      g.beginPath(); g.arc(256, 48, 34, 0, 7); g.fill();
-      g.strokeStyle = HD; g.lineWidth = 5;
-      g.beginPath(); g.arc(256, 48, 24, 0.6, 4.4); g.stroke();
-    } else if (sty === "bui2") {
-      g.fillStyle = HC;
-      [168, 344].forEach((x) => { g.beginPath(); g.arc(x, 62, 28, 0, 7); g.fill(); });
-      g.strokeStyle = HD; g.lineWidth = 4;
-      [168, 344].forEach((x) => { g.beginPath(); g.arc(x, 62, 19, 0.6, 4.4); g.stroke(); });
-    } else if (sty === "mohawk") {
-      g.fillStyle = HC;
-      [[232, 150], [744, 150]].forEach((r) => {
-        g.beginPath();
-        g.moveTo(r[0], 0); g.lineTo(r[0] + 48, 0); g.lineTo(r[0] + 48, r[1] - 18);
-        g.quadraticCurveTo(r[0] + 24, r[1] + 8, r[0], r[1] - 18);
-        g.closePath(); g.fill();
-      });
-    } else if (sty === "hoi") {
-      /* một sợi cong + chấm nhỏ giữa trán (kiểu Momonga) */
-      g.strokeStyle = HC; g.lineWidth = 9;
-      g.beginPath(); g.arc(282, 58, 17, Math.PI * 0.35, Math.PI * 2.15); g.stroke();
-      g.fillStyle = HC;
-      g.beginPath(); g.arc(256, 208, 7, 0, 7); g.fill();
+  // ---------- texture dau (nen SKIN + tran/toc + mat) ----------
+  const headMat = () => {
+    const key = ["H", A.skin, A.style, A.hairColor, A.face, A.blush ? 1 : 0, A.freckles ? 1 : 0].join("|");
+    if (C.m[key]) return C.m[key];
+    const WC = 1024, HC = 512, cv = document.createElement("canvas");
+    cv.width = WC; cv.height = HC;
+    const x = cv.getContext("2d");
+    const cl = v => Math.max(-1, Math.min(1, v));
+    const X = xf => WC * (0.5 + Math.asin(cl(2 * xf)) / (2 * PI));
+    const Y = yf => HC * Math.acos(cl((yf - 0.5) * 2)) / PI;
+    const SW = (wf, xf) => wf * 1.56 / (0.78 * Math.max(0.2, Math.cos(Math.asin(cl(2 * xf))))) / (2 * PI) * WC;
+    const SH = (hf, yf) => { const r = cl((yf - 0.5) * 2); return hf * 1.29 / (0.645 * Math.max(0.2, Math.sqrt(1 - r * r))) / PI * HC; };
+    const E = (xf, yf, wf, hf, col, rot, al) => { x.save(); x.globalAlpha = al == null ? 1 : al; x.fillStyle = col; x.beginPath(); x.ellipse(X(xf), Y(yf), SW(wf, xf) / 2, SH(hf, yf) / 2, rot || 0, 0, 2 * PI); x.fill(); x.restore(); };
+    const P = (pts, col) => { x.fillStyle = col; x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(X(q[0]), Y(q[1])) : x.moveTo(X(q[0]), Y(q[1]))); x.closePath(); x.fill(); };
+    x.fillStyle = A.skin; x.fillRect(0, 0, WC, HC);
+    const hc = A.hairColor;
+    if (A.style === "dai") { // chom hai tong kieu Hachiware
+      x.fillStyle = hc; x.fillRect(0, 0, WC, Y(0.8));
+      [-0.34, -0.2, 0.2, 0.34].forEach(k => P([[k - 0.07, 0.8], [k + 0.07, 0.8], [k, 0.69]], hc));
+      const light = new THREE.Color(hc).lerp(new THREE.Color("#ffffff"), 0.55).getStyle();
+      P([[-0.12, 0.8], [0.12, 0.8], [0, 0.66]], light);
+    } else if (A.style === "chemat") { // mai lech
+      x.fillStyle = hc; x.fillRect(0, 0, WC, Y(0.82));
+      P([[-0.5, 0.82], [0.45, 0.82], [0.4, 0.72], [0.12, 0.75], [-0.22, 0.68], [-0.5, 0.7]], hc);
     }
-    /* ngan: trơn nhẵn — để nền lông */
-
-    if (a.extra === "matna") return cv; /* mặt nạ phủ riêng, texture chỉ có lông + trán */
-
-    /* ---- MẶT TO ĐẬM theo số đo model thật (quy chiếu bề rộng đầu = 512px
-       nửa trước cầu, chiều cao đầu = 512px): mắt rộng 15% × cao 19%, hai tâm
-       cách 34%, tâm mắt 45% chiều cao đầu từ đáy; mày dài 13% dày đậm, tâm
-       trên mắt 19%; miệng rộng 17%, dưới mắt 23%; má 19%×18% tại ±30%,
-       dưới mắt 12%, có 3 vạch đậm (má sọc ảnh mẫu). ---- */
-    const f = a.face || "cuoi";
-    if (a.blush !== false) {
-      [106, 406].forEach((x) => {
-        g.fillStyle = "rgba(241,148,181,.78)";
-        g.beginPath(); g.ellipse(x, 316, 47, 27, 0, 0, 7); g.fill();
-        g.strokeStyle = "#cf4f78"; g.lineWidth = 6; g.lineCap = "round";
-        [-22, 0, 22].forEach((dx) => {
-          g.beginPath(); g.moveTo(x + dx - 5, 306); g.lineTo(x + dx + 3, 326); g.stroke();
-        });
-      });
-    }
-    if (a.freckles) {
-      g.fillStyle = "#b57748";
-      [[150, 292], [168, 306], [140, 310], [362, 292], [344, 306], [372, 310]].forEach((p) => {
-        g.beginPath(); g.arc(p[0], p[1], 4.2, 0, 7); g.fill();
-      });
-    }
-    /* LÔNG MÀY ĐEN ĐẬM XẾCH — đầu trong nhếch cao (nét lo đặc trưng), mọi biểu cảm */
-    g.strokeStyle = D; g.lineCap = "round";
-    [169, 343].forEach((ex, i) => {
-      const sgn = i === 0 ? 1 : -1;
-      g.lineWidth = f === "ngau" ? 13 : 16;
-      g.beginPath();
-      if (f === "ngau") {
-        g.moveTo(ex - 30 * sgn, 222); g.lineTo(ex + 30 * sgn, 220);
-      } else if (f === "ngac") {
-        g.moveTo(ex - 30 * sgn, 226); g.quadraticCurveTo(ex, 208, ex + 30 * sgn, 224);
+    // mat
+    const fc = A.face, ink = "#2a1812";
+    const eyeK = fc === "ngac" ? 1.25 : 1;
+    [-1, 1].forEach(s => {
+      const ex = s * 0.164;
+      E(ex, 0.54, 0.1 * eyeK, 0.17 * eyeK, ink);
+      if (fc === "ngau") {
+        x.fillStyle = A.skin; x.fillRect(X(ex - 0.07), Y(0.64), X(ex + 0.07) - X(ex - 0.07), Y(0.54) - Y(0.64));
+        x.strokeStyle = ink; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(ex - 0.055), Y(0.54)); x.lineTo(X(ex + 0.055), Y(0.54)); x.stroke();
       } else {
-        g.moveTo(ex - 31 * sgn, 230); g.lineTo(ex + 31 * sgn, 214);
+        E(ex - s * 0.013, 0.54 + 0.031 * eyeK, 0.033 * eyeK, 0.056 * eyeK, "#fff");
       }
-      g.stroke();
-    });
-    /* mắt: hạt đen TO có điểm sáng lớn (~45% kích thước mắt) */
-    [169, 343].forEach((ex) => {
-      if (f === "cuoi") {
-        g.strokeStyle = D; g.lineWidth = 13;
-        g.beginPath(); g.arc(ex, 284, 24, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
-      } else if (f === "ngau") {
-        g.fillStyle = D; g.beginPath(); g.arc(ex, 274, 10, 0, 7); g.fill();
-        g.fillStyle = "#fff"; g.beginPath(); g.arc(ex + 3, 270, 3.4, 0, 7); g.fill();
-      } else if (f === "ngac") {
-        g.fillStyle = D; g.beginPath(); g.ellipse(ex, 272, 34, 42, 0, 0, 7); g.fill();
-        g.fillStyle = "#fff"; g.beginPath(); g.ellipse(ex + 10, 256, 13, 17, 0, 0, 7); g.fill();
-        g.beginPath(); g.arc(ex - 11, 288, 5.5, 0, 7); g.fill();
-      } else {
-        g.fillStyle = D; g.beginPath(); g.ellipse(ex, 274, 33, 43, 0, 0, 7); g.fill();
-        g.fillStyle = "#fff"; g.beginPath(); g.ellipse(ex + 10, 258, 13, 17, 0, 0, 7); g.fill();
-        g.beginPath(); g.arc(ex - 11, 290, 5.5, 0, 7); g.fill();
+      E(ex + s * 0.02, 0.54 - 0.045 * eyeK, 0.015, 0.026, "#fff", 0, 0.9);
+      E(s * 0.153, 0.64 + (fc === "ngac" ? 0.035 : 0), 0.11, 0.043, "#3a2418", s * (fc === "ngau" ? 0.05 : 0.18));
+      if (A.blush) {
+        E(s * 0.283, 0.39, 0.156, 0.109, "#ff9db4", 0, 0.85);
+        x.strokeStyle = "#d96b8f"; x.lineWidth = 3; x.lineCap = "round";
+        for (let k = -1; k <= 1; k++) { x.beginPath(); x.moveTo(X(s * 0.283 + k * 0.035), Y(0.42)); x.lineTo(X(s * 0.283 + k * 0.035), Y(0.36)); x.stroke(); }
       }
     });
-    /* miệng TO: ω rộng ~17% bề rộng đầu; vui = mở cười thấy lưỡi hồng */
-    g.strokeStyle = D; g.lineWidth = 9;
-    if (f === "cuoi") {
-      g.beginPath(); g.arc(235, 344, 21, Math.PI * 0.12, Math.PI * 0.96); g.stroke();
-      g.beginPath(); g.arc(277, 344, 21, Math.PI * 0.04, Math.PI * 0.88); g.stroke();
-      g.strokeStyle = "rgba(58,42,32,.5)"; g.lineWidth = 5;
-      g.beginPath(); g.arc(256, 362, 8, Math.PI * 0.12, Math.PI * 0.88); g.stroke();
-    } else if (f === "ngau") {
-      g.lineWidth = 7;
-      g.beginPath(); g.moveTo(240, 352); g.lineTo(272, 352); g.stroke();
-    } else if (f === "vui") {
-      g.fillStyle = "#7a3b2e";
-      g.beginPath();
-      g.moveTo(218, 338);
-      g.quadraticCurveTo(256, 392, 294, 338);
-      g.quadraticCurveTo(256, 356, 218, 338);
-      g.closePath(); g.fill();
-      g.fillStyle = "#f2a0b5";
-      g.beginPath(); g.ellipse(256, 372, 17, 9, 0, 0, 7); g.fill();
-      g.strokeStyle = D; g.lineWidth = 6;
-      g.beginPath(); g.moveTo(218, 338); g.quadraticCurveTo(256, 356, 294, 338); g.stroke();
-    } else {
-      g.beginPath(); g.arc(256, 356, 15, 0, 7); g.stroke();
+    if (A.freckles) [[-0.05, 0.45], [0, 0.47], [0.05, 0.45], [-0.025, 0.43], [0.025, 0.43]].forEach(q => E(q[0], q[1], 0.01, 0.016, "#b5714f"));
+    const my = 0.36, mouth = "#5a2418";
+    if (fc === "cuoi") {
+      x.strokeStyle = mouth; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(-0.04), Y(my + 0.01)); x.quadraticCurveTo(X(0), Y(my - 0.045), X(0.04), Y(my + 0.01)); x.stroke();
+    } else if (fc === "ngau") {
+      x.strokeStyle = mouth; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(-0.045), Y(my)); x.lineTo(X(0.045), Y(my)); x.stroke();
+    } else if (fc === "ngac") {
+      E(0, my, 0.05, 0.09, mouth);
+    } else { // vui: mieng mo, luoi hong duoi-lech trai
+      const cx = X(0), cy = Y(my), rx = SW(0.126, 0) / 2, ry = SH(0.115, my) / 2;
+      x.save(); x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 2 * PI); x.fillStyle = mouth; x.fill(); x.clip();
+      x.fillStyle = "#f08aa0"; x.beginPath(); x.ellipse(cx - rx * 0.25, cy + ry * 0.85, rx * 0.55, ry * 0.5, 0, 0, 2 * PI); x.fill(); x.restore();
+      x.strokeStyle = "#3a1a14"; x.lineWidth = 3; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 2 * PI); x.stroke();
     }
-    return cv;
+    const tx = new THREE.CanvasTexture(cv);
+    tx.wrapS = THREE.RepeatWrapping; tx.offset.x = 0.25; // mat truoc (+z) nam giua canvas
+    return (C.m[key] = new THREE.MeshLambertMaterial({ map: tx }));
+  };
+
+  // ---------- khoi chinh ----------
+  const g = new THREE.Group();
+  const skinM = lam(A.skin), shirtM = lam(A.shirt, true), pantsM = lam(A.pants, true), hairM = lam(A.hairColor);
+
+  // DAU: elipsoid 1.56 x 1.29 x 1.30, tam y 1.025 (dinh 1.67)
+  const HEAD = G("head", () => new THREE.SphereGeometry(0.5, 32, 24));
+  g.add(mk(HEAD, headMat(), 0, 1.025, 0, 1.56, 1.29, 1.3));
+  g.add(mk(HEAD, OLM, 0, 1.025, 0, 1.62, 1.35, 1.36));
+  // THAN: banh pho mai nam ngang (scale z 0.739), day phang y 0.14
+  g.add(mk(bodyGeo, shirtM, 0, 0, 0, 1, 1, 0.739));
+  g.add(mk(bodyGeo, OLM, 0, -0.005, 0, 1.05, 1.02, 0.739 * 1.07));
+
+  // CHAN: cam THANG o DUOI GIUA THAN (±0.18, z 0.08), pivot (±0.18, 0.30, 0.08), treo -y toi y=0
+  const legGeo = capsule("leg", 0.115, 0.34, -0.3, false);
+  const mkLeg = sx => { const p = new THREE.Group(); p.position.set(sx * 0.18, 0.3, 0.08); p.add(mk(legGeo, pantsM, 0, 0, 0, 1, 1, 0.91)); g.add(p); return p; };
+  const legL = mkLeg(-1), legR = mkLeg(1);
+
+  // TAY: con nhong det, pivot vai (±0.49, 0.58, 0.02), buong xuong-ngoai ~7 do; R = +x
+  const armGeo = capsule("arm", 0.165, 0.56, -0.405, true);
+  const mkArm = sx => { const p = new THREE.Group(); p.position.set(sx * 0.49, 0.58, 0.02); const m = mk(armGeo, skinM, 0, 0, 0, 0.606, 1, 1); m.rotation.z = sx * 0.12; p.add(m); g.add(p); return p; };
+  const armL = mkArm(-1), armR = mkArm(1);
+
+  // DUOI: pivot tai goc duoi (0, 0.20, -0.24)
+  let tail = null;
+  if (A.tail !== "khong") {
+    tail = new THREE.Group(); tail.position.set(0, 0.2, -0.24);
+    if (A.tail === "dai") {
+      const tg = G("tailtube", () => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.03, -0.12), new THREE.Vector3(0, 0.13, -0.2), new THREE.Vector3(0, 0.26, -0.18)]), 12, 0.035, 8, false));
+      tail.add(mk(tg, skinM)); tail.add(mk(SPH, skinM, 0, 0.26, -0.18, 0.045));
+    } else if (A.tail === "bong") tail.add(mk(ICO, skinM, 0, 0, -0.06, 0.13));
+    else if (A.tail === "tho") tail.add(mk(SPH, lam(0xffffff), 0, 0, -0.06, 0.13));
+    else tail.add(mk(SPH, skinM, 0, 0, -0.06, 0.105, 0.1, 0.1));
+    g.add(tail);
   }
 
-  /* cầu đầu: texture duy nhất (Lambert để ăn sáng như thân) + vỏ outline */
-  put(grp, sphG, new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(makeHeadTexture()) }), [0, HCY, 0], HS);
-  put(grp, sphG, OL, [0, HCY, 0], [HS[0] * 1.045, HS[1] * 1.03, HS[2] * 1.045]).userData.ns = 1;
-  /* cầu thân: onesie (màu áo) phủ duy nhất cầu này + vỏ outline */
-  put(grp, sphLo, shirtM, [0, BCY, -0.02], BDS);
-  put(grp, sphLo, OL, [0, BCY, -0.02], [BDS[0] * 1.05, BDS[1] * 1.035, BDS[2] * 1.05]).userData.ns = 1;
-
-  /* ---- Chân/bàn chân: núm cầu dẹt màu quần cao 0.16 nép dưới cầu thân,
-     pivot tại gốc để bước đi; đế chạm y = 0 ---- */
-  function makeLeg(s) {
-    const g = new THREE.Group();
-    g.position.set(s * 0.14, 0.13, 0.02);
-    grp.add(g);
-    put(g, sp(0.09, 12, 10), pantsM, [0, -0.065, 0.025], [1, 0.7, 1.25]);
-    return g;
-  }
-  const legL = makeLeg(-1), legR = makeLeg(1);
-
-  /* ---- Tay: mẩu cụt MÀU LÔNG (như ảnh mẫu, không lấy màu áo), dài ~32%
-     tổng chiều cao, pivot tại vai ±48% bề ngang thân, chúc dọc thân ---- */
-  function makeArm(s) {
-    const g = new THREE.Group();
-    g.position.set(s * 0.37, 0.64, 0);
-    grp.add(g);
-    put(g, sp(0.062, 10, 8), skin, [0, -0.24, 0], [1, 3.6, 1]);
-    return g;
-  }
-  const armL = makeArm(-1), armR = makeArm(1);
-
-  /* ---- Tai TO theo tỉ lệ Chiikawa, cắm đỉnh-bên cầu đầu.
-     meo/cao/cup theo màu tóc (họa tiết), gau/tho theo màu lông. ---- */
-  const earsK = a.ears || "meo";
-  [-1, 1].forEach((s) => {
-    if (earsK === "meo") {
-      /* tai mèo Hachiware RẤT TO: rộng 25% × cao 50% đầu, tâm ±24% bề rộng đầu */
-      put(grp, co(0.17, 0.49, 4), hairM, [s * 0.32, 1.8, 0], null, [0, 0.785, -s * 0.15]);
-      put(grp, co(0.09, 0.28, 4), pinkM, [s * 0.325, 1.78, 0.055], null, [0, 0.785, -s * 0.15]);
-    } else if (earsK === "cup")
-      put(grp, co(0.13, 0.34, 4), hairM, [s * 0.56, 1.44, 0.02], null, [2.35, 0, -s * 0.3]);
-    else if (earsK === "tho") {
-      /* tai thỏ Usagi: dài 71% chiều cao đầu, mảnh, gần tâm ±13% bề rộng đầu */
-      put(grp, sp(0.15, 12, 10), skin, [s * 0.18, 1.99, 0], [0.88, 2.3, 0.3], [0, 0, -s * 0.06]);
-      put(grp, sp(0.15, 10, 8), pinkM, [s * 0.18, 1.97, 0.032], [0.42, 1.6, 0.14], [0, 0, -s * 0.06]);
-    } else if (earsK === "gau") {
-      /* tai gấu RẤT NHỎ, gần tâm đỉnh đầu: Ø ~0.19, tâm |x| ≈ 0.24 (18% bề rộng đầu) */
-      put(grp, sp(0.095, 12, 10), skin, [s * 0.24, 1.66, 0], [1, 1, 0.55]);
-      put(grp, sp(0.048, 8, 8), pinkM, [s * 0.24, 1.66, 0.042], [1, 1, 0.5]);
-    } else if (earsK === "cao") {
-      put(grp, co(0.15, 0.55, 4), hairM, [s * 0.3, 1.83, 0], null, [0, 0.785, -s * 0.12]);
-      put(grp, co(0.08, 0.3, 4), pinkM, [s * 0.305, 1.81, 0.055], null, [0, 0.785, -s * 0.12]);
+  // TAI (dat tren dau moi, dinh dau 1.67)
+  const earM = skinM, pinkM = lam(0xf7b6c8);
+  [-1, 1].forEach(s => {
+    switch (A.ears) {
+      case "gau": g.add(mk(SPH, earM, s * 0.45, 1.59, 0, 0.105, 0.115, 0.095)); break;
+      case "meo": { const e = mk(CONE, earM, s * 0.374, 1.77, 0, 0.195, 0.645, 0.1); e.rotation.z = -s * 0.25; g.add(e); const i = mk(CONE, pinkM, s * 0.374, 1.74, 0.03, 0.11, 0.45, 0.06); i.rotation.z = -s * 0.25; g.add(i); break; }
+      case "tho": { const e = mk(SPH, earM, s * 0.203, 1.96, -0.03, 0.09, 0.458, 0.05); e.rotation.x = -0.12; e.rotation.z = -s * 0.06; g.add(e); break; }
+      case "cup": { const e = mk(SPH, earM, s * 0.72, 1.35, 0, 0.1, 0.16, 0.07); e.rotation.z = -s * 0.3; g.add(e); break; }
+      case "cao": { const e = mk(CONE, earM, s * 0.406, 1.65, 0, 0.12, 0.34, 0.07); e.rotation.z = -s * 0.15; g.add(e); break; }
     }
   });
 
-  /* ---- Mũ tí hon đội trên đỉnh cầu đầu ---- */
-  const hatK = a.hat || "khong";
-  if (hatK === "len") {
-    const hm = lam(0xc22f2f);
-    put(grp, dm(0.4, 16, 10), hm, [0, 1.585, 0], [1.08, 0.72, 0.98]);
-    put(grp, cy(0.435, 0.445, 0.085, 16), lam(0xa92323), [0, 1.575, 0], [1.05, 1, 0.95]);
-    put(grp, sp(0.08, 10, 8), lam(0xfdf6e3), [0, 1.9, 0]);
-    [-0.185, 0.185].forEach((x) => put(grp, co(0.05, 0.12, 4), hm, [x, 1.8, 0]));
-  } else if (hatK === "rom") {
-    const rm = lam(0xe8c877);
-    put(grp, cy(0.5, 0.5, 0.035, 18), rm, [0, 1.66, 0]);
-    put(grp, dm(0.26, 14, 10), rm, [0, 1.66, 0]);
-    put(grp, cy(0.265, 0.265, 0.04, 14), lam(0xc9a24d), [0, 1.675, 0]);
-  } else if (hatK === "bongchay" || hatK === "bongchaynguoc") {
-    const fw = hatK === "bongchay";
-    put(grp, dm(0.42, 16, 10), lam(fw ? 0x2470c7 : 0xe0393e), [0, 1.575, 0], [1.05, 0.6, 0.98]);
-    put(grp, bx(0.36, 0.035, 0.24), lam(fw ? 0x1b56a0 : 0xb02a30), [0, 1.585, fw ? 0.44 : -0.44], null, [fw ? -0.12 : 0.12, 0, 0]);
-    if (!fw) put(grp, sp(0.033, 8, 8), lam(0xb02a30), [0, 1.83, 0]);
-  } else if (hatK === "vuongmien") {
-    const gm2 = lam(0xf2b705, true);
-    put(grp, ocy(0.24, 0.27, 0.16, 12), gm2, [0, 1.74, 0]);
-    [[0.155, 0.155], [-0.155, 0.155], [0.155, -0.155], [-0.155, -0.155]].forEach((p) => put(grp, co(0.045, 0.12, 4), gm2, [p[0], 1.87, p[1]]));
-  } else if (hatK === "sinhnhat") {
-    put(grp, co(0.15, 0.32, 14), pinkM, [0.07, 1.86, 0], null, [0, 0, -0.15]);
-    put(grp, cy(0.1, 0.12, 0.085, 14), lam(0xfde9b8), [0.095, 1.8, 0], null, [0, 0, -0.15]);
-    put(grp, sp(0.055, 10, 8), goldM, [0.115, 2.03, 0]);
-  } else if (hatK === "daubep") {
-    put(grp, cy(0.36, 0.38, 0.11, 16), whiteM, [0, 1.62, 0], [1.05, 1, 0.95]);
-    [[-0.12, 1.76], [0.12, 1.76], [0, 1.81]].forEach((p) => put(grp, sp(0.15, 12, 10), whiteM, [p[0], p[1], -0.02]));
-  } else if (hatK === "vonghoa") {
-    put(grp, tr(0.32, 0.024, 8, 22), lam(0x3f9e4d), [0, 1.66, 0.04], null, [Math.PI / 2 - 0.35, 0, 0]);
-    [[0, 1.84, 0.28, 0xe77fb0], [-0.17, 1.81, 0.29, 0xf2b705], [0.17, 1.81, 0.29, 0xfdfdf8], [-0.31, 1.72, 0.22, 0xfdfdf8], [0.31, 1.72, 0.22, 0xe77fb0]]
-      .forEach((fl) => put(grp, sp(0.043, 8, 8), bas(fl[3]), [fl[0], fl[1], fl[2]]));
+  // TOC / TRAN (chom mesh nho; dai/chemat da ve tren canvas)
+  switch (A.style) {
+    case "bui": g.add(mk(SPH, hairM, 0, 1.72, -0.02, 0.11)); break;
+    case "dung": { const c = mk(CONE, hairM, 0, 1.78, 0, 0.09, 0.22, 0.09); c.rotation.z = 0.15; g.add(c); break; }
+    case "bui2": [-1, 1].forEach(s => g.add(mk(SPH, hairM, s * 0.3, 1.65, 0, 0.09))); break;
+    case "xoan": g.add(mk(ICO, hairM, 0, 1.72, 0, 0.13)); break;
+    case "mohawk": [-0.15, 0, 0.15].forEach((z, i) => g.add(mk(CONE, hairM, 0, 1.73 + (i === 1 ? 0.02 : 0), z, 0.05, 0.2, 0.05))); break;
+    case "hoi": g.add(mk(G("hoitube", () => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, 1.64, 0.02), new THREE.Vector3(0.03, 1.8, 0.02), new THREE.Vector3(-0.06, 1.9, 0.02), new THREE.Vector3(-0.12, 1.84, 0.02)]), 12, 0.018, 6, false)), hairM)); break;
   }
 
-  /* ---- Kính / phụ kiện mặt: áp lên mặt trước cầu đầu (đường mắt y ≈ 1.19) ---- */
-  const glassK = a.glasses || "khong", darkM = bas(0x232830);
-  const FZ = 0.48, EY = 1.16, EX = 0.23;
-  if (glassK === "tron") {
-    [-EX, EX].forEach((x) => put(grp, tr(0.095, 0.014, 8, 20), darkM, [x, EY, FZ]));
-    put(grp, bx(0.08, 0.022, 0.02), darkM, [0, EY + 0.012, FZ + 0.012]);
-  } else if (glassK === "ram") {
-    [-1, 1].forEach((s) => put(grp, bx(0.27, 0.14, 0.03), lam(0x20242c), [s * EX, EY, 0.425], null, [0, s * 0.22, 0]));
-    put(grp, bx(0.07, 0.032, 0.028), darkM, [0, EY + 0.025, 0.44]);
-  } else if (glassK === "traitim") {
-    [-EX, EX].forEach((x) => {
-      put(grp, co(0.078, 0.148, 10), bas(0xe0393e), [x, EY - 0.028, FZ], [1, 1, 0.45], [Math.PI, 0, 0]);
-      put(grp, sp(0.048, 8, 8), bas(0xe0393e), [x, EY + 0.042, FZ], [1, 1, 0.45]);
-    });
-  } else if (glassK === "ngoisao") {
-    const starGeo = G("star", () => {
-      const sh = new THREE.Shape();
-      for (let i = 0; i < 10; i++) {
-        const ang = Math.PI / 2 + (i * Math.PI) / 5, rad = i % 2 ? 0.05 : 0.112;
-        const px = Math.cos(ang) * rad, py = Math.sin(ang) * rad;
-        if (i === 0) sh.moveTo(px, py); else sh.lineTo(px, py);
-      }
-      sh.closePath();
-      return new THREE.ExtrudeGeometry(sh, { depth: 0.028, bevelEnabled: false });
-    });
-    [-EX, EX].forEach((x) => put(grp, starGeo, bas(0xf2b705), [x, EY, 0.425]));
-  } else if (glassK === "bitmat") {
-    put(grp, cy(0.092, 0.092, 0.024, 14), lam(0x20242c), [EX, EY, FZ + 0.012], null, [Math.PI / 2, 0, 0]);
-    put(grp, sp(0.026, 8, 8), bas(0xfdf6e3), [EX, EY, FZ + 0.028]);
-    const tilt = new THREE.Group();
-    tilt.position.set(0, HCY, 0); tilt.rotation.z = 0.35; grp.add(tilt);
-    put(tilt, tr(0.5, 0.014, 6, 28), darkM, null, [1.09, 1.03, 0.96]);
-  } else if (glassK === "noma") {
-    [-1, 1].forEach((s) => put(grp, co(0.042, 0.1, 8), pinkM, [0.35 + s * 0.048, 1.04, 0.31], null, [0, 0, s * 1.25]));
-    put(grp, sp(0.031, 8, 8), lam(0xc95d8f), [0.35, 1.04, 0.325]);
-  } else if (glassK === "matnanua") {
-    /* băng trán mèo: dải trắng ôm trán cầu đầu + tai mèo nhỏ + mũi hồng */
-    put(grp, G("hband", () => new THREE.SphereGeometry(0.508, 20, 10, Math.PI / 2 - 0.95, 1.9, 0.55, 0.6)), whiteM, [0, HCY, 0], HS);
-    [-0.3, 0.3].forEach((x) => put(grp, co(0.13, 0.34, 4), whiteM, [x, 1.74, 0], null, [0, 0.785, x < 0 ? 0.18 : -0.18]));
-    put(grp, sp(0.032, 8, 8), pinkM, [0, 1.1, 0.5]);
-  }
-
-  /* ---- Cổ: vòng / khăn áp quanh khớp nối hai cầu ---- */
-  const neckK = a.neck || (a.accessory === "chuong" || a.accessory === "taichuong" ? "chuong" : "khong");
-  if (neckK === "chuong" || neckK === "chuongnho") {
-    const big = neckK === "chuong";
-    put(grp, tr(0.26, big ? 0.032 : 0.023, 8, 24), lam(big ? 0xc22f2f : 0x2470c7), [0, 0.75, -0.01], [1, 0.92, 0.9], [Math.PI / 2, 0, 0]);
-    put(grp, sp(big ? 0.07 : 0.047, 12, 10), goldM, [0, 0.695, 0.245]);
-  } else if (neckK === "khan") {
-    const sm = lam(0xc22f2f);
-    put(grp, tr(0.255, 0.06, 10, 24), sm, [0, 0.76, -0.01], [1, 0.94, 0.9], [Math.PI / 2, 0, 0]);
-    put(grp, bx(0.12, 0.22, 0.04), sm, [0.1, 0.58, 0.245], null, [0, 0, 0.1]);
-  } else if (neckK === "noco") {
-    [-1, 1].forEach((s) => put(grp, co(0.055, 0.13, 8), lam(0xe0393e), [s * 0.058, 0.735, 0.25], null, [0, 0, s * 1.35]));
-    put(grp, sp(0.04, 8, 8), lam(0xb02a30), [0, 0.735, 0.275]);
-  } else if (neckK === "vongca") {
-    put(grp, tr(0.26, 0.015, 6, 24), lam(0xb97f06), [0, 0.78, -0.01], [1, 0.92, 0.9], [Math.PI / 2 - 0.2, 0, 0]);
-    const o = lam(0xf07f13);
-    put(grp, co(0.045, 0.14, 8), o, [0, 0.655, 0.26], null, [0, 0, Math.PI / 2]);
-    put(grp, co(0.036, 0.08, 4), o, [-0.098, 0.655, 0.26], null, [0, 0, -Math.PI / 2]);
-  } else if (neckK === "cavat") {
-    const tm = lam(0x5b4a9e);
-    put(grp, bx(0.085, 0.065, 0.03), tm, [0, 0.75, 0.245]);
-    put(grp, bx(0.08, 0.2, 0.024), tm, [0, 0.615, 0.29], null, [0.3, 0, 0]);
-  }
-
-  /* ---- Đuôi: cục cầu tròn nhỏ sau cầu thân (đuôi gấu bắc cực Chiikawa);
-     dai = đuôi mềm nhỏ rủ; khong = không đuôi (tail = null) ---- */
-  const tailK = a.tail || "cong";
-  let tailG = null;
-  if (tailK === "tho") {
-    tailG = new THREE.Group();
-    tailG.position.set(0, 0.48, -0.3);
-    grp.add(tailG);
-    put(tailG, sp(0.085, 10, 8), lam(0xfdf6e3), [0, 0.02, -0.09]);
-  } else if (tailK === "cong" || tailK === "bong") {
-    tailG = new THREE.Group();
-    tailG.position.set(0, 0.48, -0.3);
-    grp.add(tailG);
-    const big = tailK === "bong";
-    put(tailG, sp(big ? 0.105 : 0.08, 12, 10), skin, [0, 0.02, -0.09]);
-    if (big) put(tailG, sp(0.07, 10, 8), skin, [0, 0.09, -0.06]);
-  } else if (tailK === "dai") {
-    tailG = new THREE.Group();
-    tailG.position.set(0, 0.48, -0.3);
-    grp.add(tailG);
-    put(tailG, sp(0.055, 10, 8), skin, [0, -0.01, -0.1], [0.55, 1.45, 0.55], [0.35, 0, 0]);
-  }
-
-  /* ---- Lưng / tay: ba lô, cánh, áo choàng, đồ cầm (gắn vào armR) ---- */
-  const extraK = a.extra || "khong", orM = lam(0xf07f13);
-  if (extraK === "balo" || extraK === "balogau") {
-    const bear = extraK === "balogau", pm = lam(bear ? 0x9a6a44 : 0x5f7a5e);
-    put(grp, bx(0.4, 0.38, 0.17), pm, [0, 0.5, -0.42]);
-    if (bear) {
-      [-0.13, 0.13].forEach((x) => put(grp, sp(0.065, 10, 8), pm, [x, 0.72, -0.42]));
-      put(grp, sp(0.06, 10, 8), lam(0xd9b98c), [0, 0.45, -0.51], [1, 1, 0.5]);
-    } else {
-      put(grp, co(0.075, 0.25, 8), orM, [0, 0.5, -0.52], null, [0, 0, Math.PI / 2]);
-      put(grp, co(0.055, 0.12, 4), orM, [-0.16, 0.5, -0.52], null, [0, 0, -Math.PI / 2]);
+  // MU
+  switch (A.hat) {
+    case "len": g.add(mk(DOME, lam(0xe4572e), 0, 1.48, 0, 0.46, 0.3, 0.4)); g.add(mk(SPH, lam(0xfff3e0), 0, 1.8, 0, 0.07)); break;
+    case "rom": g.add(mk(CYL, lam(0xe8c872), 0, 1.58, 0, 0.48, 0.025, 0.48)); g.add(mk(DOME, lam(0xe8c872), 0, 1.58, 0, 0.3, 0.2, 0.28)); break;
+    case "bongchay": case "bongchaynguoc": {
+      const back = A.hat === "bongchaynguoc";
+      g.add(mk(DOME, lam(0x2470c7), 0, 1.48, 0, 0.45, 0.27, 0.4));
+      const v = mk(CYL, lam(0x1b559a), 0, 1.54, back ? -0.45 : 0.45, 0.28, 0.02, 0.2); v.rotation.x = back ? -0.2 : 0.2; g.add(v); break;
     }
-  } else if (extraK === "canh") {
-    const wm = lam(0xfdfdf8, true);
-    [-1, 1].forEach((s) => {
-      put(grp, sp(0.24, 12, 10), wm, [s * 0.3, 0.68, -0.28], [0.42, 1, 0.14], [0, 0, -s * 0.5]);
-      put(grp, sp(0.19, 10, 8), wm, [s * 0.28, 0.47, -0.3], [0.4, 0.85, 0.13], [0, 0, -s * 0.32]);
-    });
-  } else if (extraK === "aochoang") {
-    put(grp, G("cape", () => new THREE.CylinderGeometry(0.34, 0.47, 0.58, 14, 1, true)), lam(0xb03050, true), [0, 0.42, -0.08], null, [-0.1, 0, 0]);
-  } else if (extraK === "camca") {
-    /* nĩa hai ngạnh kiểu vũ khí Chiikawa cầm ở tay phải */
-    const stm = lam(0xb9c0c7);
-    put(armR, cy(0.014, 0.014, 0.3, 6, -0.15), lam(0x8a5a2b), [0, -0.09, 0.05]);
-    put(armR, bx(0.09, 0.02, 0.02), stm, [0, -0.4, 0.05]);
-    [-0.034, 0.034].forEach((x) => put(armR, cy(0.0075, 0.0075, 0.13, 6, -0.065), stm, [x, -0.4, 0.05]));
-  } else if (extraK === "camkem") {
-    put(armR, co(0.058, 0.14, 10), lam(0xd9a066), [0, -0.27, 0.04], null, [Math.PI, 0, 0]);
-    put(armR, sp(0.072, 10, 8), pinkM, [0, -0.175, 0.04]);
-    put(armR, sp(0.025, 8, 8), bas(0xe0393e), [0, -0.11, 0.04]);
-  } else if (extraK === "camo") {
-    const ug = new THREE.Group();
-    ug.position.set(0, -0.14, 0.03);
-    ug.rotation.z = -0.5;
-    armR.add(ug);
-    put(ug, cy(0.013, 0.013, 0.95, 6, 0.475), lam(0x8a5a2b));
-    put(ug, co(0.3, 0.13, 14), lam(0xe0393e), [0, 1.0, 0]);
-  } else if (extraK === "bongbay") {
-    put(armR, cy(0.006, 0.006, 1.0, 4, 0.5), bas(0x999999), [0.1, 0.28, 0.03], null, [0, 0, -0.18]);
-    put(armR, sp(0.145, 14, 12), lam(0xe0393e), [0.2, 0.78, 0.03], [1, 1.15, 1]);
-    put(armR, sp(0.042, 8, 8), bas(0xff8f96), [0.15, 0.86, 0.14]);
-  } else if (extraK === "matna") {
-    /* mặt nạ mèo: mảng trắng vẽ mặt mèo ôm mặt trước cầu đầu + tai nạ nhỏ */
-    const mcv = document.createElement("canvas");
-    mcv.width = mcv.height = 256;
-    const mg2 = mcv.getContext("2d");
-    mg2.fillStyle = "#fdfdf8"; mg2.fillRect(0, 0, 256, 256);
-    mg2.fillStyle = "#3a2a20";
-    [88, 168].forEach((x) => { mg2.beginPath(); mg2.arc(x, 118, 7, 0, 7); mg2.fill(); });
-    mg2.fillStyle = "#e77fb0";
-    mg2.beginPath(); mg2.moveTo(120, 140); mg2.lineTo(136, 140); mg2.lineTo(128, 150); mg2.closePath(); mg2.fill();
-    mg2.strokeStyle = "#3a2a20"; mg2.lineWidth = 4; mg2.lineCap = "round";
-    mg2.beginPath(); mg2.arc(122.5, 152, 5, Math.PI * 0.15, Math.PI * 0.95); mg2.stroke();
-    mg2.beginPath(); mg2.arc(133.5, 152, 5, Math.PI * 0.05, Math.PI * 0.85); mg2.stroke();
-    mg2.lineWidth = 3.5;
-    [[30, 138, 62, 146], [32, 156, 62, 154], [194, 146, 226, 138], [194, 154, 224, 156]].forEach((l) => {
-      mg2.beginPath(); mg2.moveTo(l[0], l[1]); mg2.lineTo(l[2], l[3]); mg2.stroke();
-    });
-    put(grp, G("maskP", () => new THREE.SphereGeometry(0.508, 22, 16, Math.PI / 2 - 0.82, 1.64, 0.78, 1.58)), new THREE.MeshBasicMaterial({
-      map: new THREE.CanvasTexture(mcv), depthWrite: false,
-      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
-    }), [0, HCY, 0], HS).userData.ns = 1;
-    [-1, 1].forEach((s) => put(grp, co(0.15, 0.4, 4), whiteM, [s * 0.3, 1.76, 0], null, [0, 0.785, -s * 0.18]));
+    case "vuongmien": g.add(mk(CYL, lam(0xf5c542), 0, 1.72, 0, 0.2, 0.07, 0.2)); [-0.12, 0, 0.12].forEach((x, i) => g.add(mk(CONE, lam(0xf5c542), x, 1.82 + (i === 1 ? 0.02 : 0), 0, 0.05, 0.12, 0.05))); break;
+    case "sinhnhat": { const c = mk(CONE, lam(0xff7eb6), 0, 1.85, 0, 0.16, 0.4, 0.16); c.rotation.z = 0.2; g.add(c); g.add(mk(SPH, lam(0xfff3a0), -0.04, 2.05, 0, 0.05)); break; }
+    case "daubep": g.add(mk(CYL, lam(0xffffff), 0, 1.7, 0, 0.3, 0.07, 0.28)); g.add(mk(SPH, lam(0xffffff), 0, 1.9, 0, 0.36, 0.26, 0.32)); break;
+    case "vonghoa": { const r = mk(torus(0.38, 0.035), lam(0x5fa85a), 0, 1.6, 0, 1, 0.85, 1); r.rotation.x = PI / 2; g.add(r); [[0, 0.33], [-0.25, 0.25], [0.25, 0.25]].forEach(q => g.add(mk(SPH, lam(0xff9fc0), q[0], 1.6, q[1], 0.06))); break; }
   }
 
-  /* ---- prop (đạo cụ game bật/tắt) ---- */
-  const prop = put(grp, co(0.08, 0.2, 8), goldM, [0.52, 0.38, 0.12], null, [0, 0, 1.9]);
-  prop.visible = false;
-
-  /* ---- biểu cảm: sprite nổi trên đầu (cơ chế giữ nguyên) ---- */
-  const emoteK = a.emote || "khong";
-  if (emoteK !== "khong" && EMOTE_GLYPH[emoteK]) {
-    const ecv = document.createElement("canvas");
-    ecv.width = ecv.height = 128;
-    const eg = ecv.getContext("2d");
-    eg.font = "92px sans-serif"; eg.textAlign = "center"; eg.textBaseline = "middle";
-    eg.fillText(EMOTE_GLYPH[emoteK], 64, 70);
-    const esp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(ecv), transparent: true, depthWrite: false }));
-    esp.scale.set(0.52, 0.52, 1);
-    esp.position.set(0.46, 2.0, 0);
-    esp.userData.isEmote = true;
-    esp.userData.emoteKind = emoteK;
-    grp.add(esp);
-    (window.__emoteSprites = window.__emoteSprites || []).push(esp);
+  // KINH / MAT (mat truoc dau z ~0.63 tai y 1.08)
+  const GY = 1.08, GZ = 0.635, GX = 0.256;
+  switch (A.glasses) {
+    case "tron": [-1, 1].forEach(s => g.add(mk(torus(0.1, 0.015), lam(0x222222), s * GX, GY, GZ - 0.01))); g.add(mk(BOX, lam(0x222222), 0, GY + 0.02, GZ - 0.02, 0.12, 0.015, 0.015)); break;
+    case "ram": [-1, 1].forEach(s => g.add(mk(SPH, lam(0x1a1a1a), s * GX, GY, GZ - 0.01, 0.13, 0.1, 0.02))); g.add(mk(BOX, lam(0x1a1a1a), 0, GY + 0.02, GZ - 0.02, 0.2, 0.015, 0.015)); break;
+    case "traitim": [-1, 1].forEach(s => g.add(mk(heart, bas(0xff5c8a, true), s * GX, GY, GZ, 0.24))); break;
+    case "ngoisao": [-1, 1].forEach(s => g.add(mk(star, bas(0xffd23f, true), s * GX, GY, GZ, 0.26))); break;
+    case "bitmat": { g.add(mk(SPH, lam(0x111111), GX, GY, GZ - 0.01, 0.14, 0.13, 0.02)); const b = mk(torus(1, 0.015), lam(0x111111), 0, 1.12, 0, 0.79, 0.66, 1); b.rotation.x = PI / 2; b.rotation.y = 0.1; g.add(b); break; }
+    case "noma": { const bm = lam(0xff7aa8); g.add(mk(SPH, bm, 0.5, 0.98, 0.48, 0.05)); [-1, 1].forEach(s => { const w = mk(CONE, bm, 0.5 + s * 0.06, 0.98, 0.48, 0.045, 0.1, 0.03); w.rotation.z = -s * PI / 2; g.add(w); }); break; }
+    case "matnanua": { const b = mk(torus(1, 0.04), lam(0xff7aa8), 0, 1.4, 0, 0.66, 0.55, 1); b.rotation.x = PI / 2; g.add(b); g.add(mk(SPH, lam(0xffe066), 0, 1.4, 0.56, 0.05)); break; }
   }
 
-  /* ---- bảng tên + mic (y như code cũ) ---- */
-  const nameSp = makeNameSprite(member.name);
-  grp.add(nameSp);
-  grp.userData.nameSprite = nameSp;
-  const micCv = document.createElement("canvas");
-  micCv.width = micCv.height = 128;
-  const mg = micCv.getContext("2d");
-  mg.beginPath(); mg.arc(64, 64, 55, 0, Math.PI * 2); mg.fillStyle = "#22b04b"; mg.fill();
-  mg.lineWidth = 7; mg.strokeStyle = "rgba(255,255,255,0.92)"; mg.stroke();
-  mg.font = "66px sans-serif"; mg.textAlign = "center"; mg.textBaseline = "middle";
-  mg.fillText("🎙️", 64, 68);
-  const micSp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(micCv), transparent: true, depthWrite: false }));
-  micSp.scale.set(0.42, 0.42, 1);
-  micSp.position.set(0, 2.52, 0);
-  micSp.visible = false;
-  grp.add(micSp);
-  grp.userData.micSprite = micSp;
+  // CO (o y ~0.60 truoc than)
+  const ring = (c, t, y) => { const r = mk(torus(0.42, t), lam(c), 0, y, 0, 1, 0.739, 1); r.rotation.x = PI / 2; g.add(r); };
+  switch (A.neck) {
+    case "chuong": ring(0xd94f30, 0.03, 0.64); g.add(mk(SPH, lam(0xf5c542), 0, 0.58, 0.33, 0.06)); break;
+    case "khan": ring(0xe4572e, 0.06, 0.64); g.add(mk(BOX, lam(0xe4572e), 0.18, 0.52, 0.31, 0.07, 0.2, 0.03)); break;
+    case "chuongnho": ring(0x333333, 0.015, 0.64); g.add(mk(SPH, lam(0xf5c542), 0, 0.6, 0.32, 0.04)); break;
+    case "noco": { const bm = lam(0xff7aa8); g.add(mk(SPH, bm, 0, 0.6, 0.32, 0.04)); [-1, 1].forEach(s => g.add(mk(SPH, bm, s * 0.07, 0.6, 0.31, 0.07, 0.05, 0.03))); break; }
+    case "vongca": ring(0x8a6f4d, 0.015, 0.64); g.add(mk(SPH, lam(0x9bb7c9), 0, 0.54, 0.32, 0.09, 0.04, 0.02)); const fc9 = mk(CONE, lam(0x9bb7c9), 0.1, 0.54, 0.32, 0.03, 0.06, 0.01); fc9.rotation.z = -PI / 2; g.add(fc9); break;
+    case "cavat": g.add(mk(SPH, lam(0xc22b3a), 0, 0.63, 0.31, 0.04)); g.add(mk(BOX, lam(0xc22b3a), 0, 0.53, 0.32, 0.06, 0.16, 0.015)); break;
+  }
 
-  grp.traverse((o) => { if (o.isMesh && !o.userData.ns) o.castShadow = true; });
-  grp.userData.parts = { legL, legR, armL, armR, prop, tail: tailG };
-  return grp;
+  // PHU KIEN NGOAI THAN + DAO CU CAM TAY (prop gan vao armR tai (0.55, 0.22, 0.06))
+  const prop = new THREE.Group();
+  prop.position.set(0.06, -0.36, 0.04);
+  armR.add(prop);
+  const silver = lam(0xd0d4da);
+  switch (A.extra) {
+    case "balo": g.add(mk(SPH, lam(0xf08a5d), 0, 0.45, -0.33, 0.2, 0.24, 0.12)); const bp9 = mk(CONE, lam(0xf08a5d), 0, 0.45, -0.46, 0.08, 0.14, 0.03); bp9.rotation.x = -PI / 2; g.add(bp9); break;
+    case "matna": { const w = lam(0xffffff); g.add(mk(SPH, w, 0.35, 1.5, 0.55, 0.28, 0.24, 0.04)); [-1, 1].forEach(s => g.add(mk(CONE, w, 0.35 + s * 0.14, 1.66, 0.55, 0.06, 0.12, 0.03))); break; }
+    case "balogau": { const b = lam(0xb07a4f); g.add(mk(SPH, b, 0, 0.45, -0.33, 0.2, 0.24, 0.12)); [-1, 1].forEach(s => g.add(mk(SPH, b, s * 0.13, 0.68, -0.33, 0.06))); break; }
+    case "canh": [-1, 1].forEach(s => { const w = mk(SPH, lam(0xffffff), s * 0.34, 0.55, -0.3, 0.2, 0.27, 0.04); w.rotation.z = -s * 0.5; w.rotation.y = s * 0.3; g.add(w); }); break;
+    case "aochoang": g.add(mk(G("cape", () => new THREE.CylinderGeometry(0.43, 0.5, 0.55, 16, 1, true, PI / 2, PI)), lam(0xc2303a, true), 0, 0.45, 0, 1, 1, 0.78)); break;
+    case "camca": prop.add(mk(CYL, silver, 0, 0.14, 0, 0.014, 0.3, 0.014)); prop.add(mk(BOX, silver, 0, 0.3, 0, 0.09, 0.015, 0.015)); [-1, 1].forEach(s => prop.add(mk(CYL, silver, s * 0.04, 0.35, 0, 0.012, 0.1, 0.012))); prop.rotation.z = -0.3; break;
+    case "camkem": { const c = mk(CONE, lam(0xe6b86a), 0, 0.08, 0, 0.065, 0.18, 0.065); c.rotation.z = PI; prop.add(c); prop.add(mk(SPH, lam(0xff9fc0), 0, 0.2, 0, 0.08)); prop.add(mk(SPH, lam(0xffffff), 0, 0.29, 0, 0.065)); prop.rotation.z = -0.3; break; }
+    case "camo": prop.add(mk(CYL, lam(0x555555), 0, 0.3, 0, 0.012, 0.7, 0.012)); prop.add(mk(DOME, lam(0xff9fb8, true), 0, 0.62, 0, 0.28, 0.18, 0.28)); prop.rotation.z = -0.75; break;
+    case "bongbay": prop.add(mk(CYL, lam(0xdddddd), 0, 0.4, 0, 0.005, 0.8, 0.005)); prop.add(mk(SPH, lam(0xe0393e), 0, 0.98, 0, 0.16, 0.19, 0.16)); prop.rotation.z = -0.45; break;
+  }
+
+  // EMOTE (sprite glyph tren dau y ~1.95)
+  if (A.emote && A.emote !== "khong" && EMOTE_GLYPH[A.emote]) {
+    const k = "E" + A.emote;
+    if (!C.t[k]) {
+      const c = document.createElement("canvas"); c.width = c.height = 128;
+      const x = c.getContext("2d"); x.font = "96px serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(EMOTE_GLYPH[A.emote], 64, 70);
+      C.t[k] = new THREE.CanvasTexture(c);
+    }
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: C.t[k], transparent: true, depthTest: false }));
+    sp.position.set(0.5, 1.95, 0); sp.scale.set(0.38, 0.38, 1); g.add(sp);
+  }
+
+  // SPRITE ten + mic
+  const ns = makeNameSprite(member && member.name);
+  ns.position.y = 2.12; g.add(ns);
+  let mic;
+  if (typeof makeMicSprite === "function") mic = makeMicSprite();
+  else {
+    if (!C.t.mic) {
+      const c = document.createElement("canvas"); c.width = c.height = 128;
+      const x = c.getContext("2d"); x.font = "88px serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("🎤", 64, 70);
+      C.t.mic = new THREE.CanvasTexture(c);
+    }
+    mic = new THREE.Sprite(new THREE.SpriteMaterial({ map: C.t.mic, transparent: true, depthTest: false }));
+    mic.scale.set(0.36, 0.36, 1);
+  }
+  mic.position.y = 2.52; mic.visible = false; g.add(mic);
+
+  g.userData.parts = { legL, legR, armL, armR, prop, tail };
+  g.userData.nameSprite = ns;
+  g.userData.micSprite = mic;
+  return g;
 }
 
 
