@@ -7832,27 +7832,31 @@ window.LMZones = (function () {
     case "mohawk": hair += poly([[X(-0.12), Y(1.66)], [X(-0.06), Y(1.9)], [X(0), Y(1.72)], [X(0.06), Y(1.92)], [X(0.12), Y(1.66)]], hc, st); break;
     case "hoi": hair += `<path d="M${X(0)} ${Y(1.66)} Q${X(0.03)} ${Y(1.9)} ${X(-0.06)} ${Y(1.9)} T${X(-0.12)} ${Y(1.84)}" fill="none" stroke="${hc}" stroke-width="4" stroke-linecap="round"/>`; break;
   }
-  const fc = A.face, k = fc === "ngac" ? 1.25 : 1;
+  const fc = A.face, k = fc === "ngac" ? 1.22 : 1;
+  const browY2 = 0.635 + (fc === "ngac" ? 0.05 : 0), browRot = fc === "ngau" ? -14 : fc === "ngac" ? 3 : fc === "cuoi" ? 5 : 8;
   let face = "";
   [-1, 1].forEach(s => {
     const ex = HX(s * 0.164), ey = HY(0.54);
-    face += el(ex, ey, 7.8 * k, 11 * k, ink);
-    if (fc === "ngau") face += rect(ex - 9, ey - 13, 18, 13, 0, sk) + `<line x1="${f(ex - 8)}" y1="${f(ey)}" x2="${f(ex + 8)}" y2="${f(ey)}" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`;
-    else face += el(HX(s * 0.164 - s * 0.013), HY(0.54 + 0.031 * k), 2.6 * k, 3.6 * k, "#fff");
-    face += el(HX(s * 0.164 + s * 0.02), HY(0.495), 1.2, 1.7, "#fff");
-    face += el(HX(s * 0.153), HY(0.64 + (fc === "ngac" ? 0.035 : 0)), 8.6, 2.8, "#3a2418", ` transform="rotate(${s * (fc === "ngau" ? 3 : 10)} ${HX(s * 0.153)} ${HY(0.64)})"`);
+    if (fc === "cuoi") face += `<path d="M${f(ex - 8)} ${f(ey - 2)} Q${f(ex)} ${f(ey + 8)} ${f(ex + 8)} ${f(ey - 2)}" fill="none" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`;
+    else {
+      face += el(ex, ey, 7.6 * k, 10.8 * k, ink);
+      if (fc === "ngau") face += rect(ex - 9, ey - 13, 18, 12, 0, sk) + `<line x1="${f(ex - 8)}" y1="${f(ey - 1)}" x2="${f(ex + 8)}" y2="${f(ey - 1)}" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`;
+      else face += el(HX(s * 0.164 - s * 0.013), HY(0.54 + 0.031 * k), 2.6 * k, 3.7 * k, "#fff") + el(HX(s * 0.164 + s * 0.02), HY(0.495), 1.2, 1.7, "#fff");
+    }
+    face += el(HX(s * 0.153), HY(browY2), 5.6, 2, "#3a2418", ` transform="rotate(${s * browRot} ${HX(s * 0.153)} ${HY(browY2)})"`);
     if (A.blush) {
       const bx = HX(s * 0.283), by = HY(0.39);
       face += el(bx, by, 12.2, 7, "#ff9db4", ' opacity="0.85"');
       for (let j = -1; j <= 1; j++) face += `<line x1="${f(bx + j * 5.5)}" y1="${f(by - 4)}" x2="${f(bx + j * 5.5)}" y2="${f(by + 4)}" stroke="#d96b8f" stroke-width="1.6" stroke-linecap="round"/>`;
     }
   });
+  if (fc === "ngac") face += `<polygon points="${f(HX(0.345))},${f(HY(0.685))} ${f(HX(0.322))},${f(HY(0.605))} ${f(HX(0.368))},${f(HY(0.605))}" fill="#7ec8f7"/>` + el(HX(0.345), HY(0.594), 3.4, 4.3, "#7ec8f7");
   if (A.freckles) [[-0.05, 0.45], [0, 0.47], [0.05, 0.45], [-0.025, 0.43], [0.025, 0.43]].forEach(q => { face += el(HX(q[0]), HY(q[1]), 1.6, 2, "#b5714f"); });
   const mx = HX(0), my = HY(0.36);
-  if (fc === "cuoi") face += `<path d="M${f(mx - 6)} ${f(my - 1)} Q${f(mx)} ${f(my + 6)} ${f(mx + 6)} ${f(my - 1)}" fill="none" stroke="#5a2418" stroke-width="2.6" stroke-linecap="round"/>`;
-  else if (fc === "ngau") face += `<line x1="${f(mx - 7)}" y1="${f(my)}" x2="${f(mx + 7)}" y2="${f(my)}" stroke="#5a2418" stroke-width="2.6" stroke-linecap="round"/>`;
-  else if (fc === "ngac") face += el(mx, my, 4, 6, "#5a2418");
-  else face += `<clipPath id="avm"><ellipse cx="${mx}" cy="${my}" rx="9.8" ry="7.4"/></clipPath>` + el(mx, my, 9.8, 7.4, "#5a2418", ' stroke="#3a1a14" stroke-width="1.6"') + `<g clip-path="url(#avm)">${el(mx - 2.5, my + 6, 5.4, 3.7, "#f08aa0")}</g>`;
+  if (fc === "cuoi") face += `<path d="M${f(mx - 6.5)} ${f(my - 0.5)} A6.5 5.5 0 0 1 ${f(mx + 6.5)} ${f(my - 0.5)} Z" fill="#5a2418"/>` + el(mx, my + 2.4, 3.4, 2, "#f08aa0");
+  else if (fc === "ngau") face += `<path d="M${f(mx - 7)} ${f(my)} L${f(mx + 3)} ${f(my)} Q${f(mx + 7)} ${f(my)} ${f(mx + 7)} ${f(my - 2.5)}" fill="none" stroke="#5a2418" stroke-width="2.6" stroke-linecap="round"/>`;
+  else if (fc === "ngac") face += el(mx, my, 3.6, 5.2, "#5a2418");
+  else face += `<clipPath id="avm"><ellipse cx="${mx}" cy="${my}" rx="9.2" ry="7.8"/></clipPath>` + el(mx, my, 9.2, 7.8, "#5a2418", ' stroke="#3a1a14" stroke-width="1.6"') + `<g clip-path="url(#avm)">${el(mx - 1.7, my + 6.4, 5.5, 4, "#f08aa0")}</g>`;
 
   // mu
   switch (A.hat) {
@@ -12930,13 +12934,15 @@ function makeAvatar3D(member) {
   const heart = G("heart", () => { const s = new THREE.Shape(); s.moveTo(0, -0.5); s.bezierCurveTo(-0.9, 0.1, -0.5, 0.8, 0, 0.35); s.bezierCurveTo(0.5, 0.8, 0.9, 0.1, 0, -0.5); return new THREE.ShapeGeometry(s); });
   const star = G("star", () => { const s = new THREE.Shape(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.22 : 0.5, a = PI / 2 + i * PI / 5; if (i) s.lineTo(Math.cos(a) * r, Math.sin(a) * r); else s.moveTo(Math.cos(a) * r, Math.sin(a) * r); } return new THREE.ShapeGeometry(s); });
   // vien con nhong: ban kinh R, dai L, hinh hoc tu y0 len; swell = phinh giot nuoc 1/3 duoi
-  const capsule = (key, R, L, y0, swell) => G(key, () => {
+  const capsule = (key, R, L, y0, swell, bend) => G(key, () => {
     const pts = [], N = 6;
-    const add = (r, s) => { const f = swell ? 1 + 0.1 * Math.max(0, 1 - Math.abs(s / L - 0.3) / 0.3) : 1; pts.push(new THREE.Vector2(Math.max(r, 0.001) * f, s + y0)); };
+    const add = (r, s) => { let f = 1; if (swell) { const u = s / L; f = (1 + 0.3 * Math.exp(-Math.pow((u - 0.3) / 0.24, 2))) * (1 - 0.22 * Math.max(0, (u - 0.72) / 0.28)); } pts.push(new THREE.Vector2(Math.max(r, 0.001) * f, s + y0)); };
     for (let i = 0; i <= N; i++) { const t = i / N * PI / 2; add(Math.sin(t) * R, R - R * Math.cos(t)); }
     for (let i = 1; i < 4; i++) add(R, R + (L - 2 * R) * i / 4);
     for (let i = 0; i <= N; i++) { const t = i / N * PI / 2; add(Math.cos(t) * R, L - R + R * Math.sin(t)); }
-    return new THREE.LatheGeometry(pts, 16);
+    const geo = new THREE.LatheGeometry(pts, 16);
+    if (bend) { const pa = geo.attributes.position; for (let i = 0; i < pa.count; i++) { const t = 1 - (pa.getY(i) - y0) / L; pa.setX(i, pa.getX(i) + bend * t * t); } geo.computeVertexNormals(); }
+    return geo;
   });
   const bodyGeo = G("body", () => {
     const p = [[0.001, 0.14], [0.33, 0.14], [0.385, 0.155], [0.415, 0.185]];
@@ -12970,36 +12976,51 @@ function makeAvatar3D(member) {
       x.fillStyle = hc; x.fillRect(0, 0, WC, Y(0.82));
       P([[-0.5, 0.82], [0.45, 0.82], [0.4, 0.72], [0.12, 0.75], [-0.22, 0.68], [-0.5, 0.7]], hc);
     }
-    // mat
+    // mat — kieu Chiikawa: mat oval den, may ti hon, bieu cam meme co ban
     const fc = A.face, ink = "#2a1812";
-    const eyeK = fc === "ngac" ? 1.25 : 1;
+    const eyeK = fc === "ngac" ? 1.22 : 1;
+    const browY = 0.635 + (fc === "ngac" ? 0.05 : 0), browR = fc === "ngau" ? -0.3 : fc === "ngac" ? 0.06 : fc === "cuoi" ? 0.1 : 0.16;
     [-1, 1].forEach(s => {
       const ex = s * 0.164;
-      E(ex, 0.54, 0.1 * eyeK, 0.17 * eyeK, ink);
-      if (fc === "ngau") {
-        x.fillStyle = A.skin; x.fillRect(X(ex - 0.07), Y(0.64), X(ex + 0.07) - X(ex - 0.07), Y(0.54) - Y(0.64));
-        x.strokeStyle = ink; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(ex - 0.055), Y(0.54)); x.lineTo(X(ex + 0.055), Y(0.54)); x.stroke();
+      if (fc === "cuoi") { // mat nham cuoi: net cong mem vong xuong
+        x.strokeStyle = ink; x.lineWidth = 8; x.lineCap = "round"; x.beginPath();
+        x.ellipse(X(ex), Y(0.555), SW(0.105, ex) / 2, SH(0.13, 0.54) / 2, 0, 0.15 * PI, 0.85 * PI); x.stroke();
       } else {
-        E(ex - s * 0.013, 0.54 + 0.031 * eyeK, 0.033 * eyeK, 0.056 * eyeK, "#fff");
+        E(ex, 0.54, 0.098 * eyeK, 0.168 * eyeK, ink);
+        if (fc === "ngau") { // mi tren ha: mat tinh/ngau
+          x.fillStyle = A.skin; x.fillRect(X(ex - 0.07), Y(0.645), X(ex + 0.07) - X(ex - 0.07), Y(0.545) - Y(0.645));
+          x.strokeStyle = ink; x.lineWidth = 5.5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(ex - 0.056), Y(0.545)); x.lineTo(X(ex + 0.056), Y(0.545)); x.stroke();
+        } else {
+          E(ex - s * 0.013, 0.54 + 0.031 * eyeK, 0.034 * eyeK, 0.058 * eyeK, "#fff");
+        }
+        E(ex + s * 0.02, 0.54 - 0.045 * eyeK, 0.015, 0.026, "#fff", 0, 0.9);
       }
-      E(ex + s * 0.02, 0.54 - 0.045 * eyeK, 0.015, 0.026, "#fff", 0, 0.9);
-      E(s * 0.153, 0.64 + (fc === "ngac" ? 0.035 : 0), 0.11, 0.043, "#3a2418", s * (fc === "ngau" ? 0.05 : 0.18));
+      E(s * 0.153, browY, 0.072, 0.03, "#3a2418", s * browR);
       if (A.blush) {
         E(s * 0.283, 0.39, 0.156, 0.109, "#ff9db4", 0, 0.85);
         x.strokeStyle = "#d96b8f"; x.lineWidth = 3; x.lineCap = "round";
         for (let k = -1; k <= 1; k++) { x.beginPath(); x.moveTo(X(s * 0.283 + k * 0.035), Y(0.42)); x.lineTo(X(s * 0.283 + k * 0.035), Y(0.36)); x.stroke(); }
       }
     });
+    if (fc === "ngac") { // giot mo hoi kieu manga o mep dau
+      P([[0.345, 0.685], [0.314, 0.602], [0.376, 0.602]], "#7ec8f7");
+      E(0.345, 0.594, 0.058, 0.072, "#7ec8f7");
+      E(0.333, 0.602, 0.013, 0.019, "#fff", 0, 0.85);
+    }
     if (A.freckles) [[-0.05, 0.45], [0, 0.47], [0.05, 0.45], [-0.025, 0.43], [0.025, 0.43]].forEach(q => E(q[0], q[1], 0.01, 0.016, "#b5714f"));
     const my = 0.36, mouth = "#5a2418";
-    if (fc === "cuoi") {
-      x.strokeStyle = mouth; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(-0.04), Y(my + 0.01)); x.quadraticCurveTo(X(0), Y(my - 0.045), X(0.04), Y(my + 0.01)); x.stroke();
-    } else if (fc === "ngau") {
-      x.strokeStyle = mouth; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(-0.045), Y(my)); x.lineTo(X(0.045), Y(my)); x.stroke();
+    if (fc === "cuoi") { // mieng cuoi mo nho hinh ban nguyet, luoi o day
+      const cx = X(0), cy = Y(my + 0.012), rx = SW(0.088, 0) / 2, ry = SH(0.07, my) / 2;
+      x.save(); x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 2 * PI); x.fillStyle = mouth; x.fill(); x.clip();
+      x.fillStyle = "#f08aa0"; x.beginPath(); x.ellipse(cx, cy + ry * 0.95, rx * 0.62, ry * 0.55, 0, 0, 2 * PI); x.fill();
+      x.fillStyle = A.skin; x.fillRect(cx - rx - 2, cy - ry - 2, rx * 2 + 4, ry + 2); x.restore();
+      x.strokeStyle = mouth; x.lineWidth = 4; x.lineCap = "round"; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0.1 * PI, 0.9 * PI); x.stroke();
+    } else if (fc === "ngau") { // mieng mech lech mot ben
+      x.strokeStyle = mouth; x.lineWidth = 5; x.lineCap = "round"; x.beginPath(); x.moveTo(X(-0.048), Y(my)); x.lineTo(X(0.028), Y(my)); x.quadraticCurveTo(X(0.052), Y(my - 0.002), X(0.052), Y(my + 0.018)); x.stroke();
     } else if (fc === "ngac") {
-      E(0, my, 0.05, 0.09, mouth);
-    } else { // vui: mieng mo, luoi hong duoi-lech trai
-      const cx = X(0), cy = Y(my), rx = SW(0.126, 0) / 2, ry = SH(0.115, my) / 2;
+      E(0, my, 0.046, 0.08, mouth);
+    } else { // vui: mieng mo tron, luoi hong o day
+      const cx = X(0), cy = Y(my), rx = SW(0.118, 0) / 2, ry = SH(0.122, my) / 2;
       x.save(); x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 2 * PI); x.fillStyle = mouth; x.fill(); x.clip();
       x.fillStyle = "#f08aa0"; x.beginPath(); x.ellipse(cx - rx * 0.25, cy + ry * 0.85, rx * 0.55, ry * 0.5, 0, 0, 2 * PI); x.fill(); x.restore();
       x.strokeStyle = "#3a1a14"; x.lineWidth = 3; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 2 * PI); x.stroke();
@@ -13022,13 +13043,14 @@ function makeAvatar3D(member) {
   g.add(mk(bodyGeo, OLM, 0, -0.005, 0, 1.05, 1.02, 0.739 * 1.07));
 
   // CHAN: cam THANG o DUOI GIUA THAN (±0.18, z 0.08), pivot (±0.18, 0.30, 0.08), treo -y toi y=0
-  const legGeo = capsule("leg", 0.115, 0.34, -0.3, false);
+  const legGeo = capsule("leg", 0.115, 0.42, -0.3, false);
   const mkLeg = sx => { const p = new THREE.Group(); p.position.set(sx * 0.18, 0.3, 0.08); p.add(mk(legGeo, pantsM, 0, 0, 0, 1, 1, 0.91)); g.add(p); return p; };
   const legL = mkLeg(-1), legR = mkLeg(1);
 
   // TAY: con nhong det, pivot vai (±0.49, 0.58, 0.02), buong xuong-ngoai ~7 do; R = +x
-  const armGeo = capsule("arm", 0.165, 0.56, -0.405, true);
-  const mkArm = sx => { const p = new THREE.Group(); p.position.set(sx * 0.49, 0.58, 0.02); const m = mk(armGeo, skinM, 0, 0, 0, 0.606, 1, 1); m.rotation.z = sx * 0.12; p.add(m); g.add(p); return p; };
+  const armGeoR = capsule("armR", 0.165, 0.56, -0.405, true, 0.15);
+  const armGeoL = capsule("armL", 0.165, 0.56, -0.405, true, -0.15);
+  const mkArm = sx => { const p = new THREE.Group(); p.position.set(sx * 0.49, 0.58, 0.02); const m = mk(sx > 0 ? armGeoR : armGeoL, skinM, 0, 0, 0, 0.606, 1, 1); m.rotation.z = sx * 0.16; p.add(m); g.add(p); return p; };
   const armL = mkArm(-1), armR = mkArm(1);
 
   // DUOI: pivot tai goc duoi (0, 0.20, -0.24)
@@ -13149,6 +13171,8 @@ function makeAvatar3D(member) {
   }
   mic.position.y = 2.52; mic.visible = false; g.add(mic);
 
+  // nang phan tren +0.06 (tru 2 pivot chan) cho chan cao them, bot lun
+  g.children.forEach(o => { if (o !== legL && o !== legR) o.position.y += 0.06; });
   g.userData.parts = { legL, legR, armL, armR, prop, tail };
   g.userData.nameSprite = ns;
   g.userData.micSprite = mic;
